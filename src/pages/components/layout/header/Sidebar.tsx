@@ -216,9 +216,6 @@ const Sidebar = ({
               mode="inline"
               items={menuItems}
               selectedKeys={[pathname]}
-              defaultOpenKeys={menuItems
-                .filter((m: any) => m?.children?.length)
-                .map((m: any) => m.key as string)}
               className="border-none bg-transparent font-medium"
             />
           </ConfigProvider>
