@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+/* Fluid Button Utility Class */
+.btn-fluid-primary {
+  @apply h-14 rounded-xl bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-base font-black uppercase tracking-widest shadow-lg shadow-green-500/30 border-none transition-all hover:-translate-y-0.5 !important;
+}
