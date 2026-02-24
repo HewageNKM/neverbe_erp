@@ -7,14 +7,32 @@ import { IconFilter, IconDownload } from "@tabler/icons-react";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 
+const SummaryCard = ({
+  title,
+  value,
+}: {
+  title: string;
+  value: string | number;
+}) => (
+  <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
+    <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
+    <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
+  </div>
+);
+
 const RefundsReturnsReport = () => {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [loading, setLoading] = useState(false);
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<{
+    totalOrders: number;
+    totalRefundAmount: number;
+    totalRestockedItems: number;
+    items: any[];
+  } | null>(null);
 
   const fetchReport = async (evt?: React.FormEvent) => {
-    evt.preventDefault();
+    if (evt) evt.preventDefault();
     setLoading(true);
     try {
       const res = await api.get("/api/v1/erp/reports/sales/refunds-returns", {
@@ -44,19 +62,6 @@ const RefundsReturnsReport = () => {
     XLSX.utils.book_append_sheet(wb, ws, "Refunds & Returns");
     XLSX.writeFile(wb, "refunds_returns.xlsx");
   };
-
-  const SummaryCard = ({
-    title,
-    value,
-  }: {
-    title: string;
-    value: string | number;
-  }) => (
-    <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
-      <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
-    </div>
-  );
 
   const columns: ColumnsType<any> = [
     {
@@ -137,7 +142,7 @@ const RefundsReturnsReport = () => {
                 onFinish={() => fetchReport()}
                 className="flex flex-wrap items-center gap-2"
               >
-                <Form.Item className="!mb-0">
+                <Form.Item className="mb-0!">
                   <div className="flex items-center gap-2">
                     <input
                       type="date"
@@ -156,7 +161,7 @@ const RefundsReturnsReport = () => {
                     />
                   </div>
                 </Form.Item>
-                <Form.Item className="!mb-0">
+                <Form.Item className="mb-0!">
                   <button
                     type="submit"
                     className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"

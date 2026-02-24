@@ -1,13 +1,8 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
-import { Card, Form, Spin, Table, Tag } from "antd";
+import { Card, Form, Spin, Table } from "antd";
 import React, { useState } from "react";
-import {
-  IconFilter,
-  IconDownload,
-  IconChevronLeft,
-  IconChevronRight,
-} from "@tabler/icons-react";
+import { IconFilter, IconDownload } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
@@ -17,9 +12,7 @@ const TopSellingProductsPage = () => {
   const [to, setTo] = useState("");
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [threshold, setThreshold] = useState("");
+  const [threshold] = useState("");
 
   const fetchReport = async (evt?: any) => {
     evt.preventDefault();
@@ -32,7 +25,6 @@ const TopSellingProductsPage = () => {
       const fetchedProducts: any[] = res.data.topProducts || [];
 
       setProducts(fetchedProducts);
-      setPage(0);
     } catch (e) {
       console.error(e);
       toast.error("Failed to fetch top products");
@@ -66,23 +58,96 @@ const TopSellingProductsPage = () => {
     );
   };
 
-  // Pagination Logic
-  const totalPages = Math.ceil(products.length / rowsPerPage);
-  const paginatedProducts = products.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
   const columns: ColumnsType<any> = [
-    {title: 'Product ID', key: 'productID', render: (_, p) => (<>{p.productId.toUpperCase()}</>) },
-    {title: 'Name', key: 'name', render: (_, p) => (<>{p.name}</>) },
-    {title: 'Variant', key: 'variant', render: (_, p) => (<>{p.variantName}</>) },
-    {title: 'Qty Sold', key: 'qtySold', align: 'right', render: (_, p) => (<>{p.totalQuantity}</>) },
-    {title: 'Sales', key: 'sales', render: (_, p) => (<>Rs {(p.totalSales || 0).toFixed(2)}</>) },
-    {title: 'Net Sales', key: 'netSales', render: (_, p) => (<>Rs {(p.totalNetSales || 0).toFixed(2)}</>) },
-    {title: 'COGS', key: 'cOGS', render: (_, p) => (<>Rs {(p.totalCOGS || 0).toFixed(2)}</>) },
-    {title: 'Profit', key: 'profit', render: (_, p) => (<>Rs {(p.totalGrossProfit || 0).toFixed(2)}</>) },
-    {title: 'Margin', key: 'margin', render: (_, p) => (<>{(p.grossProfitMargin || 0).toFixed(2)}%</>) },
-    {title: 'Discount', key: 'discount', render: (_, p) => (<>Rs {(p.totalDiscount || 0).toFixed(2)}</>) },
+    {
+      title: "Product ID",
+      key: "productID",
+      render: (_, p) => (
+        <span className="text-gray-400 font-medium">
+          {p.productId.toUpperCase()}
+        </span>
+      ),
+    },
+    {
+      title: "Name",
+      key: "name",
+      render: (_, p) => (
+        <span className="text-gray-900 font-medium">{p.name}</span>
+      ),
+    },
+    {
+      title: "Variant",
+      key: "variant",
+      render: (_, p) => <span className="text-gray-600">{p.variantName}</span>,
+    },
+    {
+      title: "Qty Sold",
+      key: "qtySold",
+      align: "right",
+      render: (_, p) => (
+        <span className="text-gray-900 font-medium">{p.totalQuantity}</span>
+      ),
+    },
+    {
+      title: "Sales",
+      key: "sales",
+      align: "right",
+      render: (_, p) => (
+        <span className="text-gray-900 font-medium">
+          Rs {(p.totalSales || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      title: "Net Sales",
+      key: "netSales",
+      align: "right",
+      render: (_, p) => (
+        <span className="text-gray-600">
+          Rs {(p.totalNetSales || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      title: "COGS",
+      key: "cOGS",
+      align: "right",
+      render: (_, p) => (
+        <span className="text-gray-600">
+          Rs {(p.totalCOGS || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      title: "Profit",
+      key: "profit",
+      align: "right",
+      render: (_, p) => (
+        <span className="text-green-600 font-medium">
+          Rs {(p.totalGrossProfit || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      title: "Margin",
+      key: "margin",
+      align: "right",
+      render: (_, p) => (
+        <span className="text-gray-600">
+          {(p.grossProfitMargin || 0).toFixed(2)}%
+        </span>
+      ),
+    },
+    {
+      title: "Discount",
+      key: "discount",
+      align: "right",
+      render: (_, p) => (
+        <span className="text-red-500">
+          Rs {(p.totalDiscount || 0).toFixed(2)}
+        </span>
+      ),
+    },
   ];
 
   return (
@@ -101,41 +166,41 @@ const TopSellingProductsPage = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                layout="inline"
+                onFinish={() => fetchReport()}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item className="mb-0!">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                    <span className="text-gray-400 font-medium">-</span>
+                    <input
+                      type="date"
+                      required
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                  </div>
+                </Form.Item>
+                <Form.Item className="mb-0!">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <IconFilter size={15} />
+                    Filter
+                  </button>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={exportExcel}
@@ -151,26 +216,22 @@ const TopSellingProductsPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
         {/* Content */}
         {!loading && (
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="overflow-x-auto">
-              <Table 
+          <Table
             columns={columns}
-            dataSource={paginatedProducts}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            dataSource={products}
+            rowKey={(r: any) => r.productId + r.variantName}
             pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+            scroll={{ x: "max-content" }}
           />
-            </div>
-
-            
-            )}
-          </div>
         )}
       </div>
     </PageContainer>

@@ -111,7 +111,7 @@ const SalesByPaymentMethod = () => {
                 onFinish={() => fetchReport()}
                 className="flex flex-wrap items-center gap-2"
               >
-                <Form.Item className="!mb-0">
+                <Form.Item className="mb-0!">
                   <div className="flex items-center gap-2">
                     <input
                       type="date"
@@ -130,7 +130,7 @@ const SalesByPaymentMethod = () => {
                     />
                   </div>
                 </Form.Item>
-                <Form.Item className="!mb-0">
+                <Form.Item className="mb-0!">
                   <button
                     type="submit"
                     className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"

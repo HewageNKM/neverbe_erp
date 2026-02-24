@@ -20,7 +20,6 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Legend,
 } from "recharts";
 
 const MAX_MONTHS_RANGE = 12;
@@ -75,6 +74,7 @@ const MonthlySummaryPage = () => {
 
   useEffect(() => {
     if (currentUser) fetchReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const handleExportExcel = () => {
@@ -209,7 +209,7 @@ const MonthlySummaryPage = () => {
                 onFinish={() => fetchReport()}
                 className="flex flex-wrap items-center gap-2"
               >
-                <Form.Item className="!mb-0">
+                <Form.Item className="mb-0!">
                   <div className="flex items-center gap-2">
                     <input
                       type="date"
@@ -228,7 +228,7 @@ const MonthlySummaryPage = () => {
                     />
                   </div>
                 </Form.Item>
-                <Form.Item className="!mb-0">
+                <Form.Item className="mb-0!">
                   <button
                     type="submit"
                     className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"

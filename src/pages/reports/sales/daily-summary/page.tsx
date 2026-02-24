@@ -6,8 +6,6 @@ import { IconFilter, IconDownload } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
-import { useAppSelector } from "@/lib/hooks";
-import { RootState } from "@/lib/store";
 
 // Recharts
 import {
@@ -20,7 +18,6 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Legend,
 } from "recharts";
 
 const MAX_RANGE_DAYS = 31;
@@ -30,8 +27,6 @@ const Page = () => {
   const [to, setTo] = useState(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<any>(null);
-
-  const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
   const fetchReport = async (evt?: React.FormEvent) => {
     if (evt) evt.preventDefault();
@@ -67,8 +62,9 @@ const Page = () => {
   };
 
   useEffect(() => {
-    if (currentUser) fetchReport();
-  }, [currentUser]);
+    fetchReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleExportExcel = () => {
     if (!summary?.daily || summary.daily.length === 0) return;
@@ -202,7 +198,7 @@ const Page = () => {
                 onFinish={() => fetchReport()}
                 className="flex flex-wrap items-center gap-2"
               >
-                <Form.Item className="!mb-0">
+                <Form.Item className="mb-0!">
                   <div className="flex items-center gap-2">
                     <input
                       type="date"
@@ -221,7 +217,7 @@ const Page = () => {
                     />
                   </div>
                 </Form.Item>
-                <Form.Item className="!mb-0">
+                <Form.Item className="mb-0!">
                   <button
                     type="submit"
                     className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
