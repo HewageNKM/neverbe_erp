@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import { Spin, Table, Tag } from "antd";
 import api from "@/lib/api";
 import React, { useState, useEffect, Suspense } from "react";
@@ -7,7 +7,8 @@ import {
   IconArrowLeft,
   IconLoader2,
   IconPackage,
-  IconShoppingCart} from "@tabler/icons-react";
+  IconShoppingCart,
+} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
@@ -24,7 +25,8 @@ const styles = {
   primaryBtn:
     "flex items-center justify-center px-6 py-4 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-lg shadow-sm hover:shadow-md disabled:opacity-50",
   secondaryBtn:
-    "flex items-center justify-center px-6 py-4 border border-gray-200 rounded-lg shadow-sm text-green-700 bg-green-50 hover:bg-green-100 text-xs font-bold   hover:bg-gray-50 transition-all rounded-lg disabled:opacity-50"};
+    "flex items-center justify-center px-6 py-4 border border-gray-200 rounded-lg shadow-sm text-green-700 bg-green-50 hover:bg-green-100 text-xs font-bold   hover:bg-gray-50 transition-all rounded-lg disabled:opacity-50",
+};
 
 interface POItem {
   productId: string;
@@ -81,7 +83,8 @@ const NewGRNPageContent = () => {
 
   // Default fields
   const [receivedDate, setReceivedDate] = useState(
-    new Date().toISOString().split("T")[0]);
+    new Date().toISOString().split("T")[0],
+  );
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<GRNItemInput[]>([]);
 
@@ -92,7 +95,8 @@ const NewGRNPageContent = () => {
     try {
       const [posRes, stocksRes] = await Promise.all([
         api.get<PurchaseOrder[]>(
-          "/api/v1/erp/procurement/purchase-orders?pending=true"),
+          "/api/v1/erp/procurement/purchase-orders?pending=true",
+        ),
         api.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown"),
       ]);
       setPendingPOs(posRes.data);
@@ -132,7 +136,8 @@ const NewGRNPageContent = () => {
       previouslyReceived: item.receivedQuantity || 0,
       receivedQuantity: item.quantity - (item.receivedQuantity || 0), // Default to remaining qty
       unitCost: item.unitCost,
-      stockId: defaultStockId}));
+      stockId: defaultStockId,
+    }));
 
     setItems(grnItems);
   };
@@ -155,18 +160,23 @@ const NewGRNPageContent = () => {
 
     setItems(
       items.map((item, i) =>
-        i === index ? { ...item, receivedQuantity: qty } : item));
+        i === index ? { ...item, receivedQuantity: qty } : item,
+      ),
+    );
   };
 
   const handleStockChange = (index: number, value: string) => {
     setItems(
       items.map((item, i) =>
-        i === index ? { ...item, stockId: value } : item));
+        i === index ? { ...item, stockId: value } : item,
+      ),
+    );
   };
 
   const totalAmount = items.reduce(
     (sum, item) => sum + item.receivedQuantity * item.unitCost,
-    0);
+    0,
+  );
 
   const handleSave = async () => {
     if (!selectedPO) {
@@ -182,8 +192,7 @@ const NewGRNPageContent = () => {
 
     for (const item of validItems) {
       if (!item.stockId) {
-        toast.success(
-          `Please select stock location for ${item.productName}`);
+        toast.success(`Please select stock location for ${item.productName}`);
         return;
       }
     }
@@ -195,26 +204,26 @@ const NewGRNPageContent = () => {
       onSuccess: async () => {
         setSaving(true);
         try {
-          await api.post(
-            "/api/v1/erp/inventory/grn",
-            {
-              purchaseOrderId: selectedPO.id,
-              poNumber: selectedPO.poNumber,
-              supplierId: selectedPO.supplierId,
-              supplierName: selectedPO.supplierName,
-              receivedDate,
-              notes,
-              items: validItems.map((item) => ({
-                productId: item.productId,
-                productName: item.productName,
-                variantId: item.variantId,
-                variantName: item.variantName,
-                size: item.size,
-                orderedQuantity: item.orderedQuantity,
-                receivedQuantity: item.receivedQuantity,
-                unitCost: item.unitCost,
-                totalCost: item.receivedQuantity * item.unitCost,
-                stockId: item.stockId}))});
+          await api.post("/api/v1/erp/inventory/grn", {
+            purchaseOrderId: selectedPO.id,
+            poNumber: selectedPO.poNumber,
+            supplierId: selectedPO.supplierId,
+            supplierName: selectedPO.supplierName,
+            receivedDate,
+            notes,
+            items: validItems.map((item) => ({
+              productId: item.productId,
+              productName: item.productName,
+              variantId: item.variantId,
+              variantName: item.variantName,
+              size: item.size,
+              orderedQuantity: item.orderedQuantity,
+              receivedQuantity: item.receivedQuantity,
+              unitCost: item.unitCost,
+              totalCost: item.receivedQuantity * item.unitCost,
+              stockId: item.stockId,
+            })),
+          });
 
           toast("GRN CREATED SUCCESSFULLY");
           navigate("/inventory/grn");
@@ -224,57 +233,17 @@ const NewGRNPageContent = () => {
         } finally {
           setSaving(false);
         }
-      }});
+      },
+    });
   };
 
   if (loading) {
-  const columns: ColumnsType<any> = [
-    {title: 'Product', key: 'product', render: (_, item) => (<>{item.productName}</>) },
-    {title: 'Variant', key: 'variant', render: (_, item) => (<>{item.variantName || "-"}</>) },
-    {title: 'Size', key: 'size', align: 'center', render: (_, item) => (<>{item.size}</>) },
-    {title: 'Ordered', key: 'ordered', align: 'right', render: (_, item) => (<>{item.orderedQuantity}</>) },
-    {title: 'Prev', key: 'prev', align: 'right', render: (_, item) => (<>{item.previouslyReceived}</>) },
-    {title: 'Receiving', key: 'receiving', render: (_, item) => (<><div className="flex items-center justify-center">
-                            <input
-                              type="number"
-                              min={0}
-                              max={remaining}
-                              value={item.receivedQuantity}
-                              onChange={(e) =>
-                                handleQuantityChange(
-                                  idx,
-                                  Number(e.target.value))
-                              }
-                              className="w-24 bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-3 py-2 text-center font-bold outline-none transition-colors rounded-lg"
-                            />
-                            <span className="ml-2 text-xs text-gray-400 font-bold">
-                              / {remaining}
-                            </span>
-                          </div></>) },
-    {title: 'Location', key: 'location', render: (_, item) => (<><select
-                            value={item.stockId}
-                            onChange={(e) =>
-                              handleStockChange(idx, e.target.value)
-                            }
-                            className="w-full bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-2 py-2 text-xs font-medium outline-none transition-colors rounded-lg "
-                          >
-                            <option value="">Select</option>
-                            {stocks.map((s) => (
-                              <option key={s.id} value={s.id}>
-                                {s.label}
-                              </option>
-                            ))}
-                          </select></>) },
-    {title: 'Total', key: 'total', render: (_, item) => (<>Rs{" "}
-                          {(
-                            item.receivedQuantity * item.unitCost
-                          ).toLocaleString()}</>) },
-  ];
-
-  return (
-    <PageContainer title="New GRN">
+    return (
+      <PageContainer title="New GRN">
         <div className="flex flex-col items-center justify-center py-40">
-          <div className="flex justify-center py-12"><Spin size="large" /></div>
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
           <span className="text-xs font-bold   text-gray-400 mt-4">
             Loading Pending Orders
           </span>
@@ -282,6 +251,86 @@ const NewGRNPageContent = () => {
       </PageContainer>
     );
   }
+
+  const columns: ColumnsType<GRNItemInput> = [
+    {
+      title: "Product",
+      key: "product",
+      render: (_, item) => <>{item.productName}</>,
+    },
+    {
+      title: "Variant",
+      key: "variant",
+      render: (_, item) => <>{item.variantName || "-"}</>,
+    },
+    {
+      title: "Size",
+      key: "size",
+      align: "center",
+      render: (_, item) => <>{item.size}</>,
+    },
+    {
+      title: "Ordered",
+      key: "ordered",
+      align: "right",
+      render: (_, item) => <>{item.orderedQuantity}</>,
+    },
+    {
+      title: "Prev",
+      key: "prev",
+      align: "right",
+      render: (_, item) => <>{item.previouslyReceived}</>,
+    },
+    {
+      title: "Receiving",
+      key: "receiving",
+      render: (_, item, index) => {
+        const remaining = item.orderedQuantity - item.previouslyReceived;
+        return (
+          <div className="flex items-center justify-center">
+            <input
+              type="number"
+              min={0}
+              max={remaining}
+              value={item.receivedQuantity}
+              onChange={(e) =>
+                handleQuantityChange(index, Number(e.target.value))
+              }
+              className="w-24 bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-3 py-2 text-center font-bold outline-none transition-colors rounded-lg"
+            />
+            <span className="ml-2 text-xs text-gray-400 font-bold">
+              / {remaining}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      title: "Location",
+      key: "location",
+      render: (_, item, index) => (
+        <select
+          value={item.stockId}
+          onChange={(e) => handleStockChange(index, e.target.value)}
+          className="w-full bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-2 py-2 text-xs font-medium outline-none transition-colors rounded-lg "
+        >
+          <option value="">Select</option>
+          {stocks.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      ),
+    },
+    {
+      title: "Total",
+      key: "total",
+      render: (_, item) => (
+        <>Rs {(item.receivedQuantity * item.unitCost).toLocaleString()}</>
+      ),
+    },
+  ];
 
   return (
     <PageContainer title="New GRN">
@@ -359,13 +408,15 @@ const NewGRNPageContent = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <Table 
-            columns={columns}
-            dataSource={items}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-          />
+              <Table
+                columns={columns}
+                dataSource={items}
+                rowKey={(r: any) =>
+                  r.id || r.date || r.month || Math.random().toString()
+                }
+                pagination={{ pageSize: 15 }}
+                className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+              />
             </div>
           </div>
         )}
@@ -398,7 +449,9 @@ const NewGRNPage = () => {
       fallback={
         <PageContainer title="New GRN">
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         </PageContainer>
       }

@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import { Spin, Table, Tag } from "antd";
 import api from "@/lib/api";
 
@@ -80,7 +80,7 @@ const ViewAdjustmentPage = () => {
     setLoading(true);
     try {
       const res = await api.get<Adjustment>(
-        `/api/v1/erp/inventory/adjustments/${adjustmentId}`
+        `/api/v1/erp/inventory/adjustments/${adjustmentId}`,
       );
       setAdjustment(res.data);
     } catch (error) {
@@ -105,13 +105,13 @@ const ViewAdjustmentPage = () => {
         status === "APPROVED"
           ? "Approve"
           : status === "REJECTED"
-          ? "Reject"
-          : "Confirm",
+            ? "Reject"
+            : "Confirm",
       onSuccess: async () => {
         try {
           await api.put(
             `/api/v1/erp/inventory/adjustments/${adjustmentId}/status`,
-            { status }
+            { status },
           );
           toast.success(`Adjustment ${status.toLowerCase()}`);
           fetchAdjustment(); // Refresh data
@@ -128,36 +128,12 @@ const ViewAdjustmentPage = () => {
   }, [currentUser, adjustmentId]);
 
   if (loading) {
-  const columns: ColumnsType<any> = [
-    {title: 'Product', key: 'product', render: (_, item) => (<>{item.productName}
-                      {item.variantName && (
-                        <span className="block text-xs text-gray-500 font-normal">
-                          {item.variantName}
-                        </span>
-                      )}</>) },
-    {title: 'Size', key: 'size', render: (_, item) => (<>{item.size}</>) },
-    {title: 'Quantity', key: 'quantity', render: (_, item) => (<><span
-                        className={`font-bold ${
-                          adjustment.type === "add" ||
-                          adjustment.type === "return"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {adjustment.type === "add" ||
-                        adjustment.type === "return"
-                          ? "+"
-                          : "-"}
-                        {item.quantity}
-                      </span></>) },
-    {title: 'Stock', key: 'stock', render: (_, item) => (<>{item.stockName || item.stockId}</>) },
-    {title: 'Destination', key: 'destination', render: (_, item) => (<>{item.destinationStockName || item.destinationStockId}</>) },
-  ];
-
-  return (
-    <PageContainer title="Adjustment">
+    return (
+      <PageContainer title="Adjustment">
         <div className="flex justify-center py-20">
-          <div className="flex justify-center py-12"><Spin size="large" /></div>
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
         </div>
       </PageContainer>
     );
@@ -172,6 +148,56 @@ const ViewAdjustmentPage = () => {
       </PageContainer>
     );
   }
+
+  const columns: ColumnsType<AdjustmentItem> = [
+    {
+      title: "Product",
+      key: "product",
+      render: (_, item) => (
+        <>
+          {item.productName}
+          {item.variantName && (
+            <span className="block text-xs text-gray-500 font-normal">
+              {item.variantName}
+            </span>
+          )}
+        </>
+      ),
+    },
+    { title: "Size", key: "size", render: (_, item) => <>{item.size}</> },
+    {
+      title: "Quantity",
+      key: "quantity",
+      render: (_, item) => (
+        <>
+          <span
+            className={`font-bold ${
+              adjustment.type === "add" || adjustment.type === "return"
+                ? "text-green-600"
+                : "text-red-600"
+            }`}
+          >
+            {adjustment.type === "add" || adjustment.type === "return"
+              ? "+"
+              : "-"}
+            {item.quantity}
+          </span>
+        </>
+      ),
+    },
+    {
+      title: "Stock",
+      key: "stock",
+      render: (_, item) => <>{item.stockName || item.stockId}</>,
+    },
+    {
+      title: "Destination",
+      key: "destination",
+      render: (_, item) => (
+        <>{item.destinationStockName || item.destinationStockId}</>
+      ),
+    },
+  ];
 
   return (
     <PageContainer title={adjustment.adjustmentNumber}>
@@ -242,15 +268,11 @@ const ViewAdjustmentPage = () => {
               </p>
             </div>
             <div>
-              <p className="text-xs font-bold  text-gray-500">
-                Reason
-              </p>
+              <p className="text-xs font-bold  text-gray-500">Reason</p>
               <p className="font-medium text-gray-900">{adjustment.reason}</p>
             </div>
             <div>
-              <p className="text-xs font-bold  text-gray-500">
-                Total Items
-              </p>
+              <p className="text-xs font-bold  text-gray-500">Total Items</p>
               <p className="font-bold text-gray-900 text-lg">
                 {adjustment.items?.length || 0}
               </p>
@@ -274,14 +296,16 @@ const ViewAdjustmentPage = () => {
 
           {/* Desktop Table */}
           <div className="hidden md:block overflow-x-auto">
-            <Table 
-            columns={columns}
-            dataSource={adjustment.itemsmap}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-            scroll={{ x: 'max-content' }}
-          />
+            <Table
+              columns={columns}
+              dataSource={adjustment.items}
+              rowKey={(r: any) =>
+                r.id || r.date || r.month || Math.random().toString()
+              }
+              pagination={{ pageSize: 15 }}
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+              scroll={{ x: "max-content" }}
+            />
           </div>
 
           {/* Mobile Cards */}

@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import { Spin, Table, Tag } from "antd";
 import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
@@ -81,12 +81,10 @@ const ViewPurchaseOrderPage = () => {
       onSuccess: async () => {
         setUpdating(true);
         try {
-          await api.put(
-            `/api/v1/erp/procurement/purchase-orders/${poId}`,
-            { status },
-          );
-          toast.error(
-            `Order ${status === "sent" ? "Sent" : "Cancelled"}`);
+          await api.put(`/api/v1/erp/procurement/purchase-orders/${poId}`, {
+            status,
+          });
+          toast.error(`Order ${status === "sent" ? "Sent" : "Cancelled"}`);
           fetchPO();
         } catch (error) {
           console.error(error);
@@ -99,30 +97,12 @@ const ViewPurchaseOrderPage = () => {
   };
 
   if (loading) {
-  const columns: ColumnsType<any> = [
-    {title: 'Product', key: 'product', render: (_, item) => (<>{item.productName}</>) },
-    {title: 'Variant', key: 'variant', render: (_, item) => (<>{item.variantName || "-"}</>) },
-    {title: 'Size', key: 'size', align: 'center', render: (_, item) => (<>{item.size}</>) },
-    {title: 'Ordered', key: 'ordered', align: 'center', render: (_, item) => (<>{item.quantity}</>) },
-    {title: 'Received', key: 'received', render: (_, item) => (<><span
-                        className={`inline-block px-2 py-0.5 text-xs font-bold rounded-full ${
-                          (item.receivedQuantity || 0) >= item.quantity
-                            ? "bg-green-100 text-green-700"
-                            : (item.receivedQuantity || 0) > 0
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-100 text-gray-400"
-                        }`}
-                      >
-                        {item.receivedQuantity || 0}
-                      </span></>) },
-    {title: 'Unit Cost', key: 'unitCost', align: 'right', render: (_, item) => (<>Rs {item.unitCost}</>) },
-    {title: 'Total', key: 'total', render: (_, item) => (<>Rs {item.totalCost.toLocaleString()}</>) },
-  ];
-
-  return (
-    <PageContainer title="Purchase Order">
+    return (
+      <PageContainer title="Purchase Order">
         <div className="flex flex-col items-center justify-center py-40">
-          <div className="flex justify-center py-12"><Spin size="large" /></div>
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
           <span className="text-xs font-bold   text-gray-400 mt-4">
             Loading Order Details
           </span>
@@ -143,6 +123,61 @@ const ViewPurchaseOrderPage = () => {
       </PageContainer>
     );
   }
+
+  const columns: ColumnsType<any> = [
+    {
+      title: "Product",
+      key: "product",
+      render: (_, item) => <>{item.productName}</>,
+    },
+    {
+      title: "Variant",
+      key: "variant",
+      render: (_, item) => <>{item.variantName || "-"}</>,
+    },
+    {
+      title: "Size",
+      key: "size",
+      align: "center",
+      render: (_, item) => <>{item.size}</>,
+    },
+    {
+      title: "Ordered",
+      key: "ordered",
+      align: "center",
+      render: (_, item) => <>{item.quantity}</>,
+    },
+    {
+      title: "Received",
+      key: "received",
+      render: (_, item) => (
+        <>
+          <span
+            className={`inline-block px-2 py-0.5 text-xs font-bold rounded-full ${
+              (item.receivedQuantity || 0) >= item.quantity
+                ? "bg-green-100 text-green-700"
+                : (item.receivedQuantity || 0) > 0
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-gray-100 text-gray-400"
+            }`}
+          >
+            {item.receivedQuantity || 0}
+          </span>
+        </>
+      ),
+    },
+    {
+      title: "Unit Cost",
+      key: "unitCost",
+      align: "right",
+      render: (_, item) => <>Rs {item.unitCost}</>,
+    },
+    {
+      title: "Total",
+      key: "total",
+      render: (_, item) => <>Rs {item.totalCost.toLocaleString()}</>,
+    },
+  ];
 
   return (
     <PageContainer title={po.poNumber}>
@@ -220,13 +255,15 @@ const ViewPurchaseOrderPage = () => {
             </span>
           </div>
           <div className="overflow-x-auto">
-            <Table 
-            columns={columns}
-            dataSource={po.items}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-          />
+            <Table
+              columns={columns}
+              dataSource={po.items}
+              rowKey={(r: any) =>
+                r.id || r.date || r.month || Math.random().toString()
+              }
+              pagination={{ pageSize: 15 }}
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            />
           </div>
         </div>
 

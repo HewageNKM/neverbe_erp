@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import { Spin, Table, Tag } from "antd";
 import api from "@/lib/api";
 
@@ -66,19 +66,12 @@ const ViewGRNPage = () => {
   }, [currentUser, grnId]);
 
   if (loading) {
-  const columns: ColumnsType<any> = [
-    {title: 'Product', key: 'product', render: (_, item) => (<>{item.productName}</>) },
-    {title: 'Size', key: 'size', render: (_, item) => (<>{item.size}</>) },
-    {title: 'Ordered', key: 'ordered', align: 'right', render: (_, item) => (<>{item.orderedQuantity}</>) },
-    {title: 'Received', key: 'received', align: 'right', render: (_, item) => (<>{item.receivedQuantity}</>) },
-    {title: 'Unit Cost', key: 'unitCost', align: 'right', render: (_, item) => (<>Rs {item.unitCost}</>) },
-    {title: 'Total', key: 'total', render: (_, item) => (<>Rs {item.totalCost.toLocaleString()}</>) },
-  ];
-
-  return (
-    <PageContainer title="GRN">
+    return (
+      <PageContainer title="GRN">
         <div className="flex justify-center py-20">
-          <div className="flex justify-center py-12"><Spin size="large" /></div>
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
         </div>
       </PageContainer>
     );
@@ -91,6 +84,38 @@ const ViewGRNPage = () => {
       </PageContainer>
     );
   }
+
+  const columns: ColumnsType<GRNItem> = [
+    {
+      title: "Product",
+      key: "product",
+      render: (_, item) => <>{item.productName}</>,
+    },
+    { title: "Size", key: "size", render: (_, item) => <>{item.size}</> },
+    {
+      title: "Ordered",
+      key: "ordered",
+      align: "right",
+      render: (_, item) => <>{item.orderedQuantity}</>,
+    },
+    {
+      title: "Received",
+      key: "received",
+      align: "right",
+      render: (_, item) => <>{item.receivedQuantity}</>,
+    },
+    {
+      title: "Unit Cost",
+      key: "unitCost",
+      align: "right",
+      render: (_, item) => <>Rs {item.unitCost}</>,
+    },
+    {
+      title: "Total",
+      key: "total",
+      render: (_, item) => <>Rs {item.totalCost.toLocaleString()}</>,
+    },
+  ];
 
   return (
     <PageContainer title={grn.grnNumber}>
@@ -125,29 +150,21 @@ const ViewGRNPage = () => {
         <div className="bg-white border border-gray-200 p-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs font-bold  text-gray-500">
-                Supplier
-              </p>
+              <p className="text-xs font-bold  text-gray-500">Supplier</p>
               <p className="font-medium text-gray-900">{grn.supplierName}</p>
             </div>
             <div>
-              <p className="text-xs font-bold  text-gray-500">
-                PO Number
-              </p>
+              <p className="text-xs font-bold  text-gray-500">PO Number</p>
               <p className="font-mono font-medium text-gray-900">
                 {grn.poNumber}
               </p>
             </div>
             <div>
-              <p className="text-xs font-bold  text-gray-500">
-                Received Date
-              </p>
+              <p className="text-xs font-bold  text-gray-500">Received Date</p>
               <p className="font-medium text-gray-900">{grn.receivedDate}</p>
             </div>
             <div>
-              <p className="text-xs font-bold  text-gray-500">
-                Total Value
-              </p>
+              <p className="text-xs font-bold  text-gray-500">Total Value</p>
               <p className="font-bold text-gray-900 text-lg">
                 Rs {grn.totalAmount.toLocaleString()}
               </p>
@@ -169,13 +186,15 @@ const ViewGRNPage = () => {
             </h3>
           </div>
           <div className="overflow-x-auto">
-            <Table 
-            columns={columns}
-            dataSource={grn.items}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-          />
+            <Table
+              columns={columns}
+              dataSource={grn.items}
+              rowKey={(r: any) =>
+                r.id || r.date || r.month || Math.random().toString()
+              }
+              pagination={{ pageSize: 15 }}
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            />
           </div>
         </div>
       </div>

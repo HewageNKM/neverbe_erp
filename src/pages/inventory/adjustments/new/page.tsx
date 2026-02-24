@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import { Spin, Button, Table, Tag } from "antd";
 import api from "@/lib/api";
 
@@ -10,7 +10,8 @@ import {
   IconPlus,
   IconTrash,
   IconAdjustments,
-  IconChevronDown} from "@tabler/icons-react";
+  IconChevronDown,
+} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
@@ -80,7 +81,6 @@ const NewAdjustmentPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-
       const [productsRes, stocksRes] = await Promise.all([
         api.get<Product[]>("/api/v1/erp/catalog/products/dropdown"),
         api.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown"),
@@ -136,8 +136,10 @@ const NewAdjustmentPage = () => {
       ...(type === "transfer" && destStock
         ? {
             destinationStockId: destStock.id,
-            destinationStockName: destStock.label}
-        : {})};
+            destinationStockName: destStock.label,
+          }
+        : {}),
+    };
 
     setItems([...items, newItem]);
     setSelectedProduct("");
@@ -162,14 +164,17 @@ const NewAdjustmentPage = () => {
 
     setSaving(true);
     try {
-
-      await api.post(
-        "/api/v1/erp/inventory/adjustments",
-        { type, reason, notes, items, status }
-      );
+      await api.post("/api/v1/erp/inventory/adjustments", {
+        type,
+        reason,
+        notes,
+        items,
+        status,
+      });
 
       toast.error(
-        `Adjustment ${status === "DRAFT" ? "saved as draft" : "submitted"}`);
+        `Adjustment ${status === "DRAFT" ? "saved as draft" : "submitted"}`,
+      );
       navigate("/inventory/adjustments");
     } catch (error) {
       console.error(error);
@@ -204,34 +209,70 @@ const NewAdjustmentPage = () => {
   const availableSizes = getAvailableSizes();
 
   if (loading) {
-  const columns: ColumnsType<any> = [
-    {title: 'Product', key: 'product', render: (_, item) => (<>{item.productName}
-                        {item.variantName && (
-                          <span className="block text-xs text-gray-500 font-normal">
-                            {item.variantName}
-                          </span>
-                        )}</>) },
-    {title: 'Size', key: 'size', render: (_, item) => (<>{item.size}</>) },
-    {title: 'Qty', key: 'qty', render: (_, item) => (<>{type === "add" || type === "return" ? "+" : "-"}
-                        {item.quantity}</>) },
-    {title: 'Stock', key: 'stock', align: 'right', render: (_, item) => (<>{item.stockName}</>) },
-    {title: 'Destination', key: 'destination', align: 'right', render: (_, item) => (<>{item.destinationStockName}</>) },
-    {title: '', key: 'col5', render: (_, item) => (<><button
-                          onClick={() => handleRemoveItem(idx)}
-                          className="p-1 text-red-600 hover:bg-red-50"
-                        >
-                          <IconTrash size={14} />
-                        </button></>) },
-  ];
-
-  return (
-    <PageContainer title="New Adjustment">
+    return (
+      <PageContainer title="New Adjustment">
         <div className="flex justify-center py-20">
-          <div className="flex justify-center py-12"><Spin size="large" /></div>
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
         </div>
       </PageContainer>
     );
   }
+
+  const columns: ColumnsType<AdjustmentItem> = [
+    {
+      title: "Product",
+      key: "product",
+      render: (_, item) => (
+        <>
+          {item.productName}
+          {item.variantName && (
+            <span className="block text-xs text-gray-500 font-normal">
+              {item.variantName}
+            </span>
+          )}
+        </>
+      ),
+    },
+    { title: "Size", key: "size", render: (_, item) => <>{item.size}</> },
+    {
+      title: "Qty",
+      key: "qty",
+      render: (_, item) => (
+        <>
+          {type === "add" || type === "return" ? "+" : "-"}
+          {item.quantity}
+        </>
+      ),
+    },
+    {
+      title: "Stock",
+      key: "stock",
+      align: "right",
+      render: (_, item) => <>{item.stockName}</>,
+    },
+    {
+      title: "Destination",
+      key: "destination",
+      align: "right",
+      render: (_, item) => <>{item.destinationStockName}</>,
+    },
+    {
+      title: "",
+      key: "action",
+      render: (_, __, index) => (
+        <>
+          <button
+            onClick={() => handleRemoveItem(index)}
+            className="p-1 text-red-600 hover:bg-red-50"
+          >
+            <IconTrash size={14} />
+          </button>
+        </>
+      ),
+    },
+  ];
 
   return (
     <PageContainer title="New Adjustment">
@@ -497,7 +538,9 @@ const NewAdjustmentPage = () => {
               </div>
             )}
             <div className={type === "transfer" ? "md:col-span-6" : ""}>
-              <Button type="primary" size="large" onClick={handleAddItem}>Add</Button>
+              <Button type="primary" size="large" onClick={handleAddItem}>
+                Add
+              </Button>
             </div>
           </div>
         </div>
@@ -507,13 +550,15 @@ const NewAdjustmentPage = () => {
           <div className="bg-white border border-gray-200 overflow-hidden">
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
-              <Table 
-            columns={columns}
-            dataSource={items}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-          />
+              <Table
+                columns={columns}
+                dataSource={items}
+                rowKey={(r: any) =>
+                  r.id || r.date || r.month || Math.random().toString()
+                }
+                pagination={{ pageSize: 15 }}
+                className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+              />
             </div>
             {/* Mobile Cards */}
             <div className="md:hidden divide-y divide-gray-100">
@@ -574,11 +619,7 @@ const NewAdjustmentPage = () => {
             disabled={saving}
             className="w-full md:w-auto px-6 md:px-8 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            {saving ? (
-              <Spin size="small" />
-            ) : (
-              <IconAdjustments size={14} />
-            )}
+            {saving ? <Spin size="small" /> : <IconAdjustments size={14} />}
             Submit Adjustment
           </button>
         </div>
