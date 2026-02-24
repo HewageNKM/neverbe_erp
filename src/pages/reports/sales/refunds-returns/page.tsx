@@ -1,6 +1,7 @@
 import api from "@/lib/api";
 
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import React, { useState } from "react";
 import { IconFilter, IconDownload } from "@tabler/icons-react";
 import * as XLSX from "xlsx";
@@ -52,12 +53,68 @@ const RefundsReturnsReport = () => {
     value: string | number;
   }) => (
     <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">
-        {title}
-      </p>
+      <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
       <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
     </div>
   );
+
+  const columns: ColumnsType<any> = [
+    {
+      title: "Order ID",
+      dataIndex: "orderId",
+      key: "orderId",
+      render: (text) => (
+        <span className="font-medium text-gray-900">{text}</span>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <span
+          className={`px-2 py-1 text-xs font-bold  rounded-lg ${
+            status === "Refunded"
+              ? "bg-red-50 text-red-700"
+              : status === "Returned"
+                ? "bg-orange-50 text-orange-700"
+                : "bg-gray-100 text-gray-700"
+          }`}
+        >
+          {status}
+        </span>
+      ),
+    },
+    {
+      title: "Refund Amount",
+      dataIndex: "refundAmount",
+      key: "refundAmount",
+      align: "right",
+      render: (val) => (
+        <span className="font-medium text-red-600">Rs {val}</span>
+      ),
+    },
+    {
+      title: "Restocked",
+      dataIndex: "restocked",
+      key: "restocked",
+      render: (val) => (
+        <span className="text-gray-600">{val ? "Yes" : "No"}</span>
+      ),
+    },
+    {
+      title: "Restocked At",
+      dataIndex: "restockedAt",
+      key: "restockedAt",
+      render: (val) => <span className="text-gray-600">{val || "-"}</span>,
+    },
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+  ];
 
   return (
     <PageContainer title="Refunds & Returns">
@@ -75,41 +132,41 @@ const RefundsReturnsReport = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                layout="inline"
+                onFinish={() => fetchReport()}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item className="!mb-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                    <span className="text-gray-400 font-medium">-</span>
+                    <input
+                      type="date"
+                      required
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                  </div>
+                </Form.Item>
+                <Form.Item className="!mb-0">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <IconFilter size={15} />
+                    Filter
+                  </button>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={exportExcel}
@@ -125,7 +182,9 @@ const RefundsReturnsReport = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
@@ -149,82 +208,14 @@ const RefundsReturnsReport = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 font-bold ">
-                        Order ID
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Refund Amount
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Restocked
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Restocked At
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Created At
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {report.items?.length > 0 ? (
-                      report.items.map((o: any, i: number) => (
-                        <tr
-                          key={i}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="px-6 py-4 font-medium text-gray-900">
-                            {o.orderId}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`px-2 py-1 text-xs font-bold  rounded-lg ${
-                                o.status === "Refunded"
-                                  ? "bg-red-50 text-red-700"
-                                  : o.status === "Returned"
-                                  ? "bg-orange-50 text-orange-700"
-                                  : "bg-gray-100 text-gray-700"
-                              }`}
-                            >
-                              {o.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right font-medium text-red-600">
-                            Rs {o.refundAmount}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600">
-                            {o.restocked ? "Yes" : "No"}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600">
-                            {o.restockedAt || "-"}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600">
-                            {o.createdAt}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="px-6 py-12 text-center text-gray-400 text-sm italic"
-                        >
-                          No records found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <Table
+              columns={columns}
+              dataSource={report.items || []}
+              rowKey={(record, index) => index as number}
+              pagination={{ pageSize: 15 }}
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+              scroll={{ x: "max-content" }}
+            />
           </div>
         )}
       </div>

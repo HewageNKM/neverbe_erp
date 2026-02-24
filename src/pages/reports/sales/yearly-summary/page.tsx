@@ -1,5 +1,6 @@
 import api from "@/lib/api";
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import React, { useState } from "react";
 import { IconFilter, IconDownload } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
@@ -94,12 +95,101 @@ const Page = () => {
     value: string | number;
   }) => (
     <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">
-        {title}
-      </p>
+      <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
       <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
     </div>
   );
+
+  const dataSource = (summary?.yearly || []).map((y: any) => ({
+    ...y,
+    key: `year-${y.year}`,
+    isYear: true,
+    children: y.monthly
+      ? y.monthly.map((m: any) => ({
+          ...m,
+          key: `month-${y.year}-${m.month}`,
+          isYear: false,
+        }))
+      : undefined,
+  }));
+
+  const columns: ColumnsType<any> = [
+    {
+      title: "Year/Month",
+      dataIndex: "period",
+      key: "period",
+      render: (_, record) => (
+        <span
+          className={`font-medium ${record.isYear ? "text-gray-900" : "text-gray-600 pl-4"}`}
+        >
+          {record.isYear ? `${record.year} (Total)` : record.month}
+        </span>
+      ),
+    },
+    {
+      title: "Orders",
+      dataIndex: "orders",
+      key: "orders",
+      align: "right",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+    {
+      title: "Sales",
+      dataIndex: "sales",
+      key: "sales",
+      align: "right",
+      render: (val) => (
+        <span className="font-medium text-gray-900">
+          Rs {(val || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      title: "Net Sales",
+      dataIndex: "netSales",
+      key: "netSales",
+      align: "right",
+      render: (val) => (
+        <span className="text-gray-600">Rs {(val || 0).toFixed(2)}</span>
+      ),
+    },
+    {
+      title: "COGS",
+      dataIndex: "cogs",
+      key: "cogs",
+      align: "right",
+      render: (val) => (
+        <span className="text-gray-600">Rs {(val || 0).toFixed(2)}</span>
+      ),
+    },
+    {
+      title: "Profit",
+      dataIndex: "grossProfit",
+      key: "grossProfit",
+      align: "right",
+      render: (val) => (
+        <span className="font-medium text-green-600">
+          Rs {(val || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      title: "Items",
+      dataIndex: "itemsSold",
+      key: "itemsSold",
+      align: "right",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+    {
+      title: "Shipping",
+      dataIndex: "shipping",
+      key: "shipping",
+      align: "right",
+      render: (val) => (
+        <span className="text-gray-600">Rs {(val || 0).toFixed(2)}</span>
+      ),
+    },
+  ];
 
   return (
     <PageContainer
@@ -120,41 +210,41 @@ const Page = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                layout="inline"
+                onFinish={() => fetchReport()}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item className="!mb-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                    <span className="text-gray-400 font-medium">-</span>
+                    <input
+                      type="date"
+                      required
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                  </div>
+                </Form.Item>
+                <Form.Item className="!mb-0">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <IconFilter size={15} />
+                    Filter
+                  </button>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={handleExportExcel}
@@ -170,7 +260,9 @@ const Page = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
@@ -363,109 +455,16 @@ const Page = () => {
             )}
 
             {/* Yearly & Monthly Table */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 font-bold ">
-                        Year/Month
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Orders
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Sales
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Net Sales
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        COGS
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Profit
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Items
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Shipping
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {summary.yearly?.map((y: any) => (
-                      <React.Fragment key={y.year}>
-                        {/* Summary Row for Year */}
-                        <tr className="bg-gray-100 font-bold text-gray-900 border-b border-gray-200">
-                          <td className="px-6 py-4">{y.year} (Total)</td>
-                          <td className="px-6 py-4 text-right">{y.orders}</td>
-                          <td className="px-6 py-4 text-right">
-                            Rs {y.sales.toFixed(2)}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            Rs {y.netSales.toFixed(2)}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            Rs {(y.cogs || 0).toFixed(2)}
-                          </td>
-                          <td className="px-6 py-4 text-right text-green-700">
-                            Rs {(y.grossProfit || 0).toFixed(2)}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            {y.itemsSold}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            Rs {y.shipping.toFixed(2)}
-                          </td>
-                        </tr>
-                        {/* Detailed Rows for Months */}
-                        {y.monthly.map((m: any) => (
-                          <tr
-                            key={m.month}
-                            className="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 text-gray-600"
-                          >
-                            <td className="px-6 py-4 pl-10 font-medium">
-                              {m.month}
-                            </td>
-                            <td className="px-6 py-4 text-right">{m.orders}</td>
-                            <td className="px-6 py-4 text-right font-medium">
-                              Rs {m.sales.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              Rs {m.netSales.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              Rs {(m.cogs || 0).toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-green-600 font-medium">
-                              Rs {(m.grossProfit || 0).toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              {m.itemsSold}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              Rs {m.shipping.toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </React.Fragment>
-                    ))}
-                    {!summary?.yearly?.length && (
-                      <tr>
-                        <td
-                          colSpan={8}
-                          className="px-6 py-12 text-center text-gray-400 text-sm italic"
-                        >
-                          No data available for the selected period
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <Table
+              columns={columns}
+              dataSource={dataSource}
+              pagination={false}
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+              scroll={{ x: "max-content" }}
+              expandable={{
+                defaultExpandAllRows: true, // You may choose false for better initial UX if there's a lot of data
+              }}
+            />
           </div>
         )}
       </div>

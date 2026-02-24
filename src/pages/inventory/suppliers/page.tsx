@@ -1,4 +1,5 @@
-import { Spin, Button } from "antd";
+import type { ColumnsType } from 'antd/es/table';
+import { Spin, Button, Table, Tag } from "antd";
 import React, { useState, useEffect } from "react";
 import {
   IconPlus,
@@ -122,6 +123,42 @@ const SuppliersPage = () => {
       s.contactPerson?.toLowerCase().includes(search.toLowerCase()) ||
       s.phone?.includes(search),
   );
+  const columns: ColumnsType<any> = [
+    {title: 'Name', key: 'name', render: (_, supplier) => (<><div className="font-medium text-gray-900">
+                          {supplier.name}
+                        </div>
+                        {supplier.city && (
+                          <div className="text-xs text-gray-500">
+                            {supplier.city}
+                          </div>
+                        )}</>) },
+    {title: 'Contact', key: 'contact', render: (_, supplier) => (<>{supplier.contactPerson || "-"}</>) },
+    {title: 'Phone', key: 'phone', render: (_, supplier) => (<>{supplier.phone || "-"}</>) },
+    {title: 'Payment Terms', key: 'paymentTerms', render: (_, supplier) => (<>{supplier.paymentTerms || "-"}</>) },
+    {title: 'Status', key: 'status', render: (_, supplier) => (<><span
+                          className={`px-2 py-1 text-xs font-bold  ${
+                            supplier.status === "active"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {supplier.status}
+                        </span></>) },
+    {title: 'Actions', key: 'actions', render: (_, supplier) => (<><div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleEdit(supplier)}
+                            className="p-2 hover:bg-gray-100 transition-colors"
+                          >
+                            <IconEdit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(supplier.id!)}
+                            className="p-2 hover:bg-red-50 text-red-600 transition-colors"
+                          >
+                            <IconTrash size={16} />
+                          </button>
+                        </div></>) },
+  ];
 
   return (
     <PageContainer title="Suppliers">
@@ -165,83 +202,13 @@ const SuppliersPage = () => {
         {!loading && (
           <div className="bg-white border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 font-bold ">Name</th>
-                    <th className="px-6 py-3 font-bold ">Contact</th>
-                    <th className="px-6 py-3 font-bold ">Phone</th>
-                    <th className="px-6 py-3 font-bold ">Payment Terms</th>
-                    <th className="px-6 py-3 font-bold ">Status</th>
-                    <th className="px-6 py-3 font-bold  text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredSuppliers.map((supplier) => (
-                    <tr
-                      key={supplier.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900">
-                          {supplier.name}
-                        </div>
-                        {supplier.city && (
-                          <div className="text-xs text-gray-500">
-                            {supplier.city}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {supplier.contactPerson || "-"}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {supplier.phone || "-"}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {supplier.paymentTerms || "-"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-1 text-xs font-bold  ${
-                            supplier.status === "active"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {supplier.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleEdit(supplier)}
-                            className="p-2 hover:bg-gray-100 transition-colors"
-                          >
-                            <IconEdit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(supplier.id!)}
-                            className="p-2 hover:bg-red-50 text-red-600 transition-colors"
-                          >
-                            <IconTrash size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredSuppliers.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-12 text-center text-gray-500"
-                      >
-                        No suppliers found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <Table 
+            columns={columns}
+            dataSource={filteredSuppliers}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
             </div>
           </div>
         )}

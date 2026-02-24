@@ -1,4 +1,5 @@
-import { Spin } from "antd";
+import type { ColumnsType } from 'antd/es/table';
+import { Spin, Table, Tag } from "antd";
 import { Card, Form, Input, Select, Button, Space } from "antd";
 import React, { useState, useEffect } from "react";
 import {
@@ -171,6 +172,66 @@ export default function PettyCashList() {
       <span className={`px-2 py-1 text-xs font-bold   ${style}`}>{status}</span>
     );
   };
+  const columns: ColumnsType<any> = [
+    {title: 'Details', key: 'details', render: (_, entry) => (<><div className="flex flex-col gap-1">
+                        <span className="font-bold text-gray-900 leading-tight line-clamp-2 max-w-[250px]">
+                          {entry.note || "NO NOTE"}
+                        </span>
+                        <span className="text-xs text-gray-400 font-bold  ">
+                          {new Date(
+                            entry.createdAt as string,
+                          ).toLocaleDateString()}
+                        </span>
+                      </div></>) },
+    {title: 'Amount', key: 'amount', render: (_, entry) => (<><div className="flex items-center gap-2">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            entry.type === "income"
+                              ? "bg-green-500"
+                              : "bg-red-500"
+                          }`}
+                        ></span>
+                        <span className="font-bold text-lg font-mono tracking-tight">
+                          {Number(entry.amount).toLocaleString()}
+                        </span>
+                      </div></>) },
+    {title: 'Category', key: 'category', render: (_, entry) => (<><span className="font-bold text-xs   text-gray-700 bg-gray-100 px-2 py-1">
+                        {entry.category}
+                      </span></>) },
+    {title: 'Status', key: 'status', render: (_, entry) => (<>{renderStatus(entry.status)}</>) },
+    {title: 'Actions', key: 'actions', render: (_, entry) => (<><div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
+                        <button
+                          onClick={() => handleOpenView(entry)}
+                          className={styles.iconBtn}
+                          title="View"
+                        >
+                          <IconEye size={16} stroke={2} />
+                        </button>
+                        <button
+                          onClick={() => handleOpenEdit(entry)}
+                          disabled={entry.status === "APPROVED"}
+                          className={styles.iconBtn}
+                          title="Edit"
+                        >
+                          <IconPencil size={16} stroke={2} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(entry.id!)}
+                          disabled={
+                            entry.status === "APPROVED" ||
+                            deletingId === entry.id
+                          }
+                          className={`${styles.iconBtn} hover:border-red-600 hover:bg-red-600`}
+                          title="Delete"
+                        >
+                          {deletingId === entry.id ? (
+                            <Spin size="small" />
+                          ) : (
+                            <IconTrash size={16} stroke={2} />
+                          )}
+                        </button>
+                      </div></>) },
+  ];
 
   return (
     <PageContainer title="Petty Cash" description="Manage Expenses">
@@ -268,94 +329,13 @@ export default function PettyCashList() {
           </div>
         ) : (
           <div className="w-full overflow-x-auto bg-white border border-gray-200">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-gray-200">
-                <tr>
-                  <th className="p-6">Details</th>
-                  <th className="p-6">Amount</th>
-                  <th className="p-6">Category</th>
-                  <th className="p-6">Status</th>
-                  <th className="p-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm">
-                {pettyCashList.map((entry) => (
-                  <tr
-                    key={entry.id}
-                    className="border-b border-gray-100 group hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="p-6 align-top">
-                      <div className="flex flex-col gap-1">
-                        <span className="font-bold text-gray-900 leading-tight line-clamp-2 max-w-[250px]">
-                          {entry.note || "NO NOTE"}
-                        </span>
-                        <span className="text-xs text-gray-400 font-bold  ">
-                          {new Date(
-                            entry.createdAt as string,
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-6 align-top">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            entry.type === "income"
-                              ? "bg-green-500"
-                              : "bg-red-500"
-                          }`}
-                        ></span>
-                        <span className="font-bold text-lg font-mono tracking-tight">
-                          {Number(entry.amount).toLocaleString()}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-6 align-top">
-                      <span className="font-bold text-xs   text-gray-700 bg-gray-100 px-2 py-1">
-                        {entry.category}
-                      </span>
-                    </td>
-                    <td className="p-6 align-top">
-                      {renderStatus(entry.status)}
-                    </td>
-                    <td className="p-6 align-top text-right">
-                      <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
-                        <button
-                          onClick={() => handleOpenView(entry)}
-                          className={styles.iconBtn}
-                          title="View"
-                        >
-                          <IconEye size={16} stroke={2} />
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(entry)}
-                          disabled={entry.status === "APPROVED"}
-                          className={styles.iconBtn}
-                          title="Edit"
-                        >
-                          <IconPencil size={16} stroke={2} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(entry.id!)}
-                          disabled={
-                            entry.status === "APPROVED" ||
-                            deletingId === entry.id
-                          }
-                          className={`${styles.iconBtn} hover:border-red-600 hover:bg-red-600`}
-                          title="Delete"
-                        >
-                          {deletingId === entry.id ? (
-                            <Spin size="small" />
-                          ) : (
-                            <IconTrash size={16} stroke={2} />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <Table 
+            columns={columns}
+            dataSource={pettyCashList}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
           </div>
         )}
 

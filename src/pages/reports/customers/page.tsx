@@ -1,6 +1,7 @@
+import type { ColumnsType } from 'antd/es/table';
 import api from "@/lib/api";
 
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table, Tag } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
@@ -125,6 +126,13 @@ const CustomerAnalyticsPage = () => {
     XLSX.writeFile(wb, `customer_analytics_${from}_${to}.xlsx`);
     toast.success("Excel exported successfully");
   };
+  const columns: ColumnsType<any> = [
+    {title: '#', key: 'col0', render: (_, customer) => (<>{idx + 1}</>) },
+    {title: 'Customer', key: 'customer', render: (_, customer) => (<>{customer.name}</>) },
+    {title: 'Contact', key: 'contact', render: (_, customer) => (<>{customer.email || customer.phone || "-"}</>) },
+    {title: 'Orders', key: 'orders', align: 'right', render: (_, customer) => (<>{customer.totalOrders}</>) },
+    {title: 'Total Spent', key: 'totalSpent', render: (_, customer) => (<>Rs {customer.totalSpent.toLocaleString()}</>) },
+  ];
 
   return (
     <PageContainer title="Customer Analytics">
@@ -321,51 +329,13 @@ const CustomerAnalyticsPage = () => {
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 font-bold ">
-                          #
-                        </th>
-                        <th className="px-6 py-3 font-bold ">
-                          Customer
-                        </th>
-                        <th className="px-6 py-3 font-bold ">
-                          Contact
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Orders
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Total Spent
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {report.topCustomers.map((customer, idx) => (
-                        <tr
-                          key={idx}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="px-6 py-4 font-bold text-gray-400">
-                            {idx + 1}
-                          </td>
-                          <td className="px-6 py-4 font-medium text-gray-900">
-                            {customer.name}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600">
-                            {customer.email || customer.phone || "-"}
-                          </td>
-                          <td className="px-6 py-4 text-right font-medium text-gray-900">
-                            {customer.totalOrders}
-                          </td>
-                          <td className="px-6 py-4 text-right font-bold text-green-600">
-                            Rs {customer.totalSpent.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <Table 
+            columns={columns}
+            dataSource={report.topCustomers}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
                 </div>
               </div>
             )}

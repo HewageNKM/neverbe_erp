@@ -1,5 +1,6 @@
 import api from "@/lib/api";
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
 import { IconFilter, IconDownload } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
@@ -29,7 +30,7 @@ const MonthlySummaryPage = () => {
   const [to, setTo] = useState(new Date().toISOString().slice(0, 7));
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<any>(null);
-  
+
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
   const fetchReport = async (evt?: React.FormEvent) => {
@@ -51,8 +52,7 @@ const MonthlySummaryPage = () => {
       1;
 
     if (monthDiff > MAX_MONTHS_RANGE) {
-      toast.error(
-        `Date range cannot exceed ${MAX_MONTHS_RANGE} months.`);
+      toast.error(`Date range cannot exceed ${MAX_MONTHS_RANGE} months.`);
       return;
     }
 
@@ -109,12 +109,84 @@ const MonthlySummaryPage = () => {
     value: string | number;
   }) => (
     <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">
-        {title}
-      </p>
+      <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
       <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
     </div>
   );
+
+  const columns: ColumnsType<any> = [
+    {
+      title: "Month",
+      dataIndex: "month",
+      key: "month",
+      render: (text) => (
+        <span className="font-medium text-gray-900 whitespace-nowrap">
+          {text}
+        </span>
+      ),
+    },
+    {
+      title: "Orders",
+      dataIndex: "orders",
+      key: "orders",
+      align: "right",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+    {
+      title: "Sales",
+      dataIndex: "sales",
+      key: "sales",
+      align: "right",
+      render: (val) => (
+        <span className="font-medium text-gray-900">Rs {val.toFixed(2)}</span>
+      ),
+    },
+    {
+      title: "Net Sales",
+      dataIndex: "netSales",
+      key: "netSales",
+      align: "right",
+      render: (val) => (
+        <span className="text-gray-600">Rs {val.toFixed(2)}</span>
+      ),
+    },
+    {
+      title: "COGS",
+      dataIndex: "cogs",
+      key: "cogs",
+      align: "right",
+      render: (val) => (
+        <span className="text-gray-600">Rs {(val || 0).toFixed(2)}</span>
+      ),
+    },
+    {
+      title: "Profit",
+      dataIndex: "grossProfit",
+      key: "grossProfit",
+      align: "right",
+      render: (val) => (
+        <span className="font-medium text-green-600">
+          Rs {(val || 0).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      title: "Items",
+      dataIndex: "itemsSold",
+      key: "itemsSold",
+      align: "right",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+    {
+      title: "Shipping",
+      dataIndex: "shipping",
+      key: "shipping",
+      align: "right",
+      render: (val) => (
+        <span className="text-gray-600">Rs {val.toFixed(2)}</span>
+      ),
+    },
+  ];
 
   return (
     <PageContainer title="Monthly Sales Summary">
@@ -132,41 +204,41 @@ const MonthlySummaryPage = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                layout="inline"
+                onFinish={() => fetchReport()}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item className="!mb-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                    <span className="text-gray-400 font-medium">-</span>
+                    <input
+                      type="date"
+                      required
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                  </div>
+                </Form.Item>
+                <Form.Item className="!mb-0">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <IconFilter size={15} />
+                    Filter
+                  </button>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={handleExportExcel}
@@ -182,7 +254,9 @@ const MonthlySummaryPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
@@ -327,83 +401,14 @@ const MonthlySummaryPage = () => {
             )}
 
             {/* Detailed Table */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 font-bold ">
-                        Month
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Orders
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Sales
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Net Sales
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        COGS
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Profit
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Items
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Shipping
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {summary.monthly?.map((m: any, idx: number) => (
-                      <tr
-                        key={idx}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                          {m.month}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-600">
-                          {m.orders}
-                        </td>
-                        <td className="px-6 py-4 text-right font-medium text-gray-900">
-                          Rs {m.sales.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-600">
-                          Rs {m.netSales.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-600">
-                          Rs {(m.cogs || 0).toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 text-right font-medium text-green-600">
-                          Rs {(m.grossProfit || 0).toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-600">
-                          {m.itemsSold}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-600">
-                          Rs {m.shipping.toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                    {!summary?.monthly?.length && (
-                      <tr>
-                        <td
-                          colSpan={8}
-                          className="px-6 py-12 text-center text-gray-400 text-sm italic"
-                        >
-                          No data available for the selected period
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <Table
+              columns={columns}
+              dataSource={summary.monthly || []}
+              rowKey={(record, index) => index as number}
+              pagination={{ pageSize: 15 }}
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+              scroll={{ x: "max-content" }}
+            />
           </div>
         )}
       </div>

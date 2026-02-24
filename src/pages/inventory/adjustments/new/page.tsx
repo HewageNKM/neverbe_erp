@@ -1,4 +1,5 @@
-import { Spin, Button } from "antd";
+import type { ColumnsType } from 'antd/es/table';
+import { Spin, Button, Table, Tag } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
@@ -203,8 +204,28 @@ const NewAdjustmentPage = () => {
   const availableSizes = getAvailableSizes();
 
   if (loading) {
-    return (
-      <PageContainer title="New Adjustment">
+  const columns: ColumnsType<any> = [
+    {title: 'Product', key: 'product', render: (_, item) => (<>{item.productName}
+                        {item.variantName && (
+                          <span className="block text-xs text-gray-500 font-normal">
+                            {item.variantName}
+                          </span>
+                        )}</>) },
+    {title: 'Size', key: 'size', render: (_, item) => (<>{item.size}</>) },
+    {title: 'Qty', key: 'qty', render: (_, item) => (<>{type === "add" || type === "return" ? "+" : "-"}
+                        {item.quantity}</>) },
+    {title: 'Stock', key: 'stock', align: 'right', render: (_, item) => (<>{item.stockName}</>) },
+    {title: 'Destination', key: 'destination', align: 'right', render: (_, item) => (<>{item.destinationStockName}</>) },
+    {title: '', key: 'col5', render: (_, item) => (<><button
+                          onClick={() => handleRemoveItem(idx)}
+                          className="p-1 text-red-600 hover:bg-red-50"
+                        >
+                          <IconTrash size={14} />
+                        </button></>) },
+  ];
+
+  return (
+    <PageContainer title="New Adjustment">
         <div className="flex justify-center py-20">
           <div className="flex justify-center py-12"><Spin size="large" /></div>
         </div>
@@ -486,61 +507,13 @@ const NewAdjustmentPage = () => {
           <div className="bg-white border border-gray-200 overflow-hidden">
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 font-bold ">
-                      Product
-                    </th>
-                    <th className="px-6 py-3 font-bold ">Size</th>
-                    <th className="px-6 py-3 font-bold  text-right">
-                      Qty
-                    </th>
-                    <th className="px-6 py-3 font-bold ">
-                      Stock
-                    </th>
-                    {type === "transfer" && (
-                      <th className="px-6 py-3 font-bold ">
-                        Destination
-                      </th>
-                    )}
-                    <th className="px-6 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {items.map((item, idx) => (
-                    <tr key={idx}>
-                      <td className="px-6 py-4 font-medium text-gray-900">
-                        {item.productName}
-                        {item.variantName && (
-                          <span className="block text-xs text-gray-500 font-normal">
-                            {item.variantName}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">{item.size}</td>
-                      <td className="px-6 py-4 text-right font-bold">
-                        {type === "add" || type === "return" ? "+" : "-"}
-                        {item.quantity}
-                      </td>
-                      <td className="px-6 py-4">{item.stockName}</td>
-                      {type === "transfer" && (
-                        <td className="px-6 py-4">
-                          {item.destinationStockName}
-                        </td>
-                      )}
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => handleRemoveItem(idx)}
-                          className="p-1 text-red-600 hover:bg-red-50"
-                        >
-                          <IconTrash size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table 
+            columns={columns}
+            dataSource={items}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
             </div>
             {/* Mobile Cards */}
             <div className="md:hidden divide-y divide-gray-100">

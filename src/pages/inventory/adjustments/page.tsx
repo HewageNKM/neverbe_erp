@@ -1,6 +1,7 @@
+import type { ColumnsType } from 'antd/es/table';
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {  Card, Form, Input, Select, Button, Space , Spin } from "antd";
+import { Card, Form, Input, Select, Button, Space, Spin, Table, Tag } from "antd";
 import {
   IconPlus,
   IconEye,
@@ -83,6 +84,34 @@ const AdjustmentsPage = () => {
       a.adjustmentNumber.toLowerCase().includes(search.toLowerCase()) ||
       a.reason.toLowerCase().includes(search.toLowerCase()),
   );
+  const columns: ColumnsType<any> = [
+    {title: 'Adjustment #', key: 'adjustment', render: (_, adj) => (<><span className="font-mono font-bold text-gray-900">
+                          {adj.adjustmentNumber}
+                        </span></>) },
+    {title: 'Type', key: 'type', render: (_, adj) => (<><span
+                          className={`px-2 py-1 text-xs font-bold  ${
+                            TYPE_COLORS[adj.type] || "bg-gray-100"
+                          }`}
+                        >
+                          {TYPE_LABELS[adj.type] || adj.type}
+                        </span></>) },
+    {title: 'Status', key: 'status', render: (_, adj) => (<><span
+                          className={`px-2 py-1 text-xs font-bold  rounded-full ${
+                            ADJUSTMENT_STATUS_COLORS[adj.status] ||
+                            "bg-gray-100"
+                          }`}
+                        >
+                          {ADJUSTMENT_STATUS_LABELS[adj.status] || adj.status}
+                        </span></>) },
+    {title: 'Reason', key: 'reason', render: (_, adj) => (<>{adj.reason}</>) },
+    {title: 'Items', key: 'items', render: (_, adj) => (<>{adj.items?.length || 0} items</>) },
+    {title: 'Actions', key: 'actions', render: (_, adj) => (<><Link
+                          to={`/inventory/adjustments/${adj.id}`}
+                          className="p-2 hover:bg-gray-100 inline-flex transition-colors"
+                        >
+                          <IconEye size={16} />
+                        </Link></>) },
+  ];
 
   return (
     <PageContainer title="Inventory Adjustments">
@@ -170,79 +199,13 @@ const AdjustmentsPage = () => {
         {!loading && (
           <div className="bg-white border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 font-bold ">Adjustment #</th>
-                    <th className="px-6 py-3 font-bold ">Type</th>
-                    <th className="px-6 py-3 font-bold ">Status</th>
-                    <th className="px-6 py-3 font-bold ">Reason</th>
-                    <th className="px-6 py-3 font-bold  text-right">Items</th>
-                    <th className="px-6 py-3 font-bold  text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredAdjustments.map((adj) => (
-                    <tr
-                      key={adj.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <span className="font-mono font-bold text-gray-900">
-                          {adj.adjustmentNumber}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-1 text-xs font-bold  ${
-                            TYPE_COLORS[adj.type] || "bg-gray-100"
-                          }`}
-                        >
-                          {TYPE_LABELS[adj.type] || adj.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-1 text-xs font-bold  rounded-full ${
-                            ADJUSTMENT_STATUS_COLORS[adj.status] ||
-                            "bg-gray-100"
-                          }`}
-                        >
-                          {ADJUSTMENT_STATUS_LABELS[adj.status] || adj.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
-                        {adj.reason}
-                      </td>
-                      <td className="px-6 py-4 text-right text-gray-600">
-                        {adj.items?.length || 0} items
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link
-                          to={`/inventory/adjustments/${adj.id}`}
-                          className="p-2 hover:bg-gray-100 inline-flex transition-colors"
-                        >
-                          <IconEye size={16} />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredAdjustments.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-12 text-center text-gray-500"
-                      >
-                        <IconAdjustments
-                          size={40}
-                          className="mx-auto text-gray-300 mb-3"
-                        />
-                        No adjustments found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <Table 
+            columns={columns}
+            dataSource={filteredAdjustments}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
             </div>
           </div>
         )}

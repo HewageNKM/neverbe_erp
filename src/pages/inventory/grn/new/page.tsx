@@ -1,4 +1,5 @@
-import { Spin } from "antd";
+import type { ColumnsType } from 'antd/es/table';
+import { Spin, Table, Tag } from "antd";
 import api from "@/lib/api";
 import React, { useState, useEffect, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -227,8 +228,51 @@ const NewGRNPageContent = () => {
   };
 
   if (loading) {
-    return (
-      <PageContainer title="New GRN">
+  const columns: ColumnsType<any> = [
+    {title: 'Product', key: 'product', render: (_, item) => (<>{item.productName}</>) },
+    {title: 'Variant', key: 'variant', render: (_, item) => (<>{item.variantName || "-"}</>) },
+    {title: 'Size', key: 'size', align: 'center', render: (_, item) => (<>{item.size}</>) },
+    {title: 'Ordered', key: 'ordered', align: 'right', render: (_, item) => (<>{item.orderedQuantity}</>) },
+    {title: 'Prev', key: 'prev', align: 'right', render: (_, item) => (<>{item.previouslyReceived}</>) },
+    {title: 'Receiving', key: 'receiving', render: (_, item) => (<><div className="flex items-center justify-center">
+                            <input
+                              type="number"
+                              min={0}
+                              max={remaining}
+                              value={item.receivedQuantity}
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  idx,
+                                  Number(e.target.value))
+                              }
+                              className="w-24 bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-3 py-2 text-center font-bold outline-none transition-colors rounded-lg"
+                            />
+                            <span className="ml-2 text-xs text-gray-400 font-bold">
+                              / {remaining}
+                            </span>
+                          </div></>) },
+    {title: 'Location', key: 'location', render: (_, item) => (<><select
+                            value={item.stockId}
+                            onChange={(e) =>
+                              handleStockChange(idx, e.target.value)
+                            }
+                            className="w-full bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-2 py-2 text-xs font-medium outline-none transition-colors rounded-lg "
+                          >
+                            <option value="">Select</option>
+                            {stocks.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.label}
+                              </option>
+                            ))}
+                          </select></>) },
+    {title: 'Total', key: 'total', render: (_, item) => (<>Rs{" "}
+                          {(
+                            item.receivedQuantity * item.unitCost
+                          ).toLocaleString()}</>) },
+  ];
+
+  return (
+    <PageContainer title="New GRN">
         <div className="flex flex-col items-center justify-center py-40">
           <div className="flex justify-center py-12"><Spin size="large" /></div>
           <span className="text-xs font-bold   text-gray-400 mt-4">
@@ -315,102 +359,13 @@ const NewGRNPageContent = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4">Product</th>
-                    <th className="px-6 py-4">Variant</th>
-                    <th className="px-6 py-4 text-center">Size</th>
-                    <th className="px-6 py-4 text-right">Ordered</th>
-                    <th className="px-6 py-4 text-right">Prev</th>
-                    <th className="px-6 py-4 text-center">Receiving</th>
-                    <th className="px-6 py-4 text-center">Location</th>
-                    <th className="px-6 py-4 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
-                  {items.map((item, idx) => {
-                    const remaining =
-                      item.orderedQuantity - item.previouslyReceived;
-                    return (
-                      <tr
-                        key={idx}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-6 py-4 font-bold text-black ">
-                          {item.productName}
-                        </td>
-                        <td className="px-6 py-4 text-gray-600  text-xs">
-                          {item.variantName || "-"}
-                        </td>
-                        <td className="px-6 py-4 text-center font-mono text-xs">
-                          {item.size}
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold text-gray-900">
-                          {item.orderedQuantity}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-500 font-mono">
-                          {item.previouslyReceived}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-center">
-                            <input
-                              type="number"
-                              min={0}
-                              max={remaining}
-                              value={item.receivedQuantity}
-                              onChange={(e) =>
-                                handleQuantityChange(
-                                  idx,
-                                  Number(e.target.value))
-                              }
-                              className="w-24 bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-3 py-2 text-center font-bold outline-none transition-colors rounded-lg"
-                            />
-                            <span className="ml-2 text-xs text-gray-400 font-bold">
-                              / {remaining}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <select
-                            value={item.stockId}
-                            onChange={(e) =>
-                              handleStockChange(idx, e.target.value)
-                            }
-                            className="w-full bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-2 py-2 text-xs font-medium outline-none transition-colors rounded-lg "
-                          >
-                            <option value="">Select</option>
-                            {stocks.map((s) => (
-                              <option key={s.id} value={s.id}>
-                                {s.label}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold">
-                          Rs{" "}
-                          {(
-                            item.receivedQuantity * item.unitCost
-                          ).toLocaleString()}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot className="bg-gray-50 border-t-2 border-gray-200">
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-4 text-right font-bold   text-xs"
-                    >
-                      Total GRN Value
-                    </td>
-                    <td className="px-6 py-4 text-right font-bold text-xl">
-                      Rs {totalAmount.toLocaleString()}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+              <Table 
+            columns={columns}
+            dataSource={items}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
             </div>
           </div>
         )}

@@ -1,6 +1,7 @@
+import type { ColumnsType } from 'antd/es/table';
 import api from "@/lib/api";
 
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table, Tag } from "antd";
 import React, { useState, useEffect } from "react";
 import {
   IconFilter,
@@ -158,6 +159,21 @@ export default function MonthlyRevenuePage() {
       <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
     </div>
   );
+  const columns: ColumnsType<any> = [
+    {title: 'Month', key: 'month', render: (_, r) => (<>{r.month ?? "—"}</>) },
+    {title: 'Orders', key: 'orders', render: (_, r) => (<>{r.totalOrders ?? 0}</>) },
+    {title: 'Total Sales', key: 'totalSales', render: (_, r) => (<>{safeMoney(r.totalSales)}</>) },
+    {title: 'Net Sales', key: 'netSales', render: (_, r) => (<>{safeMoney(r.totalNetSales)}</>) },
+    {title: 'COGS', key: 'cOGS', render: (_, r) => (<>{safeMoney(r.totalCOGS)}</>) },
+    {title: 'Discount', key: 'discount', render: (_, r) => (<>{safeMoney(r.totalDiscount)}</>) },
+    {title: 'Trans. Fee', key: 'transFee', render: (_, r) => (<>{safeMoney(r.totalTransactionFee)}</>) },
+    {title: 'Expenses', key: 'expenses', render: (_, r) => (<>{safeMoney(r.totalExpenses)}</>) },
+    {title: 'Other Income', key: 'otherIncome', render: (_, r) => (<>{safeMoney(r.totalOtherIncome)}</>) },
+    {title: 'Gross Profit', key: 'grossProfit', render: (_, r) => (<>{safeMoney(r.grossProfit)}</>) },
+    {title: 'Margin', key: 'margin', render: (_, r) => (<>{safePercent(r.grossProfitMargin)}</>) },
+    {title: 'Net Profit', key: 'netProfit', render: (_, r) => (<>{safeMoney(r.netProfit)}</>) },
+    {title: 'Net Margin', key: 'netMargin', render: (_, r) => (<>{safePercent(r.netProfitMargin)}</>) },
+  ];
 
   return (
     <PageContainer title="Monthly Revenue Report">
@@ -408,150 +424,17 @@ export default function MonthlyRevenuePage() {
             {rows.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 font-bold ">
-                          Month
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Orders
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Total Sales
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Net Sales
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          COGS
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Discount
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Trans. Fee
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Expenses
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Other Income
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Gross Profit
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Margin
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Net Profit
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Net Margin
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {rows
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((r, idx) => (
-                          <tr
-                            key={idx}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                              {r.month ?? "—"}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {r.totalOrders ?? 0}
-                            </td>
-                            <td className="px-6 py-4 text-right font-medium text-gray-900">
-                              {safeMoney(r.totalSales)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {safeMoney(r.totalNetSales)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {safeMoney(r.totalCOGS)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {safeMoney(r.totalDiscount)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {safeMoney(r.totalTransactionFee)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {safeMoney(r.totalExpenses)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {safeMoney(r.totalOtherIncome)}
-                            </td>
-                            <td className="px-6 py-4 text-right font-medium text-green-600">
-                              {safeMoney(r.grossProfit)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {safePercent(r.grossProfitMargin)}
-                            </td>
-                            <td className="px-6 py-4 text-right font-medium text-blue-600">
-                              {safeMoney(r.netProfit)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {safePercent(r.netProfitMargin)}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                  <Table 
+            columns={columns}
+            dataSource={rows}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            scroll={{ x: 'max-content' }}
+          />
                 </div>
 
-                {/* Pagination Controls */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
-                  <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                    <span>Rows per page:</span>
-                    <select
-                      value={rowsPerPage}
-                      onChange={(e) => {
-                        setRowsPerPage(Number(e.target.value));
-                        setPage(0);
-                      }}
-                      className="bg-white border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-900"
-                    >
-                      <option value={6}>6</option>
-                      <option value={12}>12</option>
-                      <option value={24}>24</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs text-gray-500 font-medium">
-                      {page * rowsPerPage + 1}-
-                      {Math.min((page + 1) * rowsPerPage, rows.length)} of{" "}
-                      {rows.length}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setPage(Math.max(0, page - 1))}
-                        disabled={page === 0}
-                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                      >
-                        <IconChevronLeft size={16} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          setPage(Math.min(totalPages - 1, page + 1))
-                        }
-                        disabled={page >= totalPages - 1}
-                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                      >
-                        <IconChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                
               </div>
             )}
           </div>

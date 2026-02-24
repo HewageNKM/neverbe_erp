@@ -1,4 +1,5 @@
-import { Spin } from "antd";
+import { Spin, Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
@@ -60,11 +61,11 @@ const LowStockPage = () => {
         totalProducts: data.length,
         totalQuantity: data.reduce(
           (sum: number, s: any) => sum + s.quantity,
-          0
+          0,
         ),
         totalValuation: data.reduce(
           (sum: number, s: any) => sum + (s.buyingPrice || 0) * s.quantity,
-          0
+          0,
         ),
       });
     } catch (err) {
@@ -105,7 +106,7 @@ const LowStockPage = () => {
   // Frontend pagination: visible rows
   const visibleRows = stock.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+    page * rowsPerPage + rowsPerPage,
   );
 
   const SummaryCard = ({
@@ -116,12 +117,75 @@ const LowStockPage = () => {
     value: string | number;
   }) => (
     <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">
-        {title}
-      </p>
+      <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
       <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
     </div>
   );
+
+  const columns: ColumnsType<any> = [
+    {
+      title: "Product ID",
+      dataIndex: "productId",
+      key: "productId",
+      render: (text) => (
+        <span className="font-medium text-gray-400">{text}</span>
+      ),
+    },
+    {
+      title: "Product Name",
+      dataIndex: "productName",
+      key: "productName",
+      render: (text) => (
+        <span className="font-medium text-gray-900">{text}</span>
+      ),
+    },
+    {
+      title: "Variant ID",
+      dataIndex: "variantId",
+      key: "variantId",
+      render: (text) => <span className="text-gray-400">{text}</span>,
+    },
+    {
+      title: "Variant Name",
+      dataIndex: "variantName",
+      key: "variantName",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+    {
+      title: "Size",
+      dataIndex: "size",
+      key: "size",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+    {
+      title: "Stock ID",
+      dataIndex: "stockId",
+      key: "stockId",
+      render: (text) => <span className="text-gray-400">{text}</span>,
+    },
+    {
+      title: "Stock Name",
+      dataIndex: "stockName",
+      key: "stockName",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+      align: "right",
+      render: (text) => (
+        <span className="font-medium text-red-600">{text}</span>
+      ),
+    },
+    {
+      title: "Threshold",
+      dataIndex: "threshold",
+      key: "threshold",
+      align: "right",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+  ];
 
   return (
     <PageContainer title="Low Stock">
@@ -185,7 +249,9 @@ const LowStockPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
@@ -209,136 +275,14 @@ const LowStockPage = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 font-bold ">
-                        Product ID
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Product Name
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Variant ID
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Variant Name
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Size
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Stock ID
-                      </th>
-                      <th className="px-6 py-3 font-bold ">
-                        Stock Name
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Quantity
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Threshold
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {visibleRows.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={9}
-                          className="px-6 py-12 text-center text-gray-400 text-sm italic"
-                        >
-                          No low stock items
-                        </td>
-                      </tr>
-                    ) : (
-                      visibleRows.map((s, idx) => (
-                        <tr
-                          key={idx}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="px-6 py-4 font-medium text-gray-400">
-                            {s.productId}
-                          </td>
-                          <td className="px-6 py-4 font-medium text-gray-900">
-                            {s.productName}
-                          </td>
-                          <td className="px-6 py-4 text-gray-400">
-                            {s.variantId}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600">
-                            {s.variantName}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600">{s.size}</td>
-                          <td className="px-6 py-4 text-gray-400">
-                            {s.stockId}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600">
-                            {s.stockName}
-                          </td>
-                          <td className="px-6 py-4 text-right font-medium text-red-600">
-                            {s.quantity}
-                          </td>
-                          <td className="px-6 py-4 text-right text-gray-600">
-                            {s.threshold}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Pagination Controls */}
-              {stock.length > 0 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
-                  <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                    <span>Rows per page:</span>
-                    <select
-                      value={rowsPerPage}
-                      onChange={(e) => {
-                        setRowsPerPage(Number(e.target.value));
-                        setPage(0);
-                      }}
-                      className="bg-white border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-900"
-                    >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                      <option value={50}>50</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs text-gray-500 font-medium">
-                      {page * rowsPerPage + 1}-
-                      {Math.min((page + 1) * rowsPerPage, stock.length)} of{" "}
-                      {stock.length}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setPage(Math.max(0, page - 1))}
-                        disabled={page === 0}
-                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                      >
-                        <IconChevronLeft size={16} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          setPage(Math.min(totalPages - 1, page + 1))
-                        }
-                        disabled={page >= totalPages - 1}
-                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                      >
-                        <IconChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <Table
+              columns={columns}
+              dataSource={stock}
+              rowKey={(record, index) => index as number}
+              pagination={{ pageSize: 15 }}
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+              scroll={{ x: "max-content" }}
+            />
           </div>
         )}
       </div>

@@ -1,4 +1,5 @@
-import { Spin, Button } from "antd";
+import { Spin, Button, Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +8,8 @@ import {
   IconTrash,
   IconLoader2,
   IconArrowLeft,
-  IconShoppingCart} from "@tabler/icons-react";
+  IconShoppingCart,
+} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
@@ -26,7 +28,8 @@ const styles = {
   secondaryBtn:
     "flex items-center justify-center px-6 py-4 border border-gray-200 rounded-lg shadow-sm text-green-700 bg-green-50 hover:bg-green-100 text-xs font-bold   hover:bg-gray-50 transition-all rounded-lg disabled:opacity-50",
   iconBtn:
-    "w-10 h-10 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:border-gray-200 hover:text-white transition-colors disabled:opacity-30"};
+    "w-10 h-10 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:border-gray-200 hover:text-white transition-colors disabled:opacity-30",
+};
 
 interface Supplier {
   id: string;
@@ -99,11 +102,13 @@ const NewPurchaseOrderPage = () => {
       const [suppliersRes, productsRes, stocksRes, sizesRes] =
         await Promise.all([
           api.get<Supplier[]>(
-            "/api/v1/erp/procurement/suppliers?dropdown=true"),
+            "/api/v1/erp/procurement/suppliers?dropdown=true",
+          ),
           api.get<Product[]>("/api/v1/erp/catalog/products/dropdown"),
           api.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown"),
           api.get<{ id: string; label: string }[]>(
-            "/api/v1/erp/catalog/sizes/dropdown"),
+            "/api/v1/erp/catalog/sizes/dropdown",
+          ),
         ]);
       setSuppliers(suppliersRes.data);
       setProducts(productsRes.data);
@@ -139,7 +144,8 @@ const NewPurchaseOrderPage = () => {
         try {
           // Fetch variants
           const variantsRes = await api.get<Variant[]>(
-            `/api/v1/erp/catalog/products/${selectedProduct}/variants/dropdown`);
+            `/api/v1/erp/catalog/products/${selectedProduct}/variants/dropdown`,
+          );
           setAvailableVariants(variantsRes.data || []);
         } catch (e) {
           console.error("Failed to fetch product details", e);
@@ -190,8 +196,7 @@ const NewPurchaseOrderPage = () => {
 
   const handleAddItem = () => {
     if (!selectedProduct || !selectedSize || quantity <= 0) {
-      toast(
-        "Please select Product, Size and valid Quantity");
+      toast("Please select Product, Size and valid Quantity");
       return;
     }
 
@@ -209,7 +214,8 @@ const NewPurchaseOrderPage = () => {
       size: selectedSize,
       quantity,
       unitCost,
-      totalCost: quantity * unitCost};
+      totalCost: quantity * unitCost,
+    };
 
     setItems([...items, newItem]);
 
@@ -244,18 +250,18 @@ const NewPurchaseOrderPage = () => {
       onSuccess: async () => {
         setSaving(true);
         try {
-          await api.post(
-            "/api/v1/erp/procurement/purchase-orders",
-            {
-              supplierId,
-              supplierName,
-              stockId,
-              expectedDate,
-              notes,
-              items,
-              status});
+          await api.post("/api/v1/erp/procurement/purchase-orders", {
+            supplierId,
+            supplierName,
+            stockId,
+            expectedDate,
+            notes,
+            items,
+            status,
+          });
           toast.error(
-            status === "draft" ? "PO SAVED AS DRAFT" : "PO CREATED AND SENT");
+            status === "draft" ? "PO SAVED AS DRAFT" : "PO CREATED AND SENT",
+          );
           navigate("/inventory/purchase-orders");
         } catch (error) {
           console.error(error);
@@ -263,14 +269,17 @@ const NewPurchaseOrderPage = () => {
         } finally {
           setSaving(false);
         }
-      }});
+      },
+    });
   };
 
   if (loading) {
     return (
       <PageContainer title="New Purchase Order">
         <div className="flex flex-col items-center justify-center py-40">
-          <div className="flex justify-center py-12"><Spin size="large" /></div>
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
           <span className="text-xs font-bold   text-gray-400 mt-4">
             Loading Resources
           </span>
@@ -278,6 +287,68 @@ const NewPurchaseOrderPage = () => {
       </PageContainer>
     );
   }
+
+  const columns: ColumnsType<POItem> = [
+    {
+      title: "Product",
+      dataIndex: "productName",
+      key: "productName",
+      render: (text) => <span className="font-bold text-black">{text}</span>,
+    },
+    {
+      title: "Variant",
+      dataIndex: "variantName",
+      key: "variantName",
+      render: (text) => (
+        <span className="text-gray-600 text-xs">{text || "-"}</span>
+      ),
+    },
+    {
+      title: "Size",
+      dataIndex: "size",
+      key: "size",
+      align: "center",
+      render: (text) => <span className="font-mono text-xs">{text}</span>,
+    },
+    {
+      title: "Qty",
+      dataIndex: "quantity",
+      key: "quantity",
+      align: "center",
+      render: (qty) => <span className="font-bold">{qty}</span>,
+    },
+    {
+      title: "Unit Range",
+      dataIndex: "unitCost",
+      key: "unitCost",
+      align: "right",
+      render: (cost) => (
+        <span className="font-mono text-xs text-gray-500">Rs {cost}</span>
+      ),
+    },
+    {
+      title: "Total",
+      dataIndex: "totalCost",
+      key: "totalCost",
+      align: "right",
+      render: (total) => (
+        <span className="font-bold">Rs {total.toLocaleString()}</span>
+      ),
+    },
+    {
+      title: "",
+      key: "action",
+      align: "right",
+      render: (_, __, idx) => (
+        <button
+          onClick={() => handleRemoveItem(idx as number)}
+          className="text-gray-400 hover:text-red-600 transition-colors"
+        >
+          <IconTrash size={16} />
+        </button>
+      ),
+    },
+  ];
 
   return (
     <PageContainer title="New Purchase Order">
@@ -436,7 +507,11 @@ const NewPurchaseOrderPage = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <Button type="primary" size="large" onClick={handleAddItem}></Button>
+                  <Button
+                    type="primary"
+                    size="large"
+                    onClick={handleAddItem}
+                  ></Button>
                 </div>
               </div>
 
@@ -459,81 +534,32 @@ const NewPurchaseOrderPage = () => {
 
             {/* 3. Items Table */}
             <div className="bg-white border border-gray-200">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-gray-200">
-                    <tr>
-                      <th className="p-4">Product</th>
-                      <th className="p-4">Variant</th>
-                      <th className="p-4 text-center">Size</th>
-                      <th className="p-4 text-center">Qty</th>
-                      <th className="p-4 text-right">Unit Range</th>
-                      <th className="p-4 text-right">Total</th>
-                      <th className="p-4"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm">
-                    {items.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="p-8 text-center text-gray-400 text-xs font-bold  "
+              <Table
+                columns={columns}
+                dataSource={items}
+                rowKey={(item, idx) => idx as number}
+                pagination={false}
+                summary={() => {
+                  if (items.length === 0) return null;
+                  return (
+                    <Table.Summary>
+                      <Table.Summary.Row className="bg-gray-50 text-xs text-right font-bold border-t-2 border-gray-200">
+                        <Table.Summary.Cell
+                          index={0}
+                          colSpan={5}
+                          className="p-4"
                         >
-                          No Items Added Yet
-                        </td>
-                      </tr>
-                    ) : (
-                      items.map((item, idx) => (
-                        <tr
-                          key={idx}
-                          className="border-b border-gray-100 hover:bg-gray-50"
-                        >
-                          <td className="p-4 font-bold text-black ">
-                            {item.productName}
-                          </td>
-                          <td className="p-4 text-gray-600  text-xs">
-                            {item.variantName || "-"}
-                          </td>
-                          <td className="p-4 text-center font-mono text-xs">
-                            {item.size}
-                          </td>
-                          <td className="p-4 text-center font-bold">
-                            {item.quantity}
-                          </td>
-                          <td className="p-4 text-right font-mono text-xs text-gray-500">
-                            Rs {item.unitCost}
-                          </td>
-                          <td className="p-4 text-right font-bold">
-                            Rs {item.totalCost.toLocaleString()}
-                          </td>
-                          <td className="p-4 text-right">
-                            <button
-                              onClick={() => handleRemoveItem(idx)}
-                              className="text-gray-400 hover:text-red-600 transition-colors"
-                            >
-                              <IconTrash size={16} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                  <tfoot className="bg-gray-50 border-t-2 border-gray-200">
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="p-4 text-right font-bold   text-xs"
-                      >
-                        Total Amount
-                      </td>
-                      <td className="p-4 text-right font-bold text-xl">
-                        Rs {totalAmount.toLocaleString()}
-                      </td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+                          Total Amount
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell index={1} className="p-4 text-xl">
+                          Rs {totalAmount.toLocaleString()}
+                        </Table.Summary.Cell>
+                        <Table.Summary.Cell index={2} />
+                      </Table.Summary.Row>
+                    </Table.Summary>
+                  );
+                }}
+              />
             </div>
           </div>
 
@@ -558,11 +584,7 @@ const NewPurchaseOrderPage = () => {
                   disabled={saving}
                   className={`${styles.primaryBtn} w-full`}
                 >
-                  {saving ? (
-                    <Spin size="small" />
-                  ) : (
-                    "CREATE & SEND ORDER"
-                  )}
+                  {saving ? <Spin size="small" /> : "CREATE & SEND ORDER"}
                 </button>
                 <button
                   onClick={() => handleSave("draft")}

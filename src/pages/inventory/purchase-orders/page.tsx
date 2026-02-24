@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {  Card, Form, Input, Select, Button, Space , Spin } from "antd";
+import {
+  Card,
+  Form,
+  Input,
+  Select,
+  Button,
+  Space,
+  Spin,
+  Table,
+  Tag,
+} from "antd";
+import type { ColumnsType } from "antd/es/table";
 import {
   IconPlus,
   IconEye,
@@ -86,6 +97,75 @@ const PurchaseOrdersPage = () => {
       o.supplierName.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const columns: ColumnsType<PurchaseOrder> = [
+    {
+      title: "PO Number",
+      key: "poNumber",
+      render: (_, po) => (
+        <span className="font-mono font-bold text-black text-xs tracking-wide">
+          {po.poNumber}
+        </span>
+      ),
+    },
+    {
+      title: "Supplier",
+      key: "supplierName",
+      render: (_, po) => (
+        <span className="font-bold text-gray-700 text-xs tracking-wide">
+          {po.supplierName}
+        </span>
+      ),
+    },
+    {
+      title: "Status",
+      align: "center",
+      key: "status",
+      render: (_, po) => (
+        <span
+          className={`px-3 py-1 text-xs font-bold border ${PO_STATUS_COLORS[po.status] || "bg-gray-100 border-gray-200"}`}
+        >
+          {PO_STATUS_LABELS[po.status] || po.status}
+        </span>
+      ),
+    },
+    {
+      title: "Amount",
+      align: "right",
+      key: "totalAmount",
+      render: (_, po) => (
+        <span className="font-bold text-black">
+          Rs {po.totalAmount.toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      title: "Expected",
+      align: "right",
+      key: "expectedDate",
+      render: (_, po) => (
+        <span className="text-gray-500 text-xs font-bold">
+          {po.expectedDate || "-"}
+        </span>
+      ),
+    },
+    {
+      title: "Action",
+      align: "right",
+      key: "action",
+      render: (_, po) => (
+        <div className="flex justify-end opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
+          <Link
+            to={`/inventory/purchase-orders/${po.id}`}
+            className={styles.iconBtn}
+            title="View Details"
+          >
+            <IconEye size={16} stroke={2} />
+          </Link>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <PageContainer title="Purchase Orders">
       <div className="w-full space-y-8">
@@ -154,7 +234,9 @@ const PurchaseOrdersPage = () => {
         {/* Loading */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
             <span className="text-xs font-bold   text-gray-400 mt-4">
               Loading Orders
             </span>
@@ -163,77 +245,13 @@ const PurchaseOrdersPage = () => {
 
         {/* Table */}
         {!loading && (
-          <div className="bg-white border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-gray-200">
-                  <tr>
-                    <th className="px-6 py-5">PO Number</th>
-                    <th className="px-6 py-5">Supplier</th>
-                    <th className="px-6 py-5 text-center">Status</th>
-                    <th className="px-6 py-5 text-right">Amount</th>
-                    <th className="px-6 py-5 text-right">Expected</th>
-                    <th className="px-6 py-5 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredOrders.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-20 text-center text-gray-400 text-xs font-bold  "
-                      >
-                        No purchase orders found
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredOrders.map((po) => (
-                      <tr
-                        key={po.id}
-                        className="hover:bg-gray-50 transition-colors group"
-                      >
-                        <td className="px-6 py-5">
-                          <span className="font-mono font-bold text-black text-xs  tracking-wide">
-                            {po.poNumber}
-                          </span>
-                        </td>
-                        <td className="px-6 py-5 font-bold text-gray-700  text-xs tracking-wide">
-                          {po.supplierName}
-                        </td>
-                        <td className="px-6 py-5 text-center">
-                          <span
-                            className={`px-3 py-1 text-xs font-bold   border ${
-                              PO_STATUS_COLORS[po.status] ||
-                              "bg-gray-100 border-gray-200"
-                            }`}
-                          >
-                            {PO_STATUS_LABELS[po.status] || po.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-5 text-right font-bold text-black">
-                          Rs {po.totalAmount.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-5 text-right text-gray-500 text-xs font-bold ">
-                          {po.expectedDate || "-"}
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          <div className="flex justify-end opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
-                            <Link
-                              to={`/inventory/purchase-orders/${po.id}`}
-                              className={styles.iconBtn}
-                              title="View Details"
-                            >
-                              <IconEye size={16} stroke={2} />
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <Table
+            columns={columns}
+            dataSource={filteredOrders}
+            rowKey="id"
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
         )}
       </div>
     </PageContainer>

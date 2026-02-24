@@ -1,5 +1,6 @@
+import type { ColumnsType } from 'antd/es/table';
 import api from "@/lib/api";
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table, Tag } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { Link } from "react-router-dom";
@@ -101,6 +102,13 @@ const TaxReportPage = () => {
   const totalPages = report
     ? Math.ceil(report.transactions.length / rowsPerPage)
     : 0;
+  const columns: ColumnsType<any> = [
+    {title: 'Date', key: 'date', render: (_, t) => (<>{t.date}</>) },
+    {title: 'Order ID', key: 'orderID', render: (_, t) => (<>{t.orderId}</>) },
+    {title: 'Order Total', key: 'orderTotal', render: (_, t) => (<>Rs {t.orderTotal.toLocaleString()}</>) },
+    {title: 'Taxable Amount', key: 'taxableAmount', render: (_, t) => (<>Rs {t.taxableAmount.toLocaleString()}</>) },
+    {title: 'Tax Collected', key: 'taxCollected', render: (_, t) => (<>Rs {t.taxCollected.toLocaleString()}</>) },
+  ];
 
   return (
     <PageContainer title="Tax Report">
@@ -279,52 +287,14 @@ const TaxReportPage = () => {
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 font-bold ">Date</th>
-                        <th className="px-6 py-3 font-bold ">Order ID</th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Order Total
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Taxable Amount
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Tax Collected
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {report.transactions
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage,
-                        )
-                        .map((t, idx) => (
-                          <tr
-                            key={idx}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                              {t.date}
-                            </td>
-                            <td className="px-6 py-4 text-gray-600 font-mono text-xs">
-                              {t.orderId}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-900">
-                              Rs {t.orderTotal.toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              Rs {t.taxableAmount.toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4 text-right font-bold text-gray-900">
-                              Rs {t.taxCollected.toLocaleString()}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                  <Table 
+            columns={columns}
+            dataSource={report.transactions}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            scroll={{ x: 'max-content' }}
+          />
                 </div>
 
                 {/* Pagination */}

@@ -1,6 +1,7 @@
+import type { ColumnsType } from 'antd/es/table';
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {  Card, Form, Input, Button, Space , Spin } from "antd";
+import { Card, Form, Input, Button, Space, Spin, Table, Tag } from "antd";
 import {
   IconEye,
   IconSearch,
@@ -63,6 +64,23 @@ const GRNListPage = () => {
       g.poNumber.toLowerCase().includes(search.toLowerCase()) ||
       g.supplierName.toLowerCase().includes(search.toLowerCase()),
   );
+  const columns: ColumnsType<any> = [
+    {title: 'GRN Number', key: 'gRNNumber', render: (_, grn) => (<><span className="font-mono font-bold text-gray-900">
+                          {grn.grnNumber}
+                        </span></>) },
+    {title: 'PO Number', key: 'pONumber', render: (_, grn) => (<><span className="font-mono text-gray-600">
+                          {grn.poNumber}
+                        </span></>) },
+    {title: 'Supplier', key: 'supplier', render: (_, grn) => (<>{grn.supplierName}</>) },
+    {title: 'Amount', key: 'amount', render: (_, grn) => (<>Rs {grn.totalAmount.toLocaleString()}</>) },
+    {title: 'Received Date', key: 'receivedDate', align: 'right', render: (_, grn) => (<>{grn.receivedDate}</>) },
+    {title: 'Actions', key: 'actions', render: (_, grn) => (<><Link
+                          to={`/inventory/grn/${grn.id}`}
+                          className="p-2 hover:bg-gray-100 inline-flex transition-colors"
+                        >
+                          <IconEye size={16} />
+                        </Link></>) },
+  ];
 
   return (
     <PageContainer title="Goods Received Notes">
@@ -130,64 +148,13 @@ const GRNListPage = () => {
         {!loading && (
           <div className="bg-white border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 font-bold ">GRN Number</th>
-                    <th className="px-6 py-3 font-bold ">PO Number</th>
-                    <th className="px-6 py-3 font-bold ">Supplier</th>
-                    <th className="px-6 py-3 font-bold  text-right">Amount</th>
-                    <th className="px-6 py-3 font-bold ">Received Date</th>
-                    <th className="px-6 py-3 font-bold  text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredGRNs.map((grn) => (
-                    <tr
-                      key={grn.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <span className="font-mono font-bold text-gray-900">
-                          {grn.grnNumber}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-mono text-gray-600">
-                          {grn.poNumber}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {grn.supplierName}
-                      </td>
-                      <td className="px-6 py-4 text-right font-medium text-gray-900">
-                        Rs {grn.totalAmount.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">
-                        {grn.receivedDate}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link
-                          to={`/inventory/grn/${grn.id}`}
-                          className="p-2 hover:bg-gray-100 inline-flex transition-colors"
-                        >
-                          <IconEye size={16} />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredGRNs.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-12 text-center text-gray-500"
-                      >
-                        No GRNs found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <Table 
+            columns={columns}
+            dataSource={filteredGRNs}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
             </div>
           </div>
         )}

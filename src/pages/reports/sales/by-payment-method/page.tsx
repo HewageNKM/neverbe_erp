@@ -1,6 +1,7 @@
 import api from "@/lib/api";
 
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import React, { useState } from "react";
 import { IconFilter, IconDownload } from "@tabler/icons-react";
 import * as XLSX from "xlsx";
@@ -55,6 +56,40 @@ const SalesByPaymentMethod = () => {
     XLSX.writeFile(wb, "sales_by_payment_method.xlsx");
   };
 
+  const columns: ColumnsType<any> = [
+    {
+      title: "Payment Method",
+      dataIndex: "paymentMethod",
+      key: "paymentMethod",
+      render: (text) => (
+        <span className="font-medium text-gray-900">{text}</span>
+      ),
+    },
+    {
+      title: "Total Amount",
+      dataIndex: "totalAmount",
+      key: "totalAmount",
+      align: "right",
+      render: (val) => (
+        <span className="font-medium text-gray-900">Rs {val.toFixed(2)}</span>
+      ),
+    },
+    {
+      title: "Total Orders",
+      dataIndex: "totalOrders",
+      key: "totalOrders",
+      align: "right",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+    {
+      title: "Transactions",
+      dataIndex: "transactions",
+      key: "transactions",
+      align: "right",
+      render: (text) => <span className="text-gray-600">{text}</span>,
+    },
+  ];
+
   return (
     <PageContainer title="Sales by Payment Method">
       <div className="w-full space-y-8">
@@ -71,41 +106,41 @@ const SalesByPaymentMethod = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                layout="inline"
+                onFinish={() => fetchReport()}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item className="!mb-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                    <span className="text-gray-400 font-medium">-</span>
+                    <input
+                      type="date"
+                      required
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                  </div>
+                </Form.Item>
+                <Form.Item className="!mb-0">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <IconFilter size={15} />
+                    Filter
+                  </button>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={exportExcel}
@@ -121,7 +156,9 @@ const SalesByPaymentMethod = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
@@ -218,59 +255,14 @@ const SalesByPaymentMethod = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 font-bold ">
-                        Payment Method
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Total Amount
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Total Orders
-                      </th>
-                      <th className="px-6 py-3 font-bold  text-right">
-                        Transactions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {rows.map((row, i) => (
-                      <tr
-                        key={i}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-6 py-4 font-medium text-gray-900">
-                          {row.paymentMethod}
-                        </td>
-                        <td className="px-6 py-4 text-right font-medium text-gray-900">
-                          Rs {row.totalAmount.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-600">
-                          {row.totalOrders}
-                        </td>
-                        <td className="px-6 py-4 text-right text-gray-600">
-                          {row.transactions}
-                        </td>
-                      </tr>
-                    ))}
-                    {rows.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={4}
-                          className="px-6 py-12 text-center text-gray-400 text-sm italic"
-                        >
-                          No records found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <Table
+              columns={columns}
+              dataSource={rows}
+              rowKey={(record, index) => index as number}
+              pagination={{ pageSize: 15 }}
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+              scroll={{ x: "max-content" }}
+            />
           </div>
         )}
       </div>

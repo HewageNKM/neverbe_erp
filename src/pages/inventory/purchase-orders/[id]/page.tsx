@@ -1,4 +1,5 @@
-import { Spin } from "antd";
+import type { ColumnsType } from 'antd/es/table';
+import { Spin, Table, Tag } from "antd";
 import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -98,8 +99,28 @@ const ViewPurchaseOrderPage = () => {
   };
 
   if (loading) {
-    return (
-      <PageContainer title="Purchase Order">
+  const columns: ColumnsType<any> = [
+    {title: 'Product', key: 'product', render: (_, item) => (<>{item.productName}</>) },
+    {title: 'Variant', key: 'variant', render: (_, item) => (<>{item.variantName || "-"}</>) },
+    {title: 'Size', key: 'size', align: 'center', render: (_, item) => (<>{item.size}</>) },
+    {title: 'Ordered', key: 'ordered', align: 'center', render: (_, item) => (<>{item.quantity}</>) },
+    {title: 'Received', key: 'received', render: (_, item) => (<><span
+                        className={`inline-block px-2 py-0.5 text-xs font-bold rounded-full ${
+                          (item.receivedQuantity || 0) >= item.quantity
+                            ? "bg-green-100 text-green-700"
+                            : (item.receivedQuantity || 0) > 0
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-gray-100 text-gray-400"
+                        }`}
+                      >
+                        {item.receivedQuantity || 0}
+                      </span></>) },
+    {title: 'Unit Cost', key: 'unitCost', align: 'right', render: (_, item) => (<>Rs {item.unitCost}</>) },
+    {title: 'Total', key: 'total', render: (_, item) => (<>Rs {item.totalCost.toLocaleString()}</>) },
+  ];
+
+  return (
+    <PageContainer title="Purchase Order">
         <div className="flex flex-col items-center justify-center py-40">
           <div className="flex justify-center py-12"><Spin size="large" /></div>
           <span className="text-xs font-bold   text-gray-400 mt-4">
@@ -199,69 +220,13 @@ const ViewPurchaseOrderPage = () => {
             </span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-400 font-bold  bg-white border-b-2 border-gray-200 ">
-                <tr>
-                  <th className="px-6 py-4">Product</th>
-                  <th className="px-6 py-4">Variant</th>
-                  <th className="px-6 py-4 text-center">Size</th>
-                  <th className="px-6 py-4 text-center">Ordered</th>
-                  <th className="px-6 py-4 text-center">Received</th>
-                  <th className="px-6 py-4 text-right">Unit Cost</th>
-                  <th className="px-6 py-4 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {po.items.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-black ">
-                      {item.productName}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500  text-xs">
-                      {item.variantName || "-"}
-                    </td>
-                    <td className="px-6 py-4 text-center font-mono text-xs">
-                      {item.size}
-                    </td>
-                    <td className="px-6 py-4 text-center font-bold">
-                      {item.quantity}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`inline-block px-2 py-0.5 text-xs font-bold rounded-full ${
-                          (item.receivedQuantity || 0) >= item.quantity
-                            ? "bg-green-100 text-green-700"
-                            : (item.receivedQuantity || 0) > 0
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-100 text-gray-400"
-                        }`}
-                      >
-                        {item.receivedQuantity || 0}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono text-xs text-gray-500">
-                      Rs {item.unitCost}
-                    </td>
-                    <td className="px-6 py-4 text-right font-bold">
-                      Rs {item.totalCost.toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="bg-gray-50 border-t-2 border-gray-200">
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-right font-bold   text-xs"
-                  >
-                    Total Amount
-                  </td>
-                  <td className="px-6 py-4 text-right font-bold text-xl">
-                    Rs {po.totalAmount.toLocaleString()}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+            <Table 
+            columns={columns}
+            dataSource={po.items}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
           </div>
         </div>
 

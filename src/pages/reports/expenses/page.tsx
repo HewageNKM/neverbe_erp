@@ -1,5 +1,6 @@
+import type { ColumnsType } from 'antd/es/table';
 import api from "@/lib/api";
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table, Tag } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
@@ -111,6 +112,21 @@ const ExpenseReportPage = () => {
   const totalPages = report
     ? Math.ceil(report.expenses.length / rowsPerPage)
     : 0;
+  const columns: ColumnsType<any> = [
+    {title: 'Date', key: 'date', render: (_, exp) => (<>{exp.date}</>) },
+    {title: 'Category', key: 'category', render: (_, exp) => (<>{exp.category}</>) },
+    {title: 'Description', key: 'description', render: (_, exp) => (<>{exp.description}</>) },
+    {title: 'Amount', key: 'amount', render: (_, exp) => (<>Rs {exp.amount.toLocaleString()}</>) },
+    {title: 'Status', key: 'status', render: (_, exp) => (<><span
+                                className={`px-2 py-1 text-xs font-bold  ${
+                                  exp.status === "APPROVED"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
+                                }`}
+                              >
+                                {exp.status}
+                              </span></>) },
+  ];
 
   return (
     <PageContainer title="Expense Report">
@@ -304,56 +320,14 @@ const ExpenseReportPage = () => {
             {report.expenses.length > 0 && (
               <div className="bg-white border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 font-bold ">Date</th>
-                        <th className="px-6 py-3 font-bold ">Category</th>
-                        <th className="px-6 py-3 font-bold ">Description</th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Amount
-                        </th>
-                        <th className="px-6 py-3 font-bold ">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {report.expenses
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage,
-                        )
-                        .map((exp) => (
-                          <tr
-                            key={exp.id}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                              {exp.date}
-                            </td>
-                            <td className="px-6 py-4 text-gray-600">
-                              {exp.category}
-                            </td>
-                            <td className="px-6 py-4 text-gray-600 max-w-[200px] truncate">
-                              {exp.description}
-                            </td>
-                            <td className="px-6 py-4 text-right font-medium text-red-600">
-                              Rs {exp.amount.toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4">
-                              <span
-                                className={`px-2 py-1 text-xs font-bold  ${
-                                  exp.status === "APPROVED"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                                }`}
-                              >
-                                {exp.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                  <Table 
+            columns={columns}
+            dataSource={report.expenses}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            scroll={{ x: 'max-content' }}
+          />
                 </div>
 
                 {/* Pagination */}

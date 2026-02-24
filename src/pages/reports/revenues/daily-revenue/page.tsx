@@ -1,6 +1,7 @@
+import type { ColumnsType } from 'antd/es/table';
 import api from "@/lib/api";
 
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table, Tag } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
@@ -149,6 +150,17 @@ const DailyRevenuePage = () => {
       </p>
     </div>
   );
+  const columns: ColumnsType<any> = [
+    {title: 'Date', key: 'date', render: (_, day) => (<>{day.date}</>) },
+    {title: 'Orders', key: 'orders', align: 'right', render: (_, day) => (<>{day.totalOrders}</>) },
+    {title: 'Total Sales', key: 'totalSales', render: (_, day) => (<>Rs {day.totalSales.toFixed(2)}</>) },
+    {title: 'Net Sales', key: 'netSales', render: (_, day) => (<>Rs {day.totalNetSales.toFixed(2)}</>) },
+    {title: 'COGS', key: 'cOGS', render: (_, day) => (<>Rs {day.totalCOGS.toFixed(2)}</>) },
+    {title: 'Gro. Profit', key: 'groProfit', render: (_, day) => (<>Rs {day.grossProfit.toFixed(2)}</>) },
+    {title: 'Gro. Margin', key: 'groMargin', render: (_, day) => (<>{day.grossProfitMargin.toFixed(2)}%</>) },
+    {title: 'Net Profit', key: 'netProfit', render: (_, day) => (<>Rs {day.netProfit.toFixed(2)}</>) },
+    {title: 'Net Margin', key: 'netMargin', render: (_, day) => (<>{day.netProfitMargin.toFixed(2)}%</>) },
+  ];
 
   return (
     <PageContainer title="Daily Revenue Report">
@@ -411,127 +423,17 @@ const DailyRevenuePage = () => {
             {report.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 font-bold ">
-                          Date
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Orders
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Total Sales
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Net Sales
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          COGS
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Gro. Profit
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Gro. Margin
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Net Profit
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Net Margin
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {report
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((day) => (
-                          <tr
-                            key={day.date}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                              {day.date}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {day.totalOrders}
-                            </td>
-                            <td className="px-6 py-4 text-right font-medium text-gray-900">
-                              Rs {day.totalSales.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              Rs {day.totalNetSales.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              Rs {day.totalCOGS.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right font-medium text-green-600">
-                              Rs {day.grossProfit.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {day.grossProfitMargin.toFixed(2)}%
-                            </td>
-                            <td className="px-6 py-4 text-right font-medium text-blue-600">
-                              Rs {day.netProfit.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {day.netProfitMargin.toFixed(2)}%
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                  <Table 
+            columns={columns}
+            dataSource={report}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            scroll={{ x: 'max-content' }}
+          />
                 </div>
 
-                {/* Pagination Controls */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
-                  <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                    <span>Rows per page:</span>
-                    <select
-                      value={rowsPerPage}
-                      onChange={(e) => {
-                        setRowsPerPage(Number(e.target.value));
-                        setPage(0);
-                      }}
-                      className="bg-white border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-900"
-                    >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                      <option value={50}>50</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs text-gray-500 font-medium">
-                      {page * rowsPerPage + 1}-
-                      {Math.min((page + 1) * rowsPerPage, report.length)} of{" "}
-                      {report.length}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setPage(Math.max(0, page - 1))}
-                        disabled={page === 0}
-                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                      >
-                        <IconChevronLeft size={16} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          setPage(Math.min(totalPages - 1, page + 1))
-                        }
-                        disabled={page >= totalPages - 1}
-                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                      >
-                        <IconChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                
               </div>
             )}
           </div>

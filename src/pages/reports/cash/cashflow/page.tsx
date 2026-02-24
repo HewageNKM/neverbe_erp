@@ -1,6 +1,7 @@
+import type { ColumnsType } from 'antd/es/table';
 import api from "@/lib/api";
 
-import {  Card, Form , Spin } from "antd";
+import { Card, Form, Spin, Table, Tag } from "antd";
 import React, { useState } from "react";
 import {
   IconFilter,
@@ -124,6 +125,14 @@ const CashFlowPage = () => {
       <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
     </div>
   );
+  const columns: ColumnsType<any> = [
+    {title: 'Date', key: 'date', render: (_, day) => (<>{day.date}</>) },
+    {title: 'Orders', key: 'orders', align: 'right', render: (_, day) => (<>{day.orders}</>) },
+    {title: 'Cash In', key: 'cashIn', render: (_, day) => (<>Rs {day.cashIn.toFixed(2)}</>) },
+    {title: 'Trans. Fee', key: 'transFee', render: (_, day) => (<>Rs {day.transactionFees.toFixed(2)}</>) },
+    {title: 'Expenses', key: 'expenses', render: (_, day) => (<>Rs {day.expenses.toFixed(2)}</>) },
+    {title: 'Net Cash Flow', key: 'netCashFlow', render: (_, day) => (<>Rs {day.netCashFlow.toFixed(2)}</>) },
+  ];
 
   return (
     <PageContainer title="Cashflow Report">
@@ -342,109 +351,17 @@ const CashFlowPage = () => {
             {report.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-3 font-bold ">
-                          Date
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Orders
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Cash In
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Trans. Fee
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Expenses
-                        </th>
-                        <th className="px-6 py-3 font-bold  text-right">
-                          Net Cash Flow
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {report
-                        .slice(
-                          page * rowsPerPage,
-                          page * rowsPerPage + rowsPerPage
-                        )
-                        .map((day) => (
-                          <tr
-                            key={day.date}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-6 py-4 font-medium text-gray-900">
-                              {day.date}
-                            </td>
-                            <td className="px-6 py-4 text-right text-gray-600">
-                              {day.orders}
-                            </td>
-                            <td className="px-6 py-4 text-right font-medium text-gray-900">
-                              Rs {day.cashIn.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-red-600">
-                              Rs {day.transactionFees.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right text-orange-600">
-                              Rs {day.expenses.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 text-right font-medium text-green-600">
-                              Rs {day.netCashFlow.toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+                  <Table 
+            columns={columns}
+            dataSource={report}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            scroll={{ x: 'max-content' }}
+          />
                 </div>
 
-                {/* Pagination Controls */}
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
-                  <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                    <span>Rows per page:</span>
-                    <select
-                      value={rowsPerPage}
-                      onChange={(e) => {
-                        setRowsPerPage(Number(e.target.value));
-                        setPage(0);
-                      }}
-                      className="bg-white border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-900"
-                    >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                      <option value={50}>50</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs text-gray-500 font-medium">
-                      {page * rowsPerPage + 1}-
-                      {Math.min((page + 1) * rowsPerPage, report.length)} of{" "}
-                      {report.length}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setPage(Math.max(0, page - 1))}
-                        disabled={page === 0}
-                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                      >
-                        <IconChevronLeft size={16} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          setPage(Math.min(totalPages - 1, page + 1))
-                        }
-                        disabled={page >= totalPages - 1}
-                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                      >
-                        <IconChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                
               </div>
             )}
           </div>

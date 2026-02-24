@@ -1,4 +1,5 @@
-import { Spin } from "antd";
+import type { ColumnsType } from 'antd/es/table';
+import { Spin, Table, Tag } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
@@ -65,8 +66,17 @@ const ViewGRNPage = () => {
   }, [currentUser, grnId]);
 
   if (loading) {
-    return (
-      <PageContainer title="GRN">
+  const columns: ColumnsType<any> = [
+    {title: 'Product', key: 'product', render: (_, item) => (<>{item.productName}</>) },
+    {title: 'Size', key: 'size', render: (_, item) => (<>{item.size}</>) },
+    {title: 'Ordered', key: 'ordered', align: 'right', render: (_, item) => (<>{item.orderedQuantity}</>) },
+    {title: 'Received', key: 'received', align: 'right', render: (_, item) => (<>{item.receivedQuantity}</>) },
+    {title: 'Unit Cost', key: 'unitCost', align: 'right', render: (_, item) => (<>Rs {item.unitCost}</>) },
+    {title: 'Total', key: 'total', render: (_, item) => (<>Rs {item.totalCost.toLocaleString()}</>) },
+  ];
+
+  return (
+    <PageContainer title="GRN">
         <div className="flex justify-center py-20">
           <div className="flex justify-center py-12"><Spin size="large" /></div>
         </div>
@@ -159,61 +169,13 @@ const ViewGRNPage = () => {
             </h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 font-bold ">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 font-bold ">Size</th>
-                  <th className="px-6 py-3 font-bold  text-right">
-                    Ordered
-                  </th>
-                  <th className="px-6 py-3 font-bold  text-right">
-                    Received
-                  </th>
-                  <th className="px-6 py-3 font-bold  text-right">
-                    Unit Cost
-                  </th>
-                  <th className="px-6 py-3 font-bold  text-right">
-                    Total
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {grn.items.map((item, idx) => (
-                  <tr key={idx}>
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      {item.productName}
-                    </td>
-                    <td className="px-6 py-4">{item.size}</td>
-                    <td className="px-6 py-4 text-right">
-                      {item.orderedQuantity}
-                    </td>
-                    <td className="px-6 py-4 text-right font-bold text-green-600">
-                      {item.receivedQuantity}
-                    </td>
-                    <td className="px-6 py-4 text-right">Rs {item.unitCost}</td>
-                    <td className="px-6 py-4 text-right font-medium">
-                      Rs {item.totalCost.toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot className="bg-gray-50 border-t border-gray-200">
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-4 text-right font-bold "
-                  >
-                    Total
-                  </td>
-                  <td className="px-6 py-4 text-right font-bold text-lg">
-                    Rs {grn.totalAmount.toLocaleString()}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+            <Table 
+            columns={columns}
+            dataSource={grn.items}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
-import { Spin, Button } from "antd";
+import type { ColumnsType } from 'antd/es/table';
+import { Spin, Button, Table, Tag } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
@@ -125,6 +126,42 @@ const ExpenseCategoriesPage = () => {
       toast.error("Failed to delete category");
     }
   };
+  const columns: ColumnsType<any> = [
+    {title: 'Name', key: 'name', render: (_, cat) => (<>{cat.name}</>) },
+    {title: 'Description', key: 'description', render: (_, cat) => (<>{cat.description || "-"}</>) },
+    {title: 'Type', key: 'type', render: (_, cat) => (<><span
+                          className={`px-2 py-1 text-xs font-bold  ${
+                            cat.type === "expense"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-green-50 text-green-700"
+                          }`}
+                        >
+                          {cat.type}
+                        </span></>) },
+    {title: 'Status', key: 'status', render: (_, cat) => (<><span
+                          className={`px-2 py-1 text-xs font-bold  ${
+                            cat.status
+                              ? "bg-green-50 text-green-700"
+                              : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
+                          {cat.status ? "Active" : "Inactive"}
+                        </span></>) },
+    {title: '', key: 'col4', render: (_, cat) => (<><div className="flex gap-2 justify-end">
+                          <button
+                            onClick={() => openEditModal(cat)}
+                            className="p-1.5 text-gray-600 hover:bg-gray-100"
+                          >
+                            <IconEdit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(cat.id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50"
+                          >
+                            <IconTrash size={16} />
+                          </button>
+                        </div></>) },
+  ];
 
   return (
     <PageContainer title="Expense Categories">
@@ -173,71 +210,13 @@ const ExpenseCategoriesPage = () => {
           <div className="bg-white border border-gray-200 overflow-hidden">
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 font-bold ">Name</th>
-                    <th className="px-6 py-3 font-bold ">
-                      Description
-                    </th>
-                    <th className="px-6 py-3 font-bold ">Type</th>
-                    <th className="px-6 py-3 font-bold ">
-                      Status
-                    </th>
-                    <th className="px-6 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {categories.map((cat) => (
-                    <tr key={cat.id}>
-                      <td className="px-6 py-4 font-medium text-gray-900">
-                        {cat.name}
-                      </td>
-                      <td className="px-6 py-4 text-gray-500">
-                        {cat.description || "-"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-1 text-xs font-bold  ${
-                            cat.type === "expense"
-                              ? "bg-red-50 text-red-700"
-                              : "bg-green-50 text-green-700"
-                          }`}
-                        >
-                          {cat.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-1 text-xs font-bold  ${
-                            cat.status
-                              ? "bg-green-50 text-green-700"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
-                        >
-                          {cat.status ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2 justify-end">
-                          <button
-                            onClick={() => openEditModal(cat)}
-                            className="p-1.5 text-gray-600 hover:bg-gray-100"
-                          >
-                            <IconEdit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(cat.id)}
-                            className="p-1.5 text-red-600 hover:bg-red-50"
-                          >
-                            <IconTrash size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table 
+            columns={columns}
+            dataSource={categories}
+            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            pagination={{ pageSize: 15 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+          />
             </div>
             {/* Mobile Cards */}
             <div className="md:hidden divide-y divide-gray-100">
