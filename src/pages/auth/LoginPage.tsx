@@ -17,13 +17,18 @@ const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const handleRedirect = (user: User) => {
+    // Redirect all management roles directly to dashboard
     if (
       user.role.toUpperCase() === "ADMIN" ||
-      user.role.toUpperCase() === "OWNER"
+      user.role.toUpperCase() === "OWNER" ||
+      user.role.toUpperCase() === "MANAGER"
     ) {
-      navigate("/portal-select");
+      navigate("/dashboard");
     } else if (user.role.toUpperCase() === "POS") {
-      navigate("/pos");
+      // If a POS user accidentally logs into ERP, we can either redirect to POS or show unauthorized
+      // Given the request to remove POS related things, we'll redirect to POS external if possible,
+      // or just /dashboard if they have access. For now, let's just go to /dashboard as default.
+      navigate("/dashboard");
     } else {
       navigate("/dashboard");
     }

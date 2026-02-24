@@ -293,7 +293,7 @@ export default function App() {
           <Route path="profile" element={<Profile />} />
 
           {/* Fallback inner match */}
-          <Route path="*" element={<Navigate to="dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
 
         {/* Global Fallback */}
