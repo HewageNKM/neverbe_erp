@@ -3,8 +3,7 @@ import { ProductVariant } from "@/model/ProductVariant";
 import { DropdownOption } from "../page";
 import { IconPhotoPlus, IconX } from "@tabler/icons-react";
 import toast from "react-hot-toast";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
+import api from "@/lib/api";
 import {
   Modal,
   Form,
@@ -14,10 +13,7 @@ import {
   Switch,
   Divider,
   Space,
-  Typography,
 } from "antd";
-
-const { Text } = Typography;
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -68,11 +64,6 @@ const VariantFormModal: React.FC<VariantFormModalProps> = ({
     }
   }, [variant, open, form]);
 
-  const handleFileChange = (info: any) => {
-    // We manually handle file list to validate and store
-    return false; // Prevent auto upload
-  };
-
   const beforeUpload = (file: File) => {
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
       toast.error(`${file.name}: Invalid Type`);
@@ -106,16 +97,15 @@ const VariantFormModal: React.FC<VariantFormModalProps> = ({
     }
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: Record<string, unknown>) => {
     setIsSaving(true);
     try {
       const formDataPayload = new FormData();
-      // Ensure we use the ID from form or original variant state which might be hidden field
       formDataPayload.append(
         "variantId",
-        values.variantId || variant?.variantId,
+        String(values.variantId || variant?.variantId),
       );
-      formDataPayload.append("variantName", values.variantName);
+      formDataPayload.append("variantName", String(values.variantName));
       formDataPayload.append("sizes", JSON.stringify(values.sizes || []));
       formDataPayload.append("images", JSON.stringify(currentImages || []));
       formDataPayload.append("status", String(values.status ?? true));
@@ -124,28 +114,21 @@ const VariantFormModal: React.FC<VariantFormModalProps> = ({
         formDataPayload.append("newImages", file, file.name);
       });
 
-      const token = await getToken();
-      const method = isNewVariant ? "POST" : "PUT";
+      const varId = String(values.variantId || variant?.variantId);
       const url = isNewVariant
         ? `/api/v1/erp/catalog/products/${productId}/variants`
-        : `/api/v1/erp/catalog/products/${productId}/variants/${values.variantId || variant?.variantId}`;
+        : `/api/v1/erp/catalog/products/${productId}/variants/${varId}`;
 
-      const response = await axios({
-        method: method,
-        url: url,
-        data: formDataPayload,
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = isNewVariant
+        ? await api.post(url, formDataPayload)
+        : await api.put(url, formDataPayload);
 
       onSave(response.data);
-      toast.error(
-        `VARIANT ${isNewVariant ? "ADDED" : "UPDATED"}`,
-        "success",
-      );
+      toast.success(`Variant ${isNewVariant ? "added" : "updated"}`);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to save variant:", error);
-      toast("SAVE FAILED");
+      toast.error("Failed to save variant");
     } finally {
       setIsSaving(false);
     }

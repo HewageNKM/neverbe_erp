@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   IconPlus,
@@ -9,9 +8,8 @@ import {
   IconPhoto,
   IconUpload,
 } from "@tabler/icons-react";
-import axios from "axios";
+import api from "@/lib/api";
 import PageContainer from "../../components/container/PageContainer";
-import { getToken } from "@/firebase/firebaseClient";
 import { useAppSelector } from "@/lib/hooks";
 import { Brand } from "@/model/Brand";
 import toast from "react-hot-toast";
@@ -63,16 +61,14 @@ const BrandPage: React.FC = () => {
   const fetchBrands = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
-      const params: any = { page: pagination.page, size: pagination.size };
+      const params: Record<string, unknown> = {
+        page: pagination.page,
+        size: pagination.size,
+      };
       if (search) params.search = search;
       if (status !== "all") params.status = status;
 
-      const { data } = await axios.get("/api/v1/master/brands", {
-        params,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const { data } = await api.get("/api/v1/erp/catalog/brands", { params });
       setBrands(data.dataList || []);
       setPagination((prev) => ({ ...prev, total: data.rowCount }));
     } catch (e) {
@@ -106,11 +102,6 @@ const BrandPage: React.FC = () => {
     setOpen(true);
   };
 
-  const handleFileChange = (info: any) => {
-    // Handling file manually
-    return false; // Prevent auto upload
-  };
-
   const beforeUpload = (file: File) => {
     if (file.size > 1024 * 1024) {
       toast.error("Logo must be less than 1MB");
@@ -121,36 +112,30 @@ const BrandPage: React.FC = () => {
     return false; // Prevent upload
   };
 
-  const handleSave = async (values: any) => {
+  const handleSave = async (values: Record<string, unknown>) => {
     try {
       setSaving(true);
-      const token = await getToken();
-
       const formData = new FormData();
-      formData.append("name", values.name);
-      formData.append("description", values.description || "");
+      formData.append("name", String(values.name));
+      formData.append("description", String(values.description || ""));
       formData.append("status", String(values.status));
       if (logoFile) formData.append("logo", logoFile);
 
       if (editingBrand) {
-        await axios.put(`/api/v1/master/brands/${editingBrand.id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.put(
+          `/api/v1/erp/catalog/brands/${editingBrand.id}`,
+          formData,
+        );
       } else {
-        await axios.post("/api/v1/master/brands", formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post("/api/v1/erp/catalog/brands", formData);
       }
 
-      toast.error(
-        editingBrand ? "BRAND UPDATED" : "BRAND ADDED",
-        "success",
-      );
+      toast.success(editingBrand ? "Brand updated" : "Brand added");
       await fetchBrands();
       setOpen(false);
     } catch (e) {
       console.error("Failed to save brand", e);
-      toast("Failed to save brand");
+      toast.error("Failed to save brand");
     } finally {
       setSaving(false);
     }
@@ -163,11 +148,8 @@ const BrandPage: React.FC = () => {
       variant: "danger",
       onSuccess: async () => {
         try {
-          const token = await getToken();
-          await axios.delete(`/api/v1/master/brands/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          toast.success("Brand deleted successfully");
+          await api.delete(`/api/v1/erp/catalog/brands/${id}`);
+          toast.success("Brand deleted");
           await fetchBrands();
         } catch (e) {
           console.error("Failed to delete brand", e);

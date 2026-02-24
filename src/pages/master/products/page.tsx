@@ -7,13 +7,11 @@ import {
   IconFilter,
   IconEdit,
   IconTrash,
-  IconCopy,
 } from "@tabler/icons-react";
 import { Product } from "@/model/Product";
 import ProductFormModal from "./components/ProductFormModal";
-import { getToken } from "@/firebase/firebaseClient";
+import api from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
-import axios from "axios";
 import toast from "react-hot-toast";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 import {
@@ -29,7 +27,6 @@ import {
   Col,
   Card,
   Typography,
-  Switch,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
@@ -77,13 +74,11 @@ const ProductPage = () => {
     if (currentUser) fetchProducts();
   }, [pagination.current, pagination.pageSize]);
 
-  const fetchProducts = async (values?: any) => {
+  const fetchProducts = async (values?: Record<string, unknown>) => {
     setLoading(true);
     try {
-      const token = await getToken();
       const filters = values || form.getFieldsValue();
-
-      const params: any = {
+      const params: Record<string, unknown> = {
         page: pagination.current,
         size: pagination.pageSize,
       };
@@ -95,22 +90,17 @@ const ProductPage = () => {
       if (filters.status && filters.status !== "all")
         params.status = filters.status;
 
-      const response = await axios.get("/api/v1/erp/catalog/products", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: params,
+      const response = await api.get("/api/v1/erp/catalog/products", {
+        params,
       });
-
       setProducts(response.data.dataList || []);
       setPagination((prev) => ({
         ...prev,
         total: response.data.rowCount || 0,
       }));
-    } catch (e: any) {
+    } catch (e) {
       console.error("Failed to fetch products", e);
-      toast.error(
-        e.response?.data?.message || "Failed to fetch products",
-        "error",
-      );
+      toast.error("Failed to fetch products");
     } finally {
       setLoading(false);
     }
@@ -121,10 +111,7 @@ const ProductPage = () => {
     setData: (data: DropdownOption[]) => void,
   ) => {
     try {
-      const token = await getToken();
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(url);
       setData(response.data || []);
     } catch (e) {
       console.error("Failed to fetch dropdown data", e);
@@ -166,16 +153,13 @@ const ProductPage = () => {
   };
 
   const handleSaveProduct = async (productData: Product, file: File | null) => {
-    // ... (Logic implementation identical to original, just triggering API)
     setIsSaving(true);
     const isEditing = !!productData.productId;
     const url = isEditing
       ? `/api/v1/erp/catalog/products/${productData.productId}`
       : "/api/v1/erp/catalog/products";
-    const method = isEditing ? "PUT" : "POST";
 
     try {
-      const token = await getToken();
       const formData = new FormData();
       if (file) formData.append("thumbnail", file);
       else if (isEditing && productData.thumbnail)
@@ -188,25 +172,18 @@ const ProductPage = () => {
         else formData.append(key, String(value));
       }
 
-      const response = await fetch(url, {
-        method: method,
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || "Failed to save product");
+      if (isEditing) {
+        await api.put(url, formData);
+      } else {
+        await api.post(url, formData);
       }
 
-      toast(
-        isEditing ? "PRODUCT UPDATED" : "PRODUCT CREATED",
-        "success",
-      );
+      toast.success(isEditing ? "Product updated" : "Product created");
       handleCloseModal();
       fetchProducts();
-    } catch (error: any) {
-      toast(error.message || "Error saving product");
+    } catch (error: unknown) {
+      const err = error as Error;
+      toast.error(err.message || "Error saving product");
     } finally {
       setIsSaving(false);
     }
@@ -220,19 +197,12 @@ const ProductPage = () => {
       onSuccess: async () => {
         setLoading(true);
         try {
-          const token = await getToken();
-          const response = await axios.delete(
-            `/api/v1/erp/catalog/products/${itemId}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          );
-          if (response.status !== 200)
-            throw new Error("Failed to delete product");
-          toast.success("PRODUCT DELETED");
+          await api.delete(`/api/v1/erp/catalog/products/${itemId}`);
+          toast.success("Product deleted");
           fetchProducts();
-        } catch (error: any) {
-          toast.error(error.message || "Error deleting product");
+        } catch (error: unknown) {
+          const err = error as Error;
+          toast.error(err.message || "Error deleting product");
         } finally {
           setLoading(false);
         }

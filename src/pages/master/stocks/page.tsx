@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   IconPlus,
@@ -7,9 +6,8 @@ import {
   IconTrash,
   IconBuildingWarehouse,
 } from "@tabler/icons-react";
-import { getToken } from "@/firebase/firebaseClient";
+import api from "@/lib/api";
 import { useAppSelector } from "@/lib/hooks";
-import axios from "axios";
 import toast from "react-hot-toast";
 import { Stock } from "@/model/Stock";
 import PageContainer from "../../components/container/PageContainer";
@@ -57,16 +55,14 @@ const StockPage: React.FC = () => {
   const fetchLocations = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const params: any = { page: pagination.page, size: pagination.size };
+      const params: Record<string, unknown> = {
+        page: pagination.page,
+        size: pagination.size,
+      };
       if (search) params.search = search;
       if (status !== "all") params.status = status === "active";
 
-      const response = await axios.get("/api/v1/erp/catalog/stocks", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: params,
-      });
-
+      const response = await api.get("/api/v1/erp/catalog/stocks", { params });
       setLocations(response.data.dataList || []);
       setPagination((prev) => ({
         ...prev,
@@ -122,33 +118,27 @@ const StockPage: React.FC = () => {
     form.resetFields();
   };
 
-  const handleSaveLocation = async (values: any) => {
+  const handleSaveLocation = async (values: Record<string, unknown>) => {
     setSaving(true);
     const isEditing = !!editingLocation;
-    const url = isEditing
-      ? `/api/v1/erp/catalog/stocks/${editingLocation!.id}`
-      : "/api/v1/erp/catalog/stocks";
-    const method = isEditing ? "PUT" : "POST";
-
     try {
-      const token = await getToken();
-      await axios({
-        method: method,
-        url: url,
-        data: values,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.error(
-        `LOCATION ${isEditing ? "UPDATED" : "ADDED"}`,
-        "success",
-      );
+      if (isEditing) {
+        await api.put(
+          `/api/v1/erp/catalog/stocks/${editingLocation!.id}`,
+          values,
+        );
+      } else {
+        await api.post("/api/v1/erp/catalog/stocks", values);
+      }
+      toast.success(`Location ${isEditing ? "updated" : "added"}`);
       handleCloseModal();
       fetchLocations();
-    } catch (error: any) {
-      console.error("Error saving location:", error);
-      const message =
-        error.response?.data?.message || "Failed to save location";
-      toast(message);
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      toast.error(err.response?.data?.message || "Failed to save location");
     } finally {
       setSaving(false);
     }
@@ -161,17 +151,14 @@ const StockPage: React.FC = () => {
       variant: "danger",
       onSuccess: async () => {
         try {
-          const token = await getToken();
-          await axios.delete(`/api/v1/erp/catalog/stocks/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          toast.success("LOCATION DELETED");
+          await api.delete(`/api/v1/erp/catalog/stocks/${id}`);
+          toast.success("Location deleted");
           fetchLocations();
-        } catch (error: any) {
-          console.error("Error deleting location:", error);
-          const message =
-            error.response?.data?.message || "Failed to delete location";
-          toast.error(message);
+        } catch (error: unknown) {
+          const err = error as { response?: { data?: { message?: string } } };
+          toast.error(
+            err.response?.data?.message || "Failed to delete location",
+          );
         }
       },
     });

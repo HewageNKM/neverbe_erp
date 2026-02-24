@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   IconPlus,
@@ -7,9 +6,8 @@ import {
   IconTrash,
   IconCategory,
 } from "@tabler/icons-react";
-import axios from "axios";
+import api from "@/lib/api";
 import PageContainer from "../../components/container/PageContainer";
-import { getToken } from "@/firebase/firebaseClient";
 import { useAppSelector } from "@/lib/hooks";
 import { Category } from "@/model/Category";
 import toast from "react-hot-toast";
@@ -59,16 +57,15 @@ const CategoryPage: React.FC = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
-      const params: any = { page: pagination.page, size: pagination.size };
+      const params: Record<string, unknown> = {
+        page: pagination.page,
+        size: pagination.size,
+      };
       if (search) params.search = search;
       if (status !== "all") params.status = status;
 
-      const { data } = await axios({
-        method: "GET",
-        url: "/api/v1/erp/catalog/categories",
+      const { data } = await api.get("/api/v1/erp/catalog/categories", {
         params,
-        headers: { Authorization: `Bearer ${token}` },
       });
       setCategories(data.dataList || []);
       setPagination((prev) => ({ ...prev, total: data.rowCount }));
@@ -102,10 +99,9 @@ const CategoryPage: React.FC = () => {
   };
 
   // Save (Add/Edit)
-  const handleSave = async (values: any) => {
+  const handleSave = async (values: Record<string, unknown>) => {
     try {
       setSaving(true);
-      const token = await getToken();
       const payload = {
         name: values.name,
         description: values.description,
@@ -113,27 +109,23 @@ const CategoryPage: React.FC = () => {
       };
 
       if (editingCategory) {
-        await axios.put(
+        await api.put(
           `/api/v1/erp/catalog/categories/${editingCategory.id}`,
           payload,
-          { headers: { Authorization: `Bearer ${token}` } },
         );
       } else {
-        await axios.post("/api/v1/erp/catalog/categories", payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post("/api/v1/erp/catalog/categories", payload);
       }
 
       await fetchCategories();
       setOpen(false);
-      toast.error(
-        editingCategory ? "CATEGORY UPDATED" : "CATEGORY ADDED",
-        "success",
-      );
-    } catch (e: any) {
-      console.error("Failed to save category", e);
-      const message = e.response?.data?.message || "Failed to save category";
-      toast(message);
+      toast.success(editingCategory ? "Category updated" : "Category added");
+    } catch (e: unknown) {
+      const err = e as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      toast.error(err.response?.data?.message || "Failed to save category");
     } finally {
       setSaving(false);
     }
@@ -147,14 +139,10 @@ const CategoryPage: React.FC = () => {
       variant: "danger",
       onSuccess: async () => {
         try {
-          const token = await getToken();
-          await axios.delete(`/api/v1/erp/catalog/categories/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await api.delete(`/api/v1/erp/catalog/categories/${id}`);
           await fetchCategories();
-          toast.success("Category deleted successfully");
+          toast.success("Category deleted");
         } catch (e) {
-          console.error("Failed to delete category", e);
           toast.error("Failed to delete category");
         }
       },
