@@ -162,7 +162,7 @@ const ProfilePage = () => {
     <Card
       bordered
       size="small"
-      className="hover:border-green-600 transition-colors"
+      className="hover:border-gray-200 transition-colors"
     >
       <Space align="start">
         <div className="p-2 border rounded bg-gray-50 text-gray-400">
@@ -201,7 +201,7 @@ const ProfilePage = () => {
         <Col xs={24} lg={8}>
           <Card className="text-center" bordered>
             <div className="relative inline-block mb-6">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-green-600 p-1 mx-auto">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 p-1 mx-auto">
                 <div className="w-full h-full rounded-full overflow-hidden relative bg-green-600">
                   {currentUser.photoURL ? (
                     <img
@@ -317,7 +317,7 @@ const ProfilePage = () => {
         <div className="flex flex-col items-center gap-4 mb-6">
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="relative w-24 h-24 rounded-full border-2 border-dashed border-gray-300 hover:border-green-600 cursor-pointer overflow-hidden flex items-center justify-center group"
+            className="relative w-24 h-24 rounded-full border-2 border-dashed border-gray-300 hover:border-gray-200 cursor-pointer overflow-hidden flex items-center justify-center group"
           >
             {previewUrl ? (
               <img

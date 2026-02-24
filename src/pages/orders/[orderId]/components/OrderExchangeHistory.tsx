@@ -1,7 +1,7 @@
+import { Spin } from "antd";
+import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import { ExchangeRecord } from "@/model/ExchangeRecord";
 import {
   IconAlertCircle,
@@ -15,7 +15,7 @@ interface OrderExchangeHistoryProps {
 
 const styles = {
   sectionTitle:
-    "text-lg font-bold text-black  tracking-tighter mb-6 pb-2 border-b-2 border-green-600 flex items-center justify-between",
+    "text-lg font-bold text-black  tracking-tighter mb-6 pb-2 border-b-2 border-gray-200 flex items-center justify-between",
   tableHeader:
     "bg-green-600 text-white text-xs font-bold   py-3 px-4 text-left",
   tableCell: "py-4 px-4 text-xs font-bold border-b border-gray-100",
@@ -37,10 +37,7 @@ export const OrderExchangeHistory: React.FC<OrderExchangeHistoryProps> = ({
   const fetchExchanges = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
-      const response = await axios.get(`/api/v1/erp/orders/${orderId}/exchanges`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(`/api/v1/erp/orders/${orderId}/exchanges`);
       setExchanges(response.data);
     } catch (err: any) {
       console.error(err);
@@ -53,7 +50,7 @@ export const OrderExchangeHistory: React.FC<OrderExchangeHistoryProps> = ({
   if (loading) {
     return (
       <div className="bg-white border border-gray-200 p-8 shadow-sm flex justify-center py-12">
-        <IconLoader className="animate-spin" size={24} />
+        <Spin size="small" />
       </div>
     );
   }
@@ -72,7 +69,7 @@ export const OrderExchangeHistory: React.FC<OrderExchangeHistoryProps> = ({
         {exchanges.map((exchange) => (
           <div
             key={exchange.id}
-            className="border-2 border-gray-100 hover:border-green-600 transition-colors duration-200"
+            className="border-2 border-gray-100 hover:border-gray-200 transition-colors duration-200"
           >
             {/* Header */}
             <div className="bg-gray-50 p-4 border-b-2 border-gray-100 flex flex-wrap gap-4 justify-between items-center">

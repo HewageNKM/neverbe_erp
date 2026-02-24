@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { DropdownOption } from "@/pages/master/products/page";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
+import api from "@/lib/api";
 import toast from "react-hot-toast";
 import {
   Modal,
@@ -84,14 +83,11 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
     setVariantId("");
     setSelectedVariant(null);
     try {
-      const token = await getToken();
-      const response = await axios.get(
+      const response = await api.get(
         `/api/v1/erp/catalog/products/${pid}/variants/dropdown`,
-        { headers: { Authorization: `Bearer ${token}` } },
       );
       setVariants(response.data || []);
-    } catch (error) {
-      console.error("Failed to fetch variants:", error);
+    } catch {
       setVariants([]);
     } finally {
       setLoadingVariants(false);
@@ -108,15 +104,12 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
 
       setLoadingStock(true);
       const stockData: Record<string, number> = {};
-
       try {
-        const token = await getToken();
         const promises = selectedVariant.sizes.map(async (size) => {
           try {
-            const response = await axios.get(
+            const response = await api.get(
               "/api/v1/erp/inventory/check-quantity",
               {
-                headers: { Authorization: `Bearer ${token}` },
                 params: { productId, variantId, size, stockId },
               },
             );
@@ -125,12 +118,11 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
             stockData[size] = 0;
           }
         });
-
         await Promise.all(promises);
         setCurrentStock(stockData);
-        setSizeQuantities(stockData); // Pre-fill
-      } catch (error) {
-        console.error("Failed to fetch current stock:", error);
+        setSizeQuantities(stockData);
+      } catch {
+        // ignore
       } finally {
         setLoadingStock(false);
       }
@@ -173,7 +165,7 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
 
   const handleSubmit = async () => {
     if (!productId || !variantId || !stockId) {
-      toast("Missing Required Selections", { icon: '⚠️' });
+      toast("Missing Required Selections");
       return;
     }
 
@@ -184,7 +176,6 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
 
     setSaving(true);
     try {
-      const token = await getToken();
       const payload = {
         bulk: true,
         productId,
@@ -194,23 +185,13 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
           .filter(([size, qty]) => qty !== (currentStock[size] ?? 0))
           .map(([size, quantity]) => ({ size, quantity })),
       };
-
-      const response = await axios.post("/api/v1/inventory", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      toast(
-        `BULK ENTRY SUCCESS: ${response.data.success} UPDATED`,
-        "success",
-      );
+      const response = await api.post("/api/v1/erp/inventory", payload);
+      toast.success(`Bulk entry success: ${response.data.success} updated`);
       onSave();
       onClose();
-    } catch (error: any) {
-      console.error("Bulk save failed:", error);
-      toast(
-        error.response?.data?.message || "Failed to save",
-        "error",
-      );
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to save");
     } finally {
       setSaving(false);
     }
@@ -304,7 +285,7 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
                       <Card
                         key={size}
                         size="small"
-                        className={`${isChanged ? "border-green-500 bg-green-50" : "bg-gray-50"}`}
+                        className={`${isChanged ? "border-gray-200 bg-green-50" : "bg-gray-50"}`}
                         bordered={isChanged}
                       >
                         <div className="flex justify-between items-center mb-2">

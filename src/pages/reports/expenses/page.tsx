@@ -1,3 +1,5 @@
+import api from "@/lib/api";
+import {  Card, Form , Spin } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
@@ -7,7 +9,6 @@ import {
   IconChevronRight,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
 import {
   PieChart,
   Pie,
@@ -16,8 +17,6 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -68,12 +67,10 @@ const ExpenseReportPage = () => {
     if (evt) evt.preventDefault();
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get<ExpenseReport>(
+      const res = await api.get<ExpenseReport>(
         "/api/v1/erp/reports/expenses",
         {
           params: { from, to },
-          headers: { Authorization: `Bearer ${token}` },
         },
       );
       setReport(res.data);
@@ -130,17 +127,20 @@ const ExpenseReportPage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
-            <form
-              onSubmit={fetchReport}
-              className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
-            >
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Card size="small" className="shadow-sm w-full xl:w-auto">
+          <Form
+            layout="inline"
+            onFinish={() => fetchReport()}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <Form.Item className="!mb-0">
+              <div className="flex items-center gap-2">
                 <input
                   type="date"
                   required
                   value={from}
                   onChange={(e) => setFrom(e.target.value)}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-sm focus:outline-none focus:border-gray-900 w-full sm:w-auto"
+                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
                 />
                 <span className="text-gray-400 font-medium">-</span>
                 <input
@@ -148,22 +148,26 @@ const ExpenseReportPage = () => {
                   required
                   value={to}
                   onChange={(e) => setTo(e.target.value)}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-sm focus:outline-none focus:border-gray-900 w-full sm:w-auto"
+                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
                 />
               </div>
+            </Form.Item>
+            <Form.Item className="!mb-0">
               <button
                 type="submit"
-                className="px-6 py-2 bg-gray-900 text-white text-xs font-bold   rounded-sm hover:bg-green-600 transition-colors min-w-[100px] flex items-center justify-center gap-2 w-full sm:w-auto"
+                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
               >
-                <IconFilter size={16} />
+                <IconFilter size={15} />
                 Filter
               </button>
-            </form>
+            </Form.Item>
+          </Form>
+        </Card>
 
             <button
               onClick={handleExportExcel}
               disabled={!report?.expenses.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               <IconDownload size={16} />
               Export
@@ -174,7 +178,7 @@ const ExpenseReportPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         )}
 
@@ -362,7 +366,7 @@ const ExpenseReportPage = () => {
                         setRowsPerPage(Number(e.target.value));
                         setPage(0);
                       }}
-                      className="bg-white border border-gray-300 rounded-sm px-2 py-1"
+                      className="bg-white border border-gray-300 rounded-lg px-2 py-1"
                     >
                       <option value={5}>5</option>
                       <option value={10}>10</option>
@@ -383,7 +387,7 @@ const ExpenseReportPage = () => {
                       <button
                         onClick={() => setPage(Math.max(0, page - 1))}
                         disabled={page === 0}
-                        className="p-1 rounded-sm hover:bg-gray-200 disabled:opacity-30"
+                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30"
                       >
                         <IconChevronLeft size={16} />
                       </button>
@@ -392,7 +396,7 @@ const ExpenseReportPage = () => {
                           setPage(Math.min(totalPages - 1, page + 1))
                         }
                         disabled={page >= totalPages - 1}
-                        className="p-1 rounded-sm hover:bg-gray-200 disabled:opacity-30"
+                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30"
                       >
                         <IconChevronRight size={16} />
                       </button>

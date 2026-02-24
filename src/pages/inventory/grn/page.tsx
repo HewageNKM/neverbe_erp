@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { IconEye, IconSearch, IconPlus } from "@tabler/icons-react";
+import {  Card, Form, Input, Button, Space , Spin } from "antd";
+import {
+  IconEye,
+  IconSearch,
+  IconPlus,
+  IconFilter,
+  IconX,
+} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
+import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -23,19 +28,25 @@ const GRNListPage = () => {
   const [loading, setLoading] = useState(true);
   const [grns, setGRNs] = useState<GRN[]>([]);
   const [search, setSearch] = useState("");
+  const [form] = Form.useForm();
+
+  const handleFilterSubmit = (values: any) => {
+    setSearch(values.search || "");
+  };
+
+  const handleClearFilters = () => {
+    form.resetFields();
+    setSearch("");
+  };
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
   const fetchGRNs = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get<GRN[]>("/api/v1/erp/inventory/grn", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get<GRN[]>("/api/v1/erp/inventory/grn");
       setGRNs(res.data);
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Failed to fetch GRNs");
     } finally {
       setLoading(false);
@@ -75,25 +86,43 @@ const GRNListPage = () => {
           </Link>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <IconSearch
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            type="text"
-            placeholder="Search by GRN#, PO#, or supplier..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 focus:outline-none focus:border-green-600"
-          />
-        </div>
+        {/* Filters */}
+        <Card size="small" className="shadow-sm">
+          <Form
+            form={form}
+            layout="inline"
+            onFinish={handleFilterSubmit}
+            initialValues={{ search: "" }}
+            className="flex flex-wrap items-center gap-2 w-full"
+          >
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search by GRN#, PO#, or supplier..."
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<IconFilter size={15} />}
+                >
+                  Filter
+                </Button>
+                <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
 
         {/* Loading */}
         {loading && (
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         )}
 

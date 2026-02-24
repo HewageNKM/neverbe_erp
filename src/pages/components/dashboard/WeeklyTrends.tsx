@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { getWeeklyTrendsAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
-import { IconRefresh, IconTrendingUp } from "@tabler/icons-react";
+import { IconTrendingUp } from "@tabler/icons-react";
 import { lazy } from "react";
 import { Button, Spin, Tag } from "antd";
 
@@ -110,13 +110,7 @@ const WeeklyTrends = () => {
         <div className="flex items-center gap-2">
           <IconTrendingUp size={18} className="text-green-500" />
           <h4 className="text-lg font-bold text-black m-0">Weekly Trends</h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchData}
-            loading={loading}
-          />
+          
         </div>
         <Tag className="m-0 text-xs font-bold text-gray-500 bg-gray-100 border-none">
           Last 7 Days

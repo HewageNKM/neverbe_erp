@@ -12,7 +12,7 @@ const Page = () => {
     <PageContainer title="Website" description="Manage Website Content">
       <div className="w-full space-y-8">
         {/* Header Section */}
-        <div className="flex flex-col gap-2 border-b-2 border-green-600 pb-6">
+        <div className="flex flex-col gap-2 border-b-2 border-gray-200 pb-6">
           <span className="text-xs font-bold  text-gray-500  flex items-center gap-2">
             <IconWorldWww size={14} /> Front-End Controller
           </span>
@@ -22,7 +22,7 @@ const Page = () => {
         </div>
 
         {/* Content Control Panel */}
-        <div className="bg-white border-2 border-gray-200">
+        <div className="bg-white border border-gray-200 rounded-lg">
           {/* Tab Navigation Area */}
           <div className="p-6 border-b border-gray-200 bg-gray-50/50">
             <Header formType={formType} setFormType={setFormType} />

@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import {
   IconClock,
   IconTruck,
-  IconRefresh,
   IconAlertCircle,
 } from "@tabler/icons-react";
 import { Spin, Button } from "antd";
@@ -48,20 +47,14 @@ const PendingOrdersCount = () => {
           <h4 className="text-lg font-bold tracking-tighter text-black m-0">
             Needs Attention
           </h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchData}
-            loading={loading}
-          />
+          
         </div>
       </div>
 
       <Spin spinning={loading}>
         {data ? (
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between p-4 border border-green-500 bg-green-600 text-white rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between p-4 border border-gray-200 bg-green-600 text-white rounded-2xl shadow-sm">
               <div className="flex items-center gap-3">
                 <IconAlertCircle size={24} />
                 <div>

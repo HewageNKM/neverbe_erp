@@ -1,15 +1,13 @@
+import { Spin } from "antd";
+import api from "@/lib/api";
 import React, { useState, useEffect, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   IconArrowLeft,
   IconLoader2,
   IconPackage,
-  IconShoppingCart,
-} from "@tabler/icons-react";
+  IconShoppingCart} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -19,14 +17,13 @@ import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 const styles = {
   label: "block text-xs font-bold text-gray-500   mb-2",
   input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none placeholder:text-gray-400",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none placeholder:text-gray-400",
   select:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none appearance-none cursor-pointer ",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none appearance-none cursor-pointer ",
   primaryBtn:
-    "flex items-center justify-center px-6 py-4 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-sm shadow-sm hover:shadow-md disabled:opacity-50",
+    "flex items-center justify-center px-6 py-4 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-lg shadow-sm hover:shadow-md disabled:opacity-50",
   secondaryBtn:
-    "flex items-center justify-center px-6 py-4 border-2 border-green-600 text-black text-xs font-bold   hover:bg-gray-50 transition-all rounded-sm disabled:opacity-50",
-};
+    "flex items-center justify-center px-6 py-4 border border-gray-200 rounded-lg shadow-sm text-green-700 bg-green-50 hover:bg-green-100 text-xs font-bold   hover:bg-gray-50 transition-all rounded-lg disabled:opacity-50"};
 
 interface POItem {
   productId: string;
@@ -83,8 +80,7 @@ const NewGRNPageContent = () => {
 
   // Default fields
   const [receivedDate, setReceivedDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
+    new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<GRNItemInput[]>([]);
 
@@ -93,17 +89,10 @@ const NewGRNPageContent = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
       const [posRes, stocksRes] = await Promise.all([
-        axios.get<PurchaseOrder[]>(
-          "/api/v1/erp/procurement/purchase-orders?pending=true",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        ),
-        axios.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        api.get<PurchaseOrder[]>(
+          "/api/v1/erp/procurement/purchase-orders?pending=true"),
+        api.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown"),
       ]);
       setPendingPOs(posRes.data);
       setStocks(stocksRes.data);
@@ -142,8 +131,7 @@ const NewGRNPageContent = () => {
       previouslyReceived: item.receivedQuantity || 0,
       receivedQuantity: item.quantity - (item.receivedQuantity || 0), // Default to remaining qty
       unitCost: item.unitCost,
-      stockId: defaultStockId,
-    }));
+      stockId: defaultStockId}));
 
     setItems(grnItems);
   };
@@ -166,42 +154,35 @@ const NewGRNPageContent = () => {
 
     setItems(
       items.map((item, i) =>
-        i === index ? { ...item, receivedQuantity: qty } : item,
-      ),
-    );
+        i === index ? { ...item, receivedQuantity: qty } : item));
   };
 
   const handleStockChange = (index: number, value: string) => {
     setItems(
       items.map((item, i) =>
-        i === index ? { ...item, stockId: value } : item,
-      ),
-    );
+        i === index ? { ...item, stockId: value } : item));
   };
 
   const totalAmount = items.reduce(
     (sum, item) => sum + item.receivedQuantity * item.unitCost,
-    0,
-  );
+    0);
 
   const handleSave = async () => {
     if (!selectedPO) {
-      toast("Please select a purchase order", { icon: '⚠️' });
+      toast("Please select a purchase order");
       return;
     }
 
     const validItems = items.filter((item) => item.receivedQuantity > 0);
     if (validItems.length === 0) {
-      toast("Please enter received quantities", { icon: '⚠️' });
+      toast("Please enter received quantities");
       return;
     }
 
     for (const item of validItems) {
       if (!item.stockId) {
         toast.success(
-          `Please select stock location for ${item.productName}`,
-          "warning",
-        );
+          `Please select stock location for ${item.productName}`);
         return;
       }
     }
@@ -213,8 +194,7 @@ const NewGRNPageContent = () => {
       onSuccess: async () => {
         setSaving(true);
         try {
-          const token = await getToken();
-          await axios.post(
+          await api.post(
             "/api/v1/erp/inventory/grn",
             {
               purchaseOrderId: selectedPO.id,
@@ -233,11 +213,7 @@ const NewGRNPageContent = () => {
                 receivedQuantity: item.receivedQuantity,
                 unitCost: item.unitCost,
                 totalCost: item.receivedQuantity * item.unitCost,
-                stockId: item.stockId,
-              })),
-            },
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
+                stockId: item.stockId}))});
 
           toast("GRN CREATED SUCCESSFULLY");
           navigate("/inventory/grn");
@@ -247,15 +223,14 @@ const NewGRNPageContent = () => {
         } finally {
           setSaving(false);
         }
-      },
-    });
+      }});
   };
 
   if (loading) {
     return (
       <PageContainer title="New GRN">
         <div className="flex flex-col items-center justify-center py-40">
-          <ComponentsLoader />
+          <div className="flex justify-center py-12"><Spin size="large" /></div>
           <span className="text-xs font-bold   text-gray-400 mt-4">
             Loading Pending Orders
           </span>
@@ -268,7 +243,7 @@ const NewGRNPageContent = () => {
     <PageContainer title="New GRN">
       <div className="w-full space-y-8 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 border-b-2 border-green-600 pb-6">
+        <div className="flex items-center gap-4 border-b-2 border-gray-200 pb-6">
           <button
             onClick={() => navigate(-1)}
             className="w-10 h-10 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:text-white transition-colors"
@@ -341,7 +316,7 @@ const NewGRNPageContent = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-green-600">
+                <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-gray-200">
                   <tr>
                     <th className="px-6 py-4">Product</th>
                     <th className="px-6 py-4">Variant</th>
@@ -387,10 +362,9 @@ const NewGRNPageContent = () => {
                               onChange={(e) =>
                                 handleQuantityChange(
                                   idx,
-                                  Number(e.target.value),
-                                )
+                                  Number(e.target.value))
                               }
-                              className="w-24 bg-white border-2 border-gray-200 focus:border-green-600 px-3 py-2 text-center font-bold outline-none transition-colors rounded-sm"
+                              className="w-24 bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-3 py-2 text-center font-bold outline-none transition-colors rounded-lg"
                             />
                             <span className="ml-2 text-xs text-gray-400 font-bold">
                               / {remaining}
@@ -403,7 +377,7 @@ const NewGRNPageContent = () => {
                             onChange={(e) =>
                               handleStockChange(idx, e.target.value)
                             }
-                            className="w-full bg-white border-2 border-gray-200 focus:border-green-600 px-2 py-2 text-xs font-medium outline-none transition-colors rounded-sm "
+                            className="w-full bg-white border border-gray-200 rounded-lg focus:border-gray-200 px-2 py-2 text-xs font-medium outline-none transition-colors rounded-lg "
                           >
                             <option value="">Select</option>
                             {stocks.map((s) => (
@@ -423,7 +397,7 @@ const NewGRNPageContent = () => {
                     );
                   })}
                 </tbody>
-                <tfoot className="bg-gray-50 border-t-2 border-green-600">
+                <tfoot className="bg-gray-50 border-t-2 border-gray-200">
                   <tr>
                     <td
                       colSpan={7}
@@ -450,7 +424,7 @@ const NewGRNPageContent = () => {
               className={styles.primaryBtn}
             >
               {saving ? (
-                <IconLoader2 size={18} className="animate-spin mr-2" />
+                <Spin size="small" />
               ) : (
                 <IconPackage size={18} className="mr-2" />
               )}
@@ -469,7 +443,7 @@ const NewGRNPage = () => {
       fallback={
         <PageContainer title="New GRN">
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         </PageContainer>
       }

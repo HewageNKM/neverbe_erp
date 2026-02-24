@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { DropdownOption } from "@/pages/master/products/page";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
+import api from "@/lib/api";
 import { InventoryItem } from "@/model/InventoryItem";
 import { Modal, Form, Select, InputNumber, Button, Spin, Row, Col } from "antd";
 
@@ -75,11 +74,9 @@ const InventoryFormModal: React.FC<StockFormModalProps> = ({
         const fetchQty = async () => {
           setLoadingQuantity(true);
           try {
-            const token = await getToken();
-            const response = await axios.get(
+            const response = await api.get(
               "/api/v1/erp/inventory/check-quantity",
               {
-                headers: { Authorization: `Bearer ${token}` },
                 params: {
                   productId: item.productId,
                   variantId: item.variantId,
@@ -91,8 +88,8 @@ const InventoryFormModal: React.FC<StockFormModalProps> = ({
             form.setFieldsValue({
               quantity: response.data.quantity ?? item.quantity,
             });
-          } catch (e) {
-            console.error(e);
+          } catch {
+            // ignore — keep existing quantity
           } finally {
             setLoadingQuantity(false);
           }
@@ -118,22 +115,16 @@ const InventoryFormModal: React.FC<StockFormModalProps> = ({
     }
     setLoadingVariants(true);
     try {
-      const token = await getToken();
-      const response = await axios.get(
+      const response = await api.get(
         `/api/v1/erp/catalog/products/${pid}/variants/dropdown`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
       );
       const fetchedVariants: VariantDropdownOption[] = response.data || [];
       setVariants(fetchedVariants);
-
       if (preselectVariantId) {
         const v = fetchedVariants.find((v) => v.id === preselectVariantId);
         if (v) setSelectedVariant(v);
       }
-    } catch (error) {
-      console.error("Failed to fetch variants:", error);
+    } catch {
       setVariants([]);
     } finally {
       setLoadingVariants(false);
@@ -170,12 +161,9 @@ const InventoryFormModal: React.FC<StockFormModalProps> = ({
         !stockIdValue
       )
         return;
-
       setLoadingQuantity(true);
       try {
-        const token = await getToken();
-        const response = await axios.get("/api/v1/erp/inventory/check-quantity", {
-          headers: { Authorization: `Bearer ${token}` },
+        const response = await api.get("/api/v1/erp/inventory/check-quantity", {
           params: {
             productId: productIdValue,
             variantId: variantIdValue,
@@ -184,11 +172,10 @@ const InventoryFormModal: React.FC<StockFormModalProps> = ({
           },
         });
         const currentQuantity = response.data?.quantity ?? 0;
-        if (currentQuantity > 0) {
+        if (currentQuantity > 0)
           form.setFieldsValue({ quantity: currentQuantity });
-        }
-      } catch (error) {
-        console.error("Error checking existing stock quantity:", error);
+      } catch {
+        // ignore
       } finally {
         setLoadingQuantity(false);
       }

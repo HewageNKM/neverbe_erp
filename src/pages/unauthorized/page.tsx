@@ -41,7 +41,7 @@ const RestrictedPage = () => {
         {/* Industrial Button */}
         <Link
           to="/"
-          className="group relative inline-flex items-center justify-center px-10 py-4 bg-black text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-gray-900 transition-all duration-300 shadow-[4px_4px_0px_0px_rgba(200,200,200,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+          className="group relative inline-flex items-center justify-center px-10 py-4 bg-black text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-gray-900 transition-all duration-300 shadow-sm rounded-lg hover:shadow-md hover:-translate-y-0.5"
         >
           <IconShieldLock
             size={16}

@@ -1,5 +1,17 @@
+import {
+  Spin,
+  Form,
+  Input,
+  Button,
+  Card,
+  Space,
+  Typography,
+  Checkbox,
+  Row,
+  Col,
+} from "antd";
+import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Permission, Role } from "@/model/Role";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -7,22 +19,11 @@ import { auth } from "@/firebase/firebaseClient";
 import {
   IconDeviceFloppy,
   IconArrowLeft,
-  IconLoader,
   IconShield,
-  IconCheck,
 } from "@tabler/icons-react";
 import PageContainer from "../../components/container/PageContainer";
 
-// --- NIKE AESTHETIC STYLES ---
-const styles = {
-  label: "block text-xs font-bold text-gray-500   mb-2",
-  input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none placeholder:text-gray-400",
-  primaryBtn:
-    "flex items-center justify-center px-6 py-4 bg-green-600 text-white text-sm font-bold   hover:bg-gray-900 transition-all shadow-[4px_4px_0px_0px_rgba(156,163,175,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-50",
-  secondaryBtn:
-    "flex items-center justify-center px-6 py-4 border-2 border-green-600 text-black text-sm font-bold   hover:bg-gray-50 transition-all",
-};
+const { Title, Text } = Typography;
 
 const EditRolePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,11 +32,7 @@ const EditRolePage = () => {
   const [roleId, setRoleId] = useState<string>(id || "");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  const [form, setForm] = useState({
-    name: "",
-    permissions: [] as string[],
-  });
+  const [form] = Form.useForm();
 
   useEffect(() => {
     async function init() {
@@ -44,17 +41,14 @@ const EditRolePage = () => {
       try {
         const token = await auth.currentUser?.getIdToken();
         const [permRes, roleRes] = await Promise.all([
-          axios.get("/api/v1/erp/users/roles", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`/api/v1/erp/users/roles/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          api.get("/api/v1/erp/users/roles"),
+          api.get(`/api/v1/erp/users/roles/${id}`),
         ]);
 
         setPermissionsList(permRes.data.permissions || []);
         const roleData = roleRes.data as Role;
-        setForm({
+
+        form.setFieldsValue({
           name: roleData.name,
           permissions: roleData.permissions,
         });
@@ -66,40 +60,26 @@ const EditRolePage = () => {
       }
     }
     init();
-  }, [id, navigate]);
+  }, [id, navigate, form]);
 
-  const handlePermChange = (key: string, checked: boolean) => {
-    if (checked) {
-      setForm((prev) => ({ ...prev, permissions: [...prev.permissions, key] }));
-    } else {
-      setForm((prev) => ({
-        ...prev,
-        permissions: prev.permissions.filter((p) => p !== key),
-      }));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name) return toast.error("Name is required");
-
+  const onFinish = async (values: any) => {
     setSaving(true);
     try {
+      const payload = {
+        name: values.name,
+        permissions: values.permissions || [],
+      };
       const token = await auth.currentUser?.getIdToken();
-      await axios.put(`/api/v1/erp/users/roles/${roleId}`, form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.put(`/api/v1/erp/users/roles/${roleId}`, payload);
       toast.success("Role updated successfully");
       navigate("/roles");
     } catch (error) {
-      console.error(error);
       toast.error("Failed to update role");
     } finally {
       setSaving(false);
     }
   };
 
-  // Group permissions
   const groupedPermissions = permissionsList.reduce(
     (acc, perm) => {
       if (!acc[perm.group]) acc[perm.group] = [];
@@ -113,8 +93,10 @@ const EditRolePage = () => {
     return (
       <PageContainer title="Edit Role" description="Loading...">
         <div className="flex flex-col items-center justify-center py-32">
-          <IconLoader className="animate-spin text-black mb-3" size={32} />
-          <p className="text-xs font-bold   text-gray-400">Loading Role...</p>
+          <Spin size="large" />
+          <Text type="secondary" className="mt-4">
+            Loading Role...
+          </Text>
         </div>
       </PageContainer>
     );
@@ -122,119 +104,89 @@ const EditRolePage = () => {
 
   return (
     <PageContainer title="Edit Role" description={`Editing role: ${roleId}`}>
-      <div className="w-full space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 border-b-2 border-green-600 pb-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-xs font-bold text-gray-500   hover:text-black transition-colors w-fit"
-          >
-            <IconArrowLeft size={14} /> Back to Roles
-          </button>
-          <div className="flex flex-col">
-            <span className="text-xs font-bold  text-gray-500  mb-1 flex items-center gap-2">
-              <IconShield size={14} /> Access Control
-            </span>
-            <h2 className="text-4xl font-bold text-black  tracking-tighter leading-none">
-              Edit Role
-            </h2>
-            <span className="font-mono text-xs text-gray-500 bg-gray-100 px-2 py-1 mt-2 w-fit">
-              {roleId}
-            </span>
+      <div className="w-full max-w-5xl mx-auto space-y-6">
+        <div className="flex justify-between items-end">
+          <div>
+            <Button
+              type="link"
+              onClick={() => navigate(-1)}
+              icon={<IconArrowLeft size={16} />}
+              className="px-0 text-gray-500 hover:text-black mb-2"
+            >
+              Back to Roles
+            </Button>
+            <Space align="center" size="small">
+              <IconShield size={24} className="text-gray-500" />
+              <div>
+                <Title level={4} className="!m-0 text-gray-400">
+                  ROLE EDIT
+                </Title>
+                <Title level={2} className="!m-0">
+                  {roleId.toUpperCase()}
+                </Title>
+              </div>
+            </Space>
           </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white border border-gray-200 p-8 space-y-6">
-            <div>
-              <label className={styles.label}>
-                Role Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className={styles.input}
-                placeholder="e.g. Inventory Manager"
-              />
-            </div>
-          </div>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{ permissions: [] }}
+        >
+          <Card className="mb-6 shadow-sm">
+            <Row gutter={24}>
+              <Col xs={24} md={12}>
+                <Form.Item
+                  label="Role Name"
+                  name="name"
+                  rules={[{ required: true, message: "Role Name is required" }]}
+                >
+                  <Input placeholder="e.g. Inventory Manager" size="large" />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
 
-          {/* Permissions */}
-          <div className="bg-white border border-gray-200 p-8">
-            <h3 className="text-lg font-bold  tracking-tighter mb-6 border-b border-gray-100 pb-4">
-              Permissions
-            </h3>
-
-            <div className="space-y-8">
-              {Object.entries(groupedPermissions).map(([group, perms]) => (
-                <div key={group}>
-                  <h4 className="text-xs font-bold text-gray-500   mb-4 border-b border-gray-100 pb-2">
-                    {group}
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {perms.map((perm) => (
-                      <label
-                        key={perm.key}
-                        className="flex items-center gap-3 cursor-pointer group p-3 border border-gray-100 hover:border-green-600 transition-colors"
-                      >
-                        <div className="relative">
-                          <input
-                            type="checkbox"
-                            checked={form.permissions.includes(perm.key)}
-                            onChange={(e) =>
-                              handlePermChange(perm.key, e.target.checked)
-                            }
-                            className="sr-only peer"
-                          />
-                          <div className="w-5 h-5 border-2 border-gray-300 bg-white peer-checked:bg-green-600 peer-checked:border-green-600 transition-colors flex items-center justify-center">
-                            <IconCheck
-                              size={14}
-                              className="text-white opacity-0 peer-checked:opacity-100"
-                            />
-                          </div>
-                        </div>
-                        <span className="text-xs font-medium text-gray-600 group-hover:text-black transition-colors">
-                          {perm.label}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+          <Card title="Permissions" className="mb-6 shadow-sm">
+            <Form.Item name="permissions">
+              <Checkbox.Group className="w-full">
+                <div className="space-y-6 w-full">
+                  {Object.entries(groupedPermissions).map(([group, perms]) => (
+                    <div key={group}>
+                      <Text strong className="block mb-3 text-gray-500">
+                        {group.toUpperCase()}
+                      </Text>
+                      <Row gutter={[16, 16]}>
+                        {perms.map((perm) => (
+                          <Col xs={24} sm={12} md={8} key={perm.key}>
+                            <Checkbox value={perm.key}>{perm.label}</Checkbox>
+                          </Col>
+                        ))}
+                      </Row>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </Checkbox.Group>
+            </Form.Item>
+          </Card>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className={styles.secondaryBtn}
-              disabled={saving}
-            >
+          <div className="flex justify-end gap-3">
+            <Button size="large" onClick={() => navigate(-1)} disabled={saving}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              className={styles.primaryBtn}
-              disabled={saving}
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              loading={saving}
+              icon={<IconDeviceFloppy size={18} />}
             >
-              {saving ? (
-                <>
-                  <IconLoader size={18} className="animate-spin mr-2" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <IconDeviceFloppy size={18} className="mr-2" />
-                  Save Changes
-                </>
-              )}
-            </button>
+              Save Changes
+            </Button>
           </div>
-        </form>
+        </Form>
       </div>
     </PageContainer>
   );

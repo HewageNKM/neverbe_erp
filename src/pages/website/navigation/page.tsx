@@ -1,9 +1,21 @@
+import {
+  Spin,
+  Card,
+  Input,
+  Button,
+  Row,
+  Col,
+  Space,
+  Typography,
+  Tag,
+  Alert,
+  Affix,
+} from "antd";
 import React, { useEffect, useState } from "react";
 import {
   IconSitemap,
   IconLink,
   IconDeviceFloppy,
-  IconLoader,
   IconAlertTriangle,
   IconCheck,
   IconX,
@@ -16,7 +28,8 @@ import {
 } from "@/actions/settingActions";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
-import ComponentsLoader from "@/components/ComponentsLoader";
+
+const { Title, Text } = Typography;
 
 const NavigationPage = () => {
   const [loading, setLoading] = useState(true);
@@ -122,184 +135,213 @@ const NavigationPage = () => {
     }
   };
 
-  const styles = {
-    sectionTitle:
-      "text-xl font-bold  tracking-tighter text-black flex items-center gap-2",
-    editorContainer: "relative w-full group",
-    textArea: `w-full h-72 bg-[#1a1a1a] text-gray-300 border-2 focus:border-green-600 p-4 font-mono text-xs outline-none transition-colors resize-y leading-relaxed rounded-sm selection:bg-gray-700`,
-    label:
-      "text-xs font-bold text-gray-400   mb-2 flex justify-between items-center",
-    statusBadge: (isValid: boolean) =>
-      `px-2 py-1 text-xs font-bold   rounded-sm flex items-center gap-1 ${
-        isValid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-      }`,
-    formatBtn:
-      "text-xs hover:text-black underline cursor-pointer flex items-center gap-1",
-  };
-
   if (loading) {
     return (
-      <div className="h-96 relative">
-        <ComponentsLoader title="LOADING CONFIG..." />
+      <div className="flex justify-center py-32">
+        <Spin size="large" />
       </div>
     );
   }
 
+  const renderStatusBox = (isValid: boolean) =>
+    isValid ? (
+      <Tag
+        color="success"
+        icon={<IconCheck size={14} className="mr-1 inline" />}
+      >
+        Valid JSON
+      </Tag>
+    ) : (
+      <Tag color="error" icon={<IconX size={14} className="mr-1 inline" />}>
+        Syntax Error
+      </Tag>
+    );
+
   return (
-    <div className="flex flex-col gap-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24">
+    <div className="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24">
       {/* Introduction Alert */}
-      <div className="bg-gray-100 border-l-4 border-green-600 p-6">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <div className="bg-white p-2 rounded-full shadow-sm w-fit">
-            <IconAlertTriangle className="h-6 w-6 text-black" />
-          </div>
-          <div>
-            <p className="text-sm font-bold  tracking-wide text-black">
-              Developer Mode: JSON Configuration
-            </p>
-            <p className="text-xs text-gray-600 mt-1 max-w-3xl leading-relaxed">
-              You are editing the raw data structure for the navigation menu.
-              Changes here directly affect the live site layout. The editor
-              below provides syntax validation to prevent crashes.
-            </p>
-          </div>
-        </div>
-      </div>
+      <Alert
+        message="Developer Mode: JSON Configuration"
+        description="You are editing the raw data structure for the navigation menu. Changes here directly affect the live site layout. The editor below provides syntax validation to prevent crashes."
+        type="info"
+        showIcon
+        icon={<IconAlertTriangle size={24} />}
+        className="mb-4"
+      />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      <Row gutter={[24, 24]}>
         {/* Main Nav Editor */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b-2 border-green-600 pb-2">
-            <h3 className={styles.sectionTitle}>
-              <IconSitemap size={20} /> Main Navigation
-            </h3>
-            <div className={styles.statusBadge(mainNavValid)}>
-              {mainNavValid ? <IconCheck size={12} /> : <IconX size={12} />}
-              {mainNavValid ? "Valid JSON" : "Syntax Error"}
-            </div>
-          </div>
-
-          <div className={styles.editorContainer}>
-            <div className={styles.label}>
-              <span>config.main_nav.json</span>
-              <button
+        <Col xs={24} lg={8}>
+          <Card
+            title={
+              <Space>
+                <IconSitemap size={18} /> Main Navigation
+              </Space>
+            }
+            extra={renderStatusBox(mainNavValid)}
+            className="shadow-sm h-full"
+            bodyStyle={{
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              height: "calc(100% - 58px)",
+            }}
+          >
+            <div className="flex justify-between items-center mb-2">
+              <Text type="secondary" className="text-xs font-mono">
+                config.main_nav.json
+              </Text>
+              <Button
+                type="link"
+                size="small"
+                icon={<IconWand size={14} />}
                 onClick={() => prettify("main")}
-                className={styles.formatBtn}
               >
-                <IconWand size={12} /> Format Code
-              </button>
+                Format Code
+              </Button>
             </div>
-            <textarea
+            <Input.TextArea
               value={mainNavJson}
               onChange={(e) => setMainNavJson(e.target.value)}
-              className={`${styles.textArea} ${
-                !mainNavValid ? "border-red-500" : "border-gray-800"
-              }`}
+              status={!mainNavValid ? "error" : ""}
               spellCheck="false"
               placeholder='[ { "title": "Home", "link": "/" } ]'
+              className="font-mono text-xs flex-1 min-h-[400px]"
+              style={{
+                backgroundColor: "#1e1e1e",
+                color: "#d4d4d4",
+                borderRadius: "8px",
+                resize: "none",
+              }}
             />
-          </div>
-        </div>
+          </Card>
+        </Col>
 
         {/* Footer Nav Editor */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b-2 border-green-600 pb-2">
-            <h3 className={styles.sectionTitle}>
-              <IconLink size={20} /> Footer Links
-            </h3>
-            <div className={styles.statusBadge(footerNavValid)}>
-              {footerNavValid ? <IconCheck size={12} /> : <IconX size={12} />}
-              {footerNavValid ? "Valid JSON" : "Syntax Error"}
-            </div>
-          </div>
-
-          <div className={styles.editorContainer}>
-            <div className={styles.label}>
-              <span>config.footer.json</span>
-              <button
+        <Col xs={24} lg={8}>
+          <Card
+            title={
+              <Space>
+                <IconLink size={18} /> Footer Links
+              </Space>
+            }
+            extra={renderStatusBox(footerNavValid)}
+            className="shadow-sm h-full"
+            bodyStyle={{
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              height: "calc(100% - 58px)",
+            }}
+          >
+            <div className="flex justify-between items-center mb-2">
+              <Text type="secondary" className="text-xs font-mono">
+                config.footer.json
+              </Text>
+              <Button
+                type="link"
+                size="small"
+                icon={<IconWand size={14} />}
                 onClick={() => prettify("footer")}
-                className={styles.formatBtn}
               >
-                <IconWand size={12} /> Format Code
-              </button>
+                Format Code
+              </Button>
             </div>
-            <textarea
+            <Input.TextArea
               value={footerNavJson}
               onChange={(e) => setFooterNavJson(e.target.value)}
-              className={`${styles.textArea} ${
-                !footerNavValid ? "border-red-500" : "border-gray-800"
-              }`}
+              status={!footerNavValid ? "error" : ""}
               spellCheck="false"
               placeholder='[ { "title": "About", "link": "/about" } ]'
+              className="font-mono text-xs flex-1 min-h-[400px]"
+              style={{
+                backgroundColor: "#1e1e1e",
+                color: "#d4d4d4",
+                borderRadius: "8px",
+                resize: "none",
+              }}
             />
-          </div>
-        </div>
+          </Card>
+        </Col>
 
         {/* Social Links Editor */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b-2 border-green-600 pb-2">
-            <h3 className={styles.sectionTitle}>
-              <IconBrandFacebook size={20} /> Social Links
-            </h3>
-            <div className={styles.statusBadge(socialLinksValid)}>
-              {socialLinksValid ? <IconCheck size={12} /> : <IconX size={12} />}
-              {socialLinksValid ? "Valid JSON" : "Syntax Error"}
-            </div>
-          </div>
-
-          <div className={styles.editorContainer}>
-            <div className={styles.label}>
-              <span>config.social.json</span>
-              <button
+        <Col xs={24} lg={8}>
+          <Card
+            title={
+              <Space>
+                <IconBrandFacebook size={18} /> Social Links
+              </Space>
+            }
+            extra={renderStatusBox(socialLinksValid)}
+            className="shadow-sm h-full"
+            bodyStyle={{
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              height: "calc(100% - 58px)",
+            }}
+          >
+            <div className="flex justify-between items-center mb-2">
+              <Text type="secondary" className="text-xs font-mono">
+                config.social.json
+              </Text>
+              <Button
+                type="link"
+                size="small"
+                icon={<IconWand size={14} />}
                 onClick={() => prettify("social")}
-                className={styles.formatBtn}
               >
-                <IconWand size={12} /> Format Code
-              </button>
+                Format Code
+              </Button>
             </div>
-            <textarea
+            <Input.TextArea
               value={socialLinksJson}
               onChange={(e) => setSocialLinksJson(e.target.value)}
-              className={`${styles.textArea} ${
-                !socialLinksValid ? "border-red-500" : "border-gray-800"
-              }`}
+              status={!socialLinksValid ? "error" : ""}
               spellCheck="false"
               placeholder='[ { "name": "facebook", "url": "https://facebook.com/yourpage" } ]'
+              className="font-mono text-xs flex-1 min-h-[400px]"
+              style={{
+                backgroundColor: "#1e1e1e",
+                color: "#d4d4d4",
+                borderRadius: "8px",
+                resize: "none",
+              }}
             />
-            <p className="text-xs text-gray-400 mt-2">
+            <Text type="secondary" className="text-xs mt-3 block">
               Supported names: facebook, instagram, tiktok, youtube, twitter
-            </p>
-          </div>
-        </div>
-      </div>
+            </Text>
+          </Card>
+        </Col>
+      </Row>
 
-      {/* Floating Save Action */}
+      {/* Floating Save Action (using Affix might be better, but fixed for now to maintain layout) */}
       <div className="fixed bottom-6 right-6 z-50">
-        <button
+        <Button
+          type="primary"
+          size="large"
+          danger={!allValid}
+          loading={saving}
+          disabled={!allValid}
           onClick={handleSave}
-          disabled={saving || !allValid}
-          className={`
-            px-8 py-4 shadow-2xl transition-all text-xs font-bold   flex items-center gap-3
-            ${
-              !allValid
-                ? "bg-red-600 text-white cursor-not-allowed opacity-100" // Error State
-                : "bg-green-600 text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" // Normal State
-            }
-          `}
+          icon={
+            allValid ? (
+              <IconDeviceFloppy size={20} />
+            ) : (
+              <IconAlertTriangle size={20} />
+            )
+          }
+          style={{
+            height: "60px",
+            padding: "0 32px",
+            fontSize: "16px",
+            borderRadius: "30px",
+            boxShadow:
+              "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+          }}
         >
-          {saving ? (
-            <IconLoader className="animate-spin" size={20} />
-          ) : (
-            <>
-              {!allValid ? (
-                <IconAlertTriangle size={20} />
-              ) : (
-                <IconDeviceFloppy size={20} />
-              )}
-            </>
-          )}
           {!allValid ? "Fix Errors To Save" : "Save Configuration"}
-        </button>
+        </Button>
       </div>
     </div>
   );

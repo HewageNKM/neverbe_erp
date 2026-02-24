@@ -5,7 +5,6 @@ import { getPopularItemsAction } from "@/actions/inventoryActions";
 import DashboardCard from "@/pages/components/shared/DashboardCard";
 import PopularItemCard from "@/pages/components/dashboard/PopularItemCard";
 import {
-  IconRefresh,
   IconChevronLeft,
   IconChevronRight,
 } from "@tabler/icons-react";
@@ -84,17 +83,14 @@ const PopularItems = () => {
   return (
     <DashboardCard>
       <div className="mb-2">
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 pb-4 border-b border-green-600">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4 pb-4 border-b border-gray-200">
           <div className="flex items-center gap-4">
             <h4 className="text-xl font-bold text-black m-0 leading-none">
               Trending Products
             </h4>
 
             <div className="flex items-center gap-1">
-              <Button
-                icon={<IconRefresh size={16} />}
-                onClick={fetchPopularItems}
-              />
+              
               <Divider type="vertical" className="h-6 bg-gray-300 mx-1" />
               <Button.Group>
                 <Button

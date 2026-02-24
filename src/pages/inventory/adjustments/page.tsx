@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import {  Card, Form, Input, Select, Button, Space , Spin } from "antd";
 import {
   IconPlus,
   IconEye,
   IconSearch,
   IconFilter,
   IconAdjustments,
+  IconX,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
+import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -53,26 +53,21 @@ const AdjustmentsPage = () => {
   const [adjustments, setAdjustments] = useState<Adjustment[]>([]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
+  const [form] = Form.useForm();
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
   const fetchAdjustments = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
       const params: Record<string, string> = {};
       if (typeFilter) params.type = typeFilter;
-
-      const res = await axios.get<Adjustment[]>(
+      const res = await api.get<Adjustment[]>(
         "/api/v1/erp/inventory/adjustments",
-        {
-          params,
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { params },
       );
       setAdjustments(res.data);
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Failed to fetch adjustments");
     } finally {
       setLoading(false);
@@ -112,44 +107,62 @@ const AdjustmentsPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <IconSearch
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="text"
-              placeholder="Search by ID or reason..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 focus:outline-none focus:border-green-600"
-            />
-          </div>
-          <div className="relative">
-            <IconFilter
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="pl-12 pr-8 py-3 bg-white border border-gray-200 focus:outline-none focus:border-green-600 appearance-none min-w-[180px]"
-            >
-              <option value="">All Types</option>
-              <option value="add">Stock Addition</option>
-              <option value="remove">Stock Removal</option>
-              <option value="damage">Damaged Goods</option>
-              <option value="return">Customer Return</option>
-              <option value="transfer">Stock Transfer</option>
-            </select>
-          </div>
-        </div>
+        <Card size="small" className="shadow-sm">
+          <Form
+            form={form}
+            layout="inline"
+            onFinish={(values) => {
+              setSearch(values.search || "");
+              setTypeFilter(values.type || "");
+            }}
+            initialValues={{ search: "", type: "" }}
+            className="flex flex-wrap items-center gap-2 w-full"
+          >
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search by ID or reason..."
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item name="type" className="!mb-0 w-44">
+              <Select>
+                <Select.Option value="">All Types</Select.Option>
+                <Select.Option value="add">Stock Addition</Select.Option>
+                <Select.Option value="remove">Stock Removal</Select.Option>
+                <Select.Option value="damage">Damaged Goods</Select.Option>
+                <Select.Option value="return">Customer Return</Select.Option>
+                <Select.Option value="transfer">Stock Transfer</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<IconFilter size={15} />}
+                >
+                  Filter
+                </Button>
+                <Button
+                  icon={<IconX size={15} />}
+                  onClick={() => {
+                    form.resetFields();
+                    setSearch("");
+                    setTypeFilter("");
+                  }}
+                >
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
 
         {/* Loading */}
         {loading && (
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         )}
 

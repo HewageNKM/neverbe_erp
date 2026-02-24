@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 import {
   IconPlus,
   IconPencil,
@@ -11,7 +10,6 @@ import {
   IconUserX,
   IconShield,
   IconFilter,
-  IconRefresh,
   IconSearch,
   IconX,
 } from "@tabler/icons-react";
@@ -99,9 +97,7 @@ const UserForm = ({
   const fetchRoles = async () => {
     try {
       const token = await auth.currentUser?.getIdToken();
-      const res = await axios.get("/api/v1/erp/users/roles", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/api/v1/erp/users/roles");
       setRoles(res.data.roles || []);
     } catch (error) {
       console.error("Failed to fetch roles", error);
@@ -484,9 +480,6 @@ const UsersPage = () => {
               System Administration
             </Typography.Text>
           </div>
-          <Button icon={<IconRefresh size={18} />} onClick={() => fetchUsers()}>
-            Refresh
-          </Button>
         </div>
 
         {/* Stats */}
@@ -532,65 +525,62 @@ const UsersPage = () => {
         </Row>
 
         {/* Filters */}
-        <Card size="small" className="bg-gray-50/50">
+        <Card size="small" className="shadow-sm">
           <Form
             form={form}
-            layout="vertical"
+            layout="inline"
             onFinish={handleFilterSubmit}
             initialValues={{ role: "all", status: "all" }}
+            className="flex flex-wrap items-center gap-2 w-full"
           >
-            <Row gutter={[16, 0]}>
-              <Col xs={24} md={8}>
-                <Form.Item name="search" label="Search Users">
-                  <Input
-                    prefix={<IconSearch size={16} className="text-gray-400" />}
-                    placeholder="Name or Email..."
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item name="status" label="Status">
-                  <Select>
-                    <Option value="all">All Status</Option>
-                    <Option value="Active">Active</Option>
-                    <Option value="Inactive">Inactive</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item name="role" label="Role">
-                  <Select>
-                    <Option value="all">All Roles</Option>
-                    <Option value="ADMIN">ADMIN</Option>
-                    <Option value="USER">USER</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item label="User Type">
-                  <div className="flex items-center gap-2 pt-2">
-                    <Switch
-                      checked={showAnonymous}
-                      onChange={setShowAnonymous}
-                    />
-                    <span className="text-xs font-bold text-gray-500">
-                      {showAnonymous ? "Anonymous" : "Registered"}
-                    </span>
-                  </div>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={4} className="flex items-end pb-6 gap-2">
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search Name or Email..."
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item name="status" className="!mb-0 w-36">
+              <Select>
+                <Option value="all">All Status</Option>
+                <Option value="Active">Active</Option>
+                <Option value="Inactive">Inactive</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="role" className="!mb-0 w-36">
+              <Select>
+                <Option value="all">All Roles</Option>
+                <Option value="ADMIN">ADMIN</Option>
+                <Option value="USER">USER</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <div className="flex items-center h-[32px] px-3 bg-white rounded-md border border-gray-200">
+                <Switch
+                  checked={showAnonymous}
+                  onChange={setShowAnonymous}
+                  size="small"
+                  className="mr-2"
+                />
+                <span className="text-xs font-bold text-gray-500 whitespace-nowrap">
+                  {showAnonymous ? "Anonymous User" : "Registered User"}
+                </span>
+              </div>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
                 <Button
                   type="primary"
                   htmlType="submit"
-                  icon={<IconFilter size={16} />}
-                  block
+                  icon={<IconFilter size={15} />}
                 >
                   Filter
                 </Button>
-                <Button icon={<IconX size={16} />} onClick={handleReset} />
-              </Col>
-            </Row>
+                <Button icon={<IconX size={15} />} onClick={handleReset}>
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
           </Form>
         </Card>
 

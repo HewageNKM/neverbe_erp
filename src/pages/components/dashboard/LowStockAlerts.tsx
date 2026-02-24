@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { getLowStockAlertsAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
-import { IconAlertTriangle, IconRefresh } from "@tabler/icons-react";
+import { IconAlertTriangle, } from "@tabler/icons-react";
 import { List, Avatar, Tag, Button, Spin, Typography } from "antd";
 
 interface LowStockItem {
@@ -43,13 +43,7 @@ const LowStockAlerts = () => {
         <div className="flex items-center gap-2">
           <IconAlertTriangle size={18} className="text-orange-500" />
           <h4 className="text-lg font-bold text-black m-0">Low Stock Alerts</h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchLowStock}
-            loading={loading}
-          />
+          
         </div>
         <Tag color="orange" className="font-bold">
           {items.length} Items

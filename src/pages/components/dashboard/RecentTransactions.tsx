@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DashboardCard from "../shared/DashboardCard";
 import toast from "react-hot-toast";
-import { IconReceipt, IconRefresh } from "@tabler/icons-react";
+import { IconReceipt, } from "@tabler/icons-react";
 import { getRecentOrdersAction } from "@/actions/reportsActions";
 import { useAppSelector } from "@/lib/hooks";
 import { Timeline, Tag, Spin, Button, Typography, Card } from "antd";
@@ -59,13 +59,7 @@ const RecentTransactions = () => {
   return (
     <DashboardCard title="Recent Orders">
       <div className="flex justify-end -mt-8 mb-4 relative z-10">
-        <Button
-          type="text"
-          shape="circle"
-          icon={<IconRefresh size={16} />}
-          onClick={fetchRecentOrders}
-          loading={loading}
-        />
+        
       </div>
 
       <Spin spinning={loading}>

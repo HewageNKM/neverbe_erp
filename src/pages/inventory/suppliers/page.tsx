@@ -1,4 +1,4 @@
-
+import { Spin, Button } from "antd";
 import React, { useState, useEffect } from "react";
 import {
   IconPlus,
@@ -8,9 +8,7 @@ import {
   IconLoader2,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
+import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -54,13 +52,11 @@ const SuppliersPage = () => {
   const fetchSuppliers = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get<Supplier[]>("/api/v1/erp/procurement/suppliers", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get<Supplier[]>(
+        "/api/v1/erp/procurement/suppliers",
+      );
       setSuppliers(res.data);
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Failed to fetch suppliers");
     } finally {
       setLoading(false);
@@ -85,30 +81,24 @@ const SuppliersPage = () => {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      toast("Supplier name is required", { icon: '⚠️' });
+      toast("Supplier name is required");
       return;
     }
-
     setSaving(true);
     try {
-      const token = await getToken();
-
       if (editingSupplier?.id) {
-        await axios.put(`/api/v1/erp/procurement/suppliers/${editingSupplier.id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.put(
+          `/api/v1/erp/procurement/suppliers/${editingSupplier.id}`,
+          formData,
+        );
         toast.success("Supplier updated");
       } else {
-        await axios.post("/api/v1/erp/procurement/suppliers", formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post("/api/v1/erp/procurement/suppliers", formData);
         toast.success("Supplier created");
       }
-
       setShowModal(false);
       fetchSuppliers();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Failed to save supplier");
     } finally {
       setSaving(false);
@@ -117,16 +107,11 @@ const SuppliersPage = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to deactivate this supplier?")) return;
-
     try {
-      const token = await getToken();
-      await axios.delete(`/api/v1/erp/procurement/suppliers/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/api/v1/erp/procurement/suppliers/${id}`);
       toast.success("Supplier deactivated");
       fetchSuppliers();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Failed to delete supplier");
     }
   };
@@ -135,7 +120,7 @@ const SuppliersPage = () => {
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.contactPerson?.toLowerCase().includes(search.toLowerCase()) ||
-      s.phone?.includes(search)
+      s.phone?.includes(search),
   );
 
   return (
@@ -151,13 +136,7 @@ const SuppliersPage = () => {
               Manage your suppliers and vendors
             </p>
           </div>
-          <button
-            onClick={handleAdd}
-            className="w-full sm:w-auto px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
-          >
-            <IconPlus size={16} />
-            Add Supplier
-          </button>
+          <Button type="primary" size="large" onClick={handleAdd}>Add Supplier</Button>
         </div>
 
         {/* Search */}
@@ -171,14 +150,14 @@ const SuppliersPage = () => {
             placeholder="Search suppliers..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-green-600"
+            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 text-gray-900 focus:outline-none focus:border-gray-200"
           />
         </div>
 
         {/* Loading */}
         {loading && (
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         )}
 
@@ -190,21 +169,11 @@ const SuppliersPage = () => {
                 <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 font-bold ">Name</th>
-                    <th className="px-6 py-3 font-bold ">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 font-bold ">
-                      Phone
-                    </th>
-                    <th className="px-6 py-3 font-bold ">
-                      Payment Terms
-                    </th>
-                    <th className="px-6 py-3 font-bold ">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 font-bold  text-right">
-                      Actions
-                    </th>
+                    <th className="px-6 py-3 font-bold ">Contact</th>
+                    <th className="px-6 py-3 font-bold ">Phone</th>
+                    <th className="px-6 py-3 font-bold ">Payment Terms</th>
+                    <th className="px-6 py-3 font-bold ">Status</th>
+                    <th className="px-6 py-3 font-bold  text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -297,7 +266,7 @@ const SuppliersPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-200"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -314,7 +283,7 @@ const SuppliersPage = () => {
                           contactPerson: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-green-600"
+                      className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-200"
                     />
                   </div>
                   <div>
@@ -327,7 +296,7 @@ const SuppliersPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, phone: e.target.value })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-green-600"
+                      className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-200"
                     />
                   </div>
                 </div>
@@ -341,7 +310,7 @@ const SuppliersPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-200"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -355,7 +324,7 @@ const SuppliersPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, city: e.target.value })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-green-600"
+                      className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-200"
                     />
                   </div>
                   <div>
@@ -370,7 +339,7 @@ const SuppliersPage = () => {
                           paymentTerms: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-green-600"
+                      className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-200"
                     >
                       <option value="COD">Cash on Delivery</option>
                       <option value="Advance">Advance Payment</option>
@@ -390,7 +359,7 @@ const SuppliersPage = () => {
                       setFormData({ ...formData, address: e.target.value })
                     }
                     rows={2}
-                    className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-green-600 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-200 resize-none"
                   />
                 </div>
                 <div>
@@ -403,7 +372,7 @@ const SuppliersPage = () => {
                       setFormData({ ...formData, notes: e.target.value })
                     }
                     rows={2}
-                    className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-green-600 resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-200 resize-none"
                   />
                 </div>
               </div>
@@ -414,14 +383,8 @@ const SuppliersPage = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-6 py-2 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {saving && <IconLoader2 size={14} className="animate-spin" />}
-                  {editingSupplier ? "Update" : "Create"}
-                </button>
+                <Button type="primary" size="large" onClick={handleSave} disabled={saving}>{saving && <Spin size="small" />}
+                  {editingSupplier ? "Update" : "Create"}</Button>
               </div>
             </div>
           </div>

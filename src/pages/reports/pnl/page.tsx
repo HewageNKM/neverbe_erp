@@ -1,11 +1,10 @@
+import api from "@/lib/api";
 
+import {  Card, Form , Spin } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { IconFilter, IconDownload } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -57,10 +56,8 @@ const ProfitLossPage = () => {
     if (evt) evt.preventDefault();
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get<ProfitLossStatement>("/api/v1/erp/reports/pnl", {
+      const res = await api.get<ProfitLossStatement>("/api/v1/erp/reports/pnl", {
         params: { from, to },
-        headers: { Authorization: `Bearer ${token}` },
       });
       setReport(res.data);
     } catch (error) {
@@ -190,17 +187,20 @@ const ProfitLossPage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
-            <form
-              onSubmit={fetchReport}
-              className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
-            >
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Card size="small" className="shadow-sm w-full xl:w-auto">
+          <Form
+            layout="inline"
+            onFinish={() => fetchReport()}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <Form.Item className="!mb-0">
+              <div className="flex items-center gap-2">
                 <input
                   type="date"
                   required
                   value={from}
                   onChange={(e) => setFrom(e.target.value)}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-sm focus:outline-none focus:border-gray-900 w-full sm:w-auto"
+                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
                 />
                 <span className="text-gray-400 font-medium">-</span>
                 <input
@@ -208,22 +208,26 @@ const ProfitLossPage = () => {
                   required
                   value={to}
                   onChange={(e) => setTo(e.target.value)}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-sm focus:outline-none focus:border-gray-900 w-full sm:w-auto"
+                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
                 />
               </div>
+            </Form.Item>
+            <Form.Item className="!mb-0">
               <button
                 type="submit"
-                className="px-6 py-2 bg-gray-900 text-white text-xs font-bold   rounded-sm hover:bg-green-600 transition-colors min-w-[100px] flex items-center justify-center gap-2 w-full sm:w-auto"
+                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
               >
-                <IconFilter size={16} />
+                <IconFilter size={15} />
                 Filter
               </button>
-            </form>
+            </Form.Item>
+          </Form>
+        </Card>
 
             <button
               onClick={handleExportExcel}
               disabled={!report}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               <IconDownload size={16} />
               Export
@@ -234,7 +238,7 @@ const ProfitLossPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         )}
 

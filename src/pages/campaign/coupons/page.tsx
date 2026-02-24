@@ -1,3 +1,5 @@
+import { Button } from "antd";
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import PageContainer from "../../components/container/PageContainer";
@@ -6,8 +8,6 @@ import {
   IconChevronLeft,
   IconChevronRight,
 } from "@tabler/icons-react";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
 import { Coupon } from "@/model/Coupon";
 import CouponListTable from "./components/CouponListTable";
 import CouponFormModal from "./components/CouponFormModal"; // Will create next
@@ -32,9 +32,7 @@ const CouponsPage = () => {
   const fetchCoupons = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const response = await axios.get("/api/v1/erp/catalog/coupons", {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get("/api/v1/erp/catalog/coupons", {
         params: { page: pagination.page, size: pagination.size },
       });
 
@@ -79,10 +77,7 @@ const CouponsPage = () => {
       confirmText: "Delete",
       onSuccess: async () => {
         try {
-          const token = await getToken();
-          await axios.delete(`/api/v1/erp/catalog/coupons/${item.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await api.delete(`/api/v1/erp/catalog/coupons/${item.id}`);
           toast.success("Coupon deleted");
           fetchCoupons();
         } catch (e) {
@@ -105,16 +100,10 @@ const CouponsPage = () => {
               Coupons
             </h2>
           </div>
-          <button
-            onClick={handleOpenCreateModal}
-            className="flex items-center px-6 py-4 bg-green-600 text-white text-sm font-bold   hover:bg-gray-900 transition-all shadow-[4px_4px_0px_0px_rgba(156,163,175,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
-          >
-            <IconPlus size={18} className="mr-2" />
-            Create Coupon
-          </button>
+          <Button type="primary" size="large" onClick={handleOpenCreateModal}>Create Coupon</Button>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-sm shadow-sm p-6 mb-6">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
           <CouponListTable
             items={coupons}
             loading={loading}
@@ -133,7 +122,7 @@ const CouponsPage = () => {
                   }))
                 }
                 disabled={pagination.page === 1 || loading}
-                className="p-2 border border-gray-200 rounded-sm hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
               >
                 <IconChevronLeft size={18} />
               </button>
@@ -148,7 +137,7 @@ const CouponsPage = () => {
                   }))
                 }
                 disabled={loading || coupons.length < pagination.size}
-                className="p-2 border border-gray-200 rounded-sm hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
               >
                 <IconChevronRight size={18} />
               </button>

@@ -1,4 +1,16 @@
-
+import type { ColumnsType } from "antd/es/table";
+import api from "@/lib/api";
+import {
+  Card,
+  Form,
+  Input,
+  Button,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  Tooltip,
+} from "antd";
 import React, { useState, useEffect } from "react";
 import {
   IconPlus,
@@ -11,11 +23,10 @@ import {
   IconClock,
   IconCalendar,
   IconFileInvoice,
+  IconFilter,
+  IconX,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -37,25 +48,30 @@ const SupplierInvoicesPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<SupplierInvoice | null>(
-    null
+    null,
   );
   const [paymentInvoice, setPaymentInvoice] = useState<SupplierInvoice | null>(
-    null
+    null,
   );
+  const [form] = Form.useForm();
+
+  const handleFilterSubmit = (values: any) => {
+    setSearch(values.search || "");
+  };
+
+  const handleClearFilters = () => {
+    form.resetFields();
+    setSearch("");
+  };
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
   const fetchInvoices = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
       const [listRes, summaryRes] = await Promise.all([
-        axios.get<SupplierInvoice[]>("/api/v1/erp/finance/supplier-invoices", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("/api/v1/erp/finance/supplier-invoices?summary=true", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        api.get<SupplierInvoice[]>("/api/v1/erp/finance/supplier-invoices"),
+        api.get("/api/v1/erp/finance/supplier-invoices?summary=true"),
       ]);
       setInvoices(listRes.data);
       setSummary(summaryRes.data);
@@ -89,10 +105,7 @@ const SupplierInvoicesPage = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this invoice?")) return;
     try {
-      const token = await getToken();
-      await axios.delete(`/api/v1/erp/finance/supplier-invoices/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/api/v1/erp/finance/supplier-invoices/${id}`);
       toast.success("Invoice deleted");
       fetchInvoices();
     } catch (error) {
@@ -109,8 +122,103 @@ const SupplierInvoicesPage = () => {
   const filteredInvoices = invoices.filter(
     (inv) =>
       inv.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-      inv.supplierName.toLowerCase().includes(search.toLowerCase())
+      inv.supplierName.toLowerCase().includes(search.toLowerCase()),
   );
+  const columns: ColumnsType<SupplierInvoice> = [
+    {
+      title: "Invoice Details",
+      key: "details",
+      render: (_, inv) => (
+        <div>
+          <div className="font-bold text-gray-900">{inv.invoiceNumber}</div>
+          <div className="text-xs text-gray-500 tracking-wide">
+            {inv.supplierName}
+          </div>
+          <div className="text-xs text-gray-400 mt-0.5">
+            Issued: {formatDate(inv.issueDate)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => {
+        let color = "default";
+        if (status === "PAID") color = "green";
+        else if (status === "OVERDUE") color = "red";
+        else if (status === "PARTIAL") color = "orange";
+
+        return <Tag color={color}>{status}</Tag>;
+      },
+    },
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      key: "amount",
+      align: "right",
+      render: (amount) => (
+        <span className="font-medium">{formatCurrency(amount)}</span>
+      ),
+    },
+    {
+      title: "Balance",
+      dataIndex: "balance",
+      key: "balance",
+      align: "right",
+      render: (balance) => (
+        <span className="font-bold">{formatCurrency(balance)}</span>
+      ),
+    },
+    {
+      title: "Due Date",
+      key: "due",
+      align: "center",
+      render: (_, inv) => {
+        const isOverdue =
+          new Date(inv.dueDate as any).getTime() < Date.now() &&
+          inv.balance > 0;
+        return (
+          <div
+            className={`flex items-center justify-center gap-1 ${isOverdue ? "text-red-600 font-bold" : "text-gray-600"}`}
+          >
+            <IconCalendar size={14} />
+            {formatDate(inv.dueDate)}
+          </div>
+        );
+      },
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      align: "right",
+      render: (_, inv) => (
+        <Space>
+          {inv.status !== "PAID" && (
+            <Button size="small" type="primary" onClick={() => handlePay(inv)}>
+              PAY
+            </Button>
+          )}
+          <Tooltip title="Edit">
+            <Button
+              size="small"
+              icon={<IconEdit size={16} />}
+              onClick={() => handleEdit(inv)}
+            />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              size="small"
+              danger
+              icon={<IconTrash size={16} />}
+              onClick={() => handleDelete(inv.id!)}
+            />
+          </Tooltip>
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <PageContainer title="Accounts Payable">
@@ -123,12 +231,9 @@ const SupplierInvoicesPage = () => {
             </h2>
             <p className="text-sm text-gray-500">Manage accounts payable</p>
           </div>
-          <button
-            onClick={handleCreate}
-            className="px-4 py-2 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 flex items-center gap-2"
-          >
-            <IconPlus size={16} /> New Invoice
-          </button>
+          <Button type="primary" size="large" onClick={handleCreate}>
+            New Invoice
+          </Button>
         </div>
 
         {/* Summary Cards */}
@@ -136,9 +241,7 @@ const SupplierInvoicesPage = () => {
           <div className="bg-green-600 text-white p-6">
             <div className="flex items-center gap-2 mb-2 text-gray-400">
               <IconAlertCircle size={16} />
-              <span className="text-xs font-bold  ">
-                Overdue
-              </span>
+              <span className="text-xs font-bold  ">Overdue</span>
             </div>
             <p className="text-3xl font-bold">
               {formatCurrency(summary.overdue)}
@@ -150,9 +253,7 @@ const SupplierInvoicesPage = () => {
           <div className="bg-white border border-gray-200 p-6">
             <div className="flex items-center gap-2 mb-2 text-gray-500">
               <IconClock size={16} />
-              <span className="text-xs font-bold  ">
-                Due in 7 Days
-              </span>
+              <span className="text-xs font-bold  ">Due in 7 Days</span>
             </div>
             <p className="text-3xl font-bold">
               {formatCurrency(summary.due7Days)}
@@ -161,9 +262,7 @@ const SupplierInvoicesPage = () => {
           <div className="bg-white border border-gray-200 p-6">
             <div className="flex items-center gap-2 mb-2 text-gray-500">
               <IconFileInvoice size={16} />
-              <span className="text-xs font-bold  ">
-                Total Payable
-              </span>
+              <span className="text-xs font-bold  ">Total Payable</span>
             </div>
             <p className="text-3xl font-bold">
               {formatCurrency(summary.totalPayable)}
@@ -175,124 +274,53 @@ const SupplierInvoicesPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="relative">
-          <IconSearch
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <input
-            type="text"
-            placeholder="Search Invoice # or Supplier..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 border border-gray-200 focus:outline-none focus:border-green-600"
-          />
-        </div>
+        <Card size="small" className="shadow-sm">
+          <Form
+            form={form}
+            layout="inline"
+            onFinish={handleFilterSubmit}
+            initialValues={{ search: "" }}
+            className="flex flex-wrap items-center gap-2 w-full"
+          >
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search Invoice # or Supplier..."
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<IconFilter size={15} />}
+                >
+                  Filter
+                </Button>
+                <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
 
         {/* Table */}
         {loading ? (
           <div className="py-20 flex justify-center">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         ) : (
-          <div className="bg-white border border-gray-200 overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-xs text-gray-500  font-bold  border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4">Invoice Details</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Amount</th>
-                  <th className="px-6 py-4 text-right">Balance</th>
-                  <th className="px-6 py-4 text-center">Due Date</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredInvoices.map((inv) => (
-                  <tr
-                    key={inv.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-gray-900">
-                        {inv.invoiceNumber}
-                      </div>
-                      <div className="text-xs text-gray-500  tracking-wide">
-                        {inv.supplierName}
-                      </div>
-                      <div className="text-xs text-gray-400 mt-0.5">
-                        Issued: {formatDate(inv.issueDate)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 text-xs font-bold   ${
-                          inv.status === "PAID"
-                            ? "bg-green-100 text-green-700"
-                            : inv.status === "OVERDUE"
-                            ? "bg-red-100 text-red-700"
-                            : inv.status === "PARTIAL"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {inv.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right font-medium">
-                      {formatCurrency(inv.amount)}
-                    </td>
-                    <td className="px-6 py-4 text-right font-bold">
-                      {formatCurrency(inv.balance)}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div
-                        className={`flex items-center justify-center gap-1 ${
-                          new Date(inv.dueDate as any).getTime() < Date.now() &&
-                          inv.balance > 0
-                            ? "text-red-600 font-bold"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        <IconCalendar size={14} />
-                        {formatDate(inv.dueDate)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        {inv.status !== "PAID" && (
-                          <button
-                            onClick={() => handlePay(inv)}
-                            className="px-2 py-1.5 bg-green-600 text-white text-xs font-bold   hover:bg-gray-800 rounded flex items-center gap-1"
-                            title="Record Payment"
-                          >
-                            PAY
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleEdit(inv)}
-                          className="p-1.5 hover:bg-gray-200 rounded"
-                        >
-                          <IconEdit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(inv.id!)}
-                          className="p-1.5 hover:bg-red-100 text-red-600 rounded"
-                        >
-                          <IconTrash size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filteredInvoices.length === 0 && (
-              <div className="p-12 text-center text-gray-500">
-                No invoices found.
-              </div>
-            )}
-          </div>
+          <Table
+            columns={columns}
+            dataSource={filteredInvoices}
+            rowKey="id"
+            pagination={{ pageSize: 10 }}
+            className="border border-gray-200 rounded-lg overflow-hidden bg-white"
+          />
         )}
 
         <SupplierInvoiceFormModal

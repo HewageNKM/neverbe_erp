@@ -1,3 +1,4 @@
+import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Role } from "@/model/Role";
@@ -38,9 +39,7 @@ const RolesPage = () => {
     setLoading(true);
     try {
       const token = await auth.currentUser?.getIdToken();
-      const response = await axios.get("/api/v1/erp/users/roles", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/api/v1/erp/users/roles");
       setRoles(response.data.roles || []);
     } catch (error) {
       console.error("Failed to fetch roles", error);
@@ -65,9 +64,7 @@ const RolesPage = () => {
         setDeleting(id);
         try {
           const token = await auth.currentUser?.getIdToken();
-          await axios.delete(`/api/v1/erp/users/roles/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await api.delete(`/api/v1/erp/users/roles/${id}`);
           toast.success("Role deleted");
           fetchRoles();
         } catch (e) {

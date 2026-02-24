@@ -1,58 +1,51 @@
-import { auth, getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
+import api from "@/lib/api";
 import { PaymentMethod } from "@/model/PaymentMethod";
 
 export const getAllPaymentMethodAction = async () => {
   try {
-    const token = await getToken();
-    let response = await axios({
-      method: "GET",
-      url: "/api/v1/erp/finance/payment-methods",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get("/api/v1/erp/finance/payment-methods");
     return response.data;
-  } catch (e) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };
 
 export const createPaymentMethodAction = async (
-  paymentMethod: PaymentMethod
+  paymentMethod: PaymentMethod,
 ) => {
   try {
-    const token = await getToken();
-    let response = await axios({
-      method: "POST",
-      url: "/api/v1/erp/finance/payment-methods",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify(paymentMethod),
-    });
+    const response = await api.post(
+      "/api/v1/erp/finance/payment-methods",
+      paymentMethod,
+    );
     return response.data;
-  } catch (e) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };
 
 export const updatePaymentMethodAction = async (
-  paymentMethod: PaymentMethod
+  paymentMethod: PaymentMethod,
 ) => {
   try {
-    const token = await getToken();
-    return axios({
-      method: "PUT",
-      url: `/api/v1/payment-methods/${paymentMethod.paymentId.toLowerCase()}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify(paymentMethod),
-    });
-  } catch (e) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+    const response = await api.put(
+      `/api/v1/erp/finance/payment-methods/${paymentMethod.paymentId.toLowerCase()}`,
+      paymentMethod,
+    );
+    return response.data;
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };

@@ -1,3 +1,5 @@
+import { Spin, Button } from "antd";
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -7,9 +9,6 @@ import {
   IconInfoCircle,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -45,7 +44,7 @@ const Toggle = ({
       onClick={onChange}
       className={`
         relative inline-flex shrink-0 cursor-pointer items-center
-        rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out
+        rounded-full border border-transparent transition-colors duration-200 ease-in-out
         focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2
         ${checked ? "bg-green-600" : "bg-gray-300"}
         ${isSmall ? "h-6 w-11" : "h-7 w-14"}
@@ -88,10 +87,7 @@ const TaxSettingsPage = () => {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get<TaxSettings>("/api/v1/erp/settings/tax", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get<TaxSettings>("/api/v1/erp/settings/tax");
       setSettings(res.data);
     } catch (error) {
       console.error(error);
@@ -108,10 +104,7 @@ const TaxSettingsPage = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = await getToken();
-      await axios.put("/api/v1/erp/settings/tax", settings, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.put("/api/v1/erp/settings/tax", settings);
       toast.success("Tax settings saved successfully");
     } catch (error) {
       console.error(error);
@@ -123,7 +116,7 @@ const TaxSettingsPage = () => {
 
   const handleChange = (
     field: keyof TaxSettings,
-    value: string | number | boolean
+    value: string | number | boolean,
   ) => {
     setSettings((prev) => ({ ...prev, [field]: value }));
   };
@@ -142,7 +135,7 @@ const TaxSettingsPage = () => {
     return (
       <PageContainer title="Tax Settings">
         <div className="flex justify-center py-20">
-          <ComponentsLoader />
+          <div className="flex justify-center py-12"><Spin size="large" /></div>
         </div>
       </PageContainer>
     );
@@ -161,18 +154,15 @@ const TaxSettingsPage = () => {
               Configure tax rates and calculation rules.
             </p>
           </div>
-          <button
+          <Button
+            type="primary"
+            size="large"
             onClick={handleSave}
             disabled={saving}
-            className="w-full sm:w-auto px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {saving ? (
-              <IconLoader2 size={16} className="animate-spin" />
-            ) : (
-              <IconDeviceFloppy size={16} />
-            )}
+            {saving ? <Spin size="small" /> : null}
             Save Settings
-          </button>
+          </Button>
         </div>
 
         {/* Main Toggle */}
@@ -228,7 +218,7 @@ const TaxSettingsPage = () => {
                       value={settings.taxName}
                       onChange={(e) => handleChange("taxName", e.target.value)}
                       placeholder="e.g., VAT, GST"
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-black text-sm sm:text-base"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-black text-sm sm:text-base"
                     />
                   </div>
                   <div>
@@ -244,7 +234,7 @@ const TaxSettingsPage = () => {
                       onChange={(e) =>
                         handleChange("taxRate", parseFloat(e.target.value) || 0)
                       }
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-black text-sm sm:text-base"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-black text-sm sm:text-base"
                     />
                   </div>
                 </div>
@@ -293,7 +283,7 @@ const TaxSettingsPage = () => {
                     onChange={() =>
                       handleChange(
                         "taxIncludedInPrice",
-                        !settings.taxIncludedInPrice
+                        !settings.taxIncludedInPrice,
                       )
                     }
                     size="sm"
@@ -331,11 +321,11 @@ const TaxSettingsPage = () => {
                     onChange={(e) =>
                       handleChange(
                         "minimumOrderForTax",
-                        parseFloat(e.target.value) || 0
+                        parseFloat(e.target.value) || 0,
                       )
                     }
                     placeholder="0"
-                    className="w-full sm:max-w-xs px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-black text-sm sm:text-base"
+                    className="w-full sm:max-w-xs px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-black text-sm sm:text-base"
                   />
                   <p className="text-xs text-gray-500 mt-2">
                     Set to 0 to apply to all orders
@@ -364,7 +354,7 @@ const TaxSettingsPage = () => {
                         handleChange("businessName", e.target.value)
                       }
                       placeholder="Your business name"
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-black text-sm sm:text-base"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-black text-sm sm:text-base"
                     />
                   </div>
                   <div>
@@ -378,7 +368,7 @@ const TaxSettingsPage = () => {
                         handleChange("taxRegistrationNumber", e.target.value)
                       }
                       placeholder="e.g., VAT-123456789"
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-black text-sm sm:text-base"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border border-gray-300 text-gray-900 font-medium focus:outline-none focus:border-gray-200 focus:ring-1 focus:ring-black text-sm sm:text-base"
                     />
                   </div>
                 </div>

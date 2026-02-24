@@ -327,7 +327,7 @@ const ShippingSettingsPage = () => {
           {isIncremental && (
             <Card
               size="small"
-              className="bg-gray-50 mb-4 border-2 border-green-100"
+              className="bg-gray-50 mb-4 border-2 border-gray-200"
             >
               <Space direction="vertical" className="w-full">
                 <Form.Item

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { getProfitMarginsAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
-import { IconPercentage, IconRefresh, IconCoin } from "@tabler/icons-react";
+import { IconPercentage, IconCoin } from "@tabler/icons-react";
 import { Progress, Statistic, Button, Tag, Spin, Card } from "antd";
 
 interface MarginData {
@@ -40,13 +40,7 @@ const ProfitMargins = () => {
         <div className="flex items-center gap-2">
           <IconPercentage size={18} className="text-blue-500" />
           <h4 className="text-lg font-bold text-black m-0">Profit Margins</h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchData}
-            loading={loading}
-          />
+          
         </div>
         <Tag className="m-0 text-xs font-bold text-gray-500 bg-gray-100 border-none">
           This Month

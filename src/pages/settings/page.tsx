@@ -1,3 +1,4 @@
+import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
 import PageContainer from "../components/container/PageContainer";
@@ -10,7 +11,6 @@ import {
 } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
-import { getToken } from "@/firebase/firebaseClient";
 import {
   Card,
   Button,
@@ -57,38 +57,23 @@ const SettingPage = () => {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
       const [settingsRes, stocksRes] = await Promise.all([
-        fetch("/api/v1/erp/settings/erp", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        fetch("/api/v1/erp/catalog/stocks/dropdown", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
+        api.get("/api/v1/erp/settings/erp"),
+        api.get("/api/v1/erp/catalog/stocks/dropdown"),
       ]);
-
-      if (!settingsRes.ok) throw new Error("Failed to fetch settings");
-      if (!stocksRes.ok) throw new Error("Failed to fetch stocks");
-
-      const settingsData = await settingsRes.json();
-      const stocksData = await stocksRes.json();
-
+      const settingsData = settingsRes.data;
+      const stocksData = stocksRes.data;
       setSettings(settingsData);
       setStocks(stocksData);
-
-      // Init Form
       form.setFieldsValue({
         defaultStockId: settingsData.defaultStockId,
         onlineStockId: settingsData.onlineStockId,
         ecommerceEnabled: settingsData.ecommerce?.enable,
         posEnabled: settingsData.pos?.enable,
       });
-    } catch (err: any) {
-      toast.error(err.message || "Failed to fetch settings");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e.message || "Failed to fetch settings");
     } finally {
       setLoading(false);
     }
@@ -102,8 +87,6 @@ const SettingPage = () => {
     try {
       const values = await form.validateFields();
       setSaving(true);
-
-      // Map form values back to structure
       const payload = {
         ...settings,
         defaultStockId: values.defaultStockId,
@@ -111,22 +94,12 @@ const SettingPage = () => {
         ecommerce: { ...settings?.ecommerce, enable: values.ecommerceEnabled },
         pos: { ...settings?.pos, enable: values.posEnabled },
       };
-
-      const token = await getToken();
-      const res = await fetch("/api/v1/erp/settings/erp", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error("Failed to save settings");
-
-      // Update local state
+      await api.put("/api/v1/erp/settings/erp", payload);
       setSettings(payload);
       toast.success("CONFIGURATION SAVED");
-    } catch (err: any) {
-      toast.error(err.message || "FAILED TO SAVE");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e.message || "FAILED TO SAVE");
     } finally {
       setSaving(false);
     }

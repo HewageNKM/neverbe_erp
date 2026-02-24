@@ -1,20 +1,18 @@
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
+import api from "@/lib/api";
 import { User } from "@/model/User";
 
 export const getUsersAction = async (page: number, size: number) => {
   try {
-    const token = await getToken();
-    const response = await axios({
-      url: `/api/v1/users?page=${page}&size=${size}`,
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get(
+      `/api/v1/erp/users?page=${page}&size=${size}`,
+    );
     return response.data;
-  } catch (e: any) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };
 
@@ -35,75 +33,55 @@ export interface GetUsersV2Response {
 }
 
 export const getUsersV2Action = async (
-  params: GetUsersV2Params
+  params: GetUsersV2Params,
 ): Promise<GetUsersV2Response> => {
   try {
-    const token = await getToken();
-    const queryParams = new URLSearchParams({
-      page: params.page.toString(),
-      size: params.size.toString(),
-      ...(params.search && { search: params.search }),
-      ...(params.role && { role: params.role }),
-      ...(params.status && { status: params.status }),
-    });
-
-    const response = await axios({
-      url: `/api/v1/users?${queryParams.toString()}`,
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get("/api/v1/erp/users", { params });
     return response.data;
-  } catch (e: any) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };
+
 export const addNewUserAction = async (data: User) => {
   try {
-    const token = await getToken();
-    const response = await axios({
-      url: `/api/v1/users`,
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify(data),
-    });
+    const response = await api.post("/api/v1/erp/users", data);
     return response.data;
-  } catch (e: any) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };
 
 export const deleteUserByIdAction = async (id: string) => {
   try {
-    const token = await getToken();
-    axios({
-      url: `/api/v1/erp/users/${id}`,
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  } catch (e: any) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+    const response = await api.delete(`/api/v1/erp/users/${id}`);
+    return response.data;
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };
 
 export const updateUserByIdAction = async (data: User) => {
   try {
-    const token = await getToken();
-    axios({
-      url: `/api/v1/erp/users/${data.userId}`,
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      data: JSON.stringify(data),
-    });
-  } catch (e: any) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+    const response = await api.put(`/api/v1/erp/users/${data.userId}`, data);
+    return response.data;
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };

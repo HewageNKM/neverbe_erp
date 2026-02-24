@@ -1,3 +1,5 @@
+import { Spin } from "antd";
+import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
@@ -10,9 +12,6 @@ import {
   IconFileInvoice,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -28,11 +27,11 @@ import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 // --- NIKE AESTHETIC STYLES ---
 const styles = {
   primaryBtn:
-    "flex items-center justify-center px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-sm shadow-sm hover:shadow-md disabled:opacity-50",
+    "flex items-center justify-center px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-lg shadow-sm hover:shadow-md disabled:opacity-50",
   secondaryBtn:
-    "flex items-center justify-center px-6 py-3 border-2 border-green-600 text-black text-xs font-bold   hover:bg-gray-50 transition-all rounded-sm disabled:opacity-50",
+    "flex items-center justify-center px-6 py-3 border border-gray-200 rounded-lg shadow-sm text-green-700 bg-green-50 hover:bg-green-100 text-xs font-bold   hover:bg-gray-50 transition-all rounded-lg disabled:opacity-50",
   dangerBtn:
-    "flex items-center justify-center px-6 py-3 border-2 border-transparent bg-red-600 text-white text-xs font-bold   hover:bg-red-700 transition-all rounded-sm disabled:opacity-50",
+    "flex items-center justify-center px-6 py-3 border border-transparent bg-red-600 text-white text-xs font-bold   hover:bg-red-700 transition-all rounded-lg disabled:opacity-50",
 };
 
 const ViewPurchaseOrderPage = () => {
@@ -50,15 +49,13 @@ const ViewPurchaseOrderPage = () => {
   const fetchPO = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get<PurchaseOrder>(
+      const res = await api.get<PurchaseOrder>(
         `/api/v1/erp/procurement/purchase-orders/${poId}`,
-        { headers: { Authorization: `Bearer ${token}` } },
       );
       setPO(res.data);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to fetch purchase order");
+      toast.success("Failed to fetch purchase order");
     } finally {
       setLoading(false);
     }
@@ -83,16 +80,12 @@ const ViewPurchaseOrderPage = () => {
       onSuccess: async () => {
         setUpdating(true);
         try {
-          const token = await getToken();
-          await axios.put(
+          await api.put(
             `/api/v1/erp/procurement/purchase-orders/${poId}`,
             { status },
-            { headers: { Authorization: `Bearer ${token}` } },
           );
           toast.error(
-            `Order ${status === "sent" ? "Sent" : "Cancelled"}`,
-            "success",
-          );
+            `Order ${status === "sent" ? "Sent" : "Cancelled"}`);
           fetchPO();
         } catch (error) {
           console.error(error);
@@ -108,7 +101,7 @@ const ViewPurchaseOrderPage = () => {
     return (
       <PageContainer title="Purchase Order">
         <div className="flex flex-col items-center justify-center py-40">
-          <ComponentsLoader />
+          <div className="flex justify-center py-12"><Spin size="large" /></div>
           <span className="text-xs font-bold   text-gray-400 mt-4">
             Loading Order Details
           </span>
@@ -134,7 +127,7 @@ const ViewPurchaseOrderPage = () => {
     <PageContainer title={po.poNumber}>
       <div className="w-full space-y-8 max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b-2 border-green-600 pb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b-2 border-gray-200 pb-6">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate(-1)}
@@ -207,7 +200,7 @@ const ViewPurchaseOrderPage = () => {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-400 font-bold  bg-white border-b-2 border-green-600 ">
+              <thead className="text-xs text-gray-400 font-bold  bg-white border-b-2 border-gray-200 ">
                 <tr>
                   <th className="px-6 py-4">Product</th>
                   <th className="px-6 py-4">Variant</th>
@@ -255,7 +248,7 @@ const ViewPurchaseOrderPage = () => {
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="bg-gray-50 border-t-2 border-green-600">
+              <tfoot className="bg-gray-50 border-t-2 border-gray-200">
                 <tr>
                   <td
                     colSpan={6}
@@ -282,7 +275,7 @@ const ViewPurchaseOrderPage = () => {
                 className={styles.primaryBtn}
               >
                 {updating ? (
-                  <IconLoader2 size={16} className="animate-spin mr-2" />
+                  <Spin size="small" />
                 ) : (
                   <IconSend size={16} className="mr-2" />
                 )}
@@ -308,7 +301,7 @@ const ViewPurchaseOrderPage = () => {
             </Link>
           )}
           {po.status === "received" && (
-            <div className="flex items-center text-green-700 font-bold   text-xs bg-green-50 px-4 py-2 border border-green-200">
+            <div className="flex items-center text-green-700 font-bold   text-xs bg-green-50 px-4 py-2 border border-gray-200">
               <IconPackage size={16} className="mr-2" />
               Order Fully Received
             </div>

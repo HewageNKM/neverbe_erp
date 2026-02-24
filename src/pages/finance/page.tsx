@@ -1,3 +1,4 @@
+import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
@@ -10,8 +11,6 @@ import {
 } from "@tabler/icons-react";
 import { lazy } from "react";
 const Chart = lazy(() => import("react-apexcharts"));
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import type { FinanceDashboardData } from "@/model/FinanceDashboard";
 import {
   Row,
@@ -36,13 +35,10 @@ const FinanceDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = await getToken();
-        const res = await axios.get("/api/v1/erp/finance/dashboard", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.get("/api/v1/erp/finance/dashboard");
         setData(res.data);
-      } catch (error) {
-        console.error(error);
+      } catch {
+        // ignore
       } finally {
         setLoading(false);
       }

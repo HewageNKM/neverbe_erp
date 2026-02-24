@@ -1,11 +1,10 @@
+import { Spin } from "antd";
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -51,10 +50,7 @@ const ViewGRNPage = () => {
   const fetchGRN = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get<GRN>(`/api/v1/erp/inventory/grn/${grnId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get<GRN>(`/api/v1/erp/inventory/grn/${grnId}`);
       setGRN(res.data);
     } catch (error) {
       console.error(error);
@@ -72,7 +68,7 @@ const ViewGRNPage = () => {
     return (
       <PageContainer title="GRN">
         <div className="flex justify-center py-20">
-          <ComponentsLoader />
+          <div className="flex justify-center py-12"><Spin size="large" /></div>
         </div>
       </PageContainer>
     );

@@ -1,9 +1,8 @@
+import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import { IconLoader, IconUpload, IconPaperclip } from "@tabler/icons-react";
 import { PettyCash } from "@/model/PettyCash";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
-import axios from "axios";
 import {
   Modal,
   Form,
@@ -87,12 +86,9 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
 
   const fetchBankAccounts = async () => {
     try {
-      const token = await getToken();
-      const res = await axios.get(
+      const res = await api.get(
         "/api/v1/erp/finance/bank-accounts?dropdown=true",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        {},
       );
       setBankAccounts(res.data);
     } catch (error) {
@@ -103,12 +99,9 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
   const fetchCategories = async (type: "expense" | "income") => {
     setFetchingDropdowns(true);
     try {
-      const token = await getToken();
-      const res = await axios.get(
+      const res = await api.get(
         `/api/v1/erp/finance/expense-categories?dropdown=true&type=${type}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        {},
       );
       setCategories(res.data);
     } catch (error) {
@@ -121,7 +114,6 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
   const onFinish = async (values: any) => {
     setSaving(true);
     try {
-      const token = await getToken();
       const formPayload = new FormData();
       formPayload.append("amount", String(values.amount));
       formPayload.append("category", values.category);
@@ -150,7 +142,6 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
       const res = await fetch(url, {
         method,
         body: formPayload,
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
@@ -158,10 +149,8 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
         throw new Error(err.message || "Failed to save entry");
       }
 
-      toast.error(
-        isEditing ? "ENTRY UPDATED" : "ENTRY CREATED",
-        "success",
-      );
+      toast.success(
+        isEditing ? "ENTRY UPDATED" : "ENTRY CREATED");
       onSave();
       onClose();
     } catch (err: any) {

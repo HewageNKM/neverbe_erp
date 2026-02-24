@@ -208,7 +208,7 @@ const VariantFormModal: React.FC<VariantFormModalProps> = ({
 
           {/* New Images */}
           {newImageFiles.map((file, i) => (
-            <div key={i} className="relative w-20 h-20 border border-green-500">
+            <div key={i} className="relative w-20 h-20 border border-gray-200">
               <img
                 src={URL.createObjectURL(file)}
                 className="w-full h-full object-cover opacity-80"

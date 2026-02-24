@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { getInventoryValueAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
-import { IconPackage, IconRefresh } from "@tabler/icons-react";
+import { IconPackage, } from "@tabler/icons-react";
 import { Row, Col, Statistic, Card, Spin, Button, Tag } from "antd";
 
 interface InventoryData {
@@ -41,13 +41,7 @@ const InventoryValue = () => {
         <div className="flex items-center gap-2">
           <IconPackage size={18} className="text-indigo-500" />
           <h4 className="text-lg font-bold text-black m-0">Inventory Value</h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchData}
-            loading={loading}
-          />
+          
         </div>
       </div>
 
@@ -57,7 +51,7 @@ const InventoryValue = () => {
             <Card
               size="small"
               bordered={false}
-              className="bg-linear-to-bl from-green-500 to-green-600 rounded-2xl shadow-sm border border-green-500 transition-all hover:-translate-y-0.5"
+              className="bg-linear-to-bl from-green-500 to-green-600 rounded-2xl shadow-sm border border-gray-200 transition-all hover:-translate-y-0.5"
               bodyStyle={{ padding: "16px" }}
             >
               <Statistic

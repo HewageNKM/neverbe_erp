@@ -1,3 +1,5 @@
+import { Button } from "antd";
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -5,8 +7,6 @@ import {
   IconChevronLeft,
   IconChevronRight,
 } from "@tabler/icons-react";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
 import { ComboProduct } from "@/model/ComboProduct";
 import ComboListTable from "./components/ComboListTable";
 import ComboFormModal from "./components/ComboFormModal"; // Will create next
@@ -32,9 +32,7 @@ const CombosPage = () => {
   const fetchCombos = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const response = await axios.get("/api/v1/erp/catalog/combos", {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get("/api/v1/erp/catalog/combos", {
         params: { page: pagination.page, size: pagination.size },
       });
 
@@ -79,10 +77,7 @@ const CombosPage = () => {
       confirmText: "Delete",
       onSuccess: async () => {
         try {
-          const token = await getToken();
-          await axios.delete(`/api/v1/erp/catalog/combos/${item.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await api.delete(`/api/v1/erp/catalog/combos/${item.id}`);
           toast.success("Combo deleted");
           fetchCombos();
         } catch (e) {
@@ -108,16 +103,10 @@ const CombosPage = () => {
               Combo Products
             </h2>
           </div>
-          <button
-            onClick={handleOpenCreateModal}
-            className="flex items-center px-6 py-4 bg-green-600 text-white text-sm font-bold   hover:bg-gray-900 transition-all shadow-[4px_4px_0px_0px_rgba(156,163,175,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
-          >
-            <IconPlus size={18} className="mr-2" />
-            Create Combo
-          </button>
+          <Button type="primary" size="large" onClick={handleOpenCreateModal}>Create Combo</Button>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-sm shadow-sm p-6 mb-6">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
           <ComboListTable
             items={combos}
             loading={loading}
@@ -136,7 +125,7 @@ const CombosPage = () => {
                   }))
                 }
                 disabled={pagination.page === 1 || loading}
-                className="p-2 border border-gray-200 rounded-sm hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
               >
                 <IconChevronLeft size={18} />
               </button>
@@ -151,7 +140,7 @@ const CombosPage = () => {
                   }))
                 }
                 disabled={loading || combos.length < pagination.size}
-                className="p-2 border border-gray-200 rounded-sm hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
               >
                 <IconChevronRight size={18} />
               </button>

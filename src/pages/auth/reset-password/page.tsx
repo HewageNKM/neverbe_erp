@@ -20,7 +20,7 @@ const ResetPassword = () => {
 
   const onFinish = async (values: any) => {
     if (!isVerified) {
-      toast("Please complete human verification.", { icon: '⚠️' });
+      toast("Please complete human verification.");
       return;
     }
 
@@ -92,13 +92,13 @@ const ResetPassword = () => {
                 onClick={() => setIsVerified(!isVerified)}
                 className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all mb-0! ${
                   isVerified
-                    ? "border-green-600 bg-green-50"
-                    : "border-gray-200 bg-gray-50 hover:border-green-600 hover:bg-white"
+                    ? "border-gray-200 bg-green-50"
+                    : "border-gray-200 bg-gray-50 hover:border-gray-200 hover:bg-white"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-6 h-6 border rounded-md flex items-center justify-center ${isVerified ? "bg-green-600 border-green-600" : "border-gray-300 bg-white"}`}
+                    className={`w-6 h-6 border rounded-md flex items-center justify-center ${isVerified ? "bg-green-600 border-gray-200" : "border-gray-300 bg-white"}`}
                   >
                     {isVerified && (
                       <IconCheck size={16} className="text-white" stroke={3} />

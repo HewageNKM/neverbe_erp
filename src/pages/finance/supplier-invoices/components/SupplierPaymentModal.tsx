@@ -1,3 +1,5 @@
+import {  Spin , Button } from "antd";
+import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import {
   IconX,
@@ -7,9 +9,7 @@ import {
   IconNote,
 } from "@tabler/icons-react";
 import { SupplierInvoice } from "@/model/SupplierInvoice";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
-import axios from "axios";
 
 interface SupplierPaymentModalProps {
   open: boolean;
@@ -22,9 +22,9 @@ const styles = {
   label:
     "block text-xs font-bold text-gray-500   mb-2",
   input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none placeholder:text-gray-400",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none placeholder:text-gray-400",
   select:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none appearance-none cursor-pointer",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none appearance-none cursor-pointer",
 };
 
 const SupplierPaymentModal: React.FC<SupplierPaymentModalProps> = ({
@@ -54,13 +54,8 @@ const SupplierPaymentModal: React.FC<SupplierPaymentModalProps> = ({
   const fetchBankAccounts = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get(
-        "/api/v1/erp/finance/bank-accounts?dropdown=true",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await api.get(
+        "/api/v1/erp/finance/bank-accounts?dropdown=true");
       setBankAccounts(res.data);
     } catch (error) {
       console.error(error);
@@ -71,36 +66,30 @@ const SupplierPaymentModal: React.FC<SupplierPaymentModalProps> = ({
 
   const handleSubmit = async () => {
     if (!amount || Number(amount) <= 0) {
-      toast("Enter a valid amount", { icon: '⚠️' });
+      toast("Enter a valid amount");
       return;
     }
     if (Number(amount) > (invoice?.balance || 0)) {
-      toast("Amount exceeds balance", { icon: '⚠️' });
+      toast("Amount exceeds balance");
       return;
     }
 
     setProcessing(true);
     try {
-      const token = await getToken();
-      await axios.post(
+      await api.post(
         `/api/v1/erp/finance/supplier-invoices/${invoice?.id}/payment`,
         {
           amount: Number(amount),
           bankAccountId: bankAccountId || undefined,
           notes,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+        });
 
       toast.success("Payment recorded");
       onPaymentSuccess();
       onClose();
     } catch (error: any) {
       console.error(error);
-      toast(
-        error.response?.data?.message || "Payment failed",
-        "error"
-      );
+      toast.error(error.response?.data?.message || "Payment failed");
     } finally {
       setProcessing(false);
     }
@@ -199,14 +188,8 @@ const SupplierPaymentModal: React.FC<SupplierPaymentModalProps> = ({
           >
             Cancel
           </button>
-          <button
-            onClick={handleSubmit}
-            disabled={processing}
-            className="px-6 py-2 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 disabled:opacity-50 flex items-center gap-2"
-          >
-            {processing && <IconLoader2 size={14} className="animate-spin" />}
-            Confirm Payment
-          </button>
+          <Button type="primary" size="large" onClick={handleSubmit} disabled={processing}>{processing && <Spin size="small" />}
+            Confirm Payment</Button>
         </div>
       </div>
     </div>

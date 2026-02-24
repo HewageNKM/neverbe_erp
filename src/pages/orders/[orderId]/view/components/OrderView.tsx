@@ -1,10 +1,9 @@
+import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Order } from "@/model/Order";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import {
   IconLoader,
   IconAlertTriangle,
@@ -38,10 +37,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
   const fetchOrder = async () => {
     try {
       setLoadingOrder(true);
-      const token = await getToken();
-      const res = await axios.get(`/api/v1/erp/orders/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get(`/api/v1/erp/orders/${orderId}`);
       setOrder(res.data || null);
     } catch (error: any) {
       console.error(error);
@@ -165,13 +161,10 @@ const OrderView = ({ orderId }: { orderId: string }) => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-gray-500">
-        <Link
-          to="/orders"
-          className="hover:text-green-600 transition-colors"
-        >
+        <Link to="/orders" className="hover:text-green-600 transition-colors">
           Orders
         </Link>
         <span>/</span>
@@ -191,7 +184,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-200 pb-6">
         <div>
           <Text
             type="secondary"
@@ -219,9 +212,9 @@ const OrderView = ({ orderId }: { orderId: string }) => {
         </Space>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Items */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-8">
           <Card
             title={`Order Items (${order?.items?.length || 0})`}
             className="shadow-sm"
@@ -283,7 +276,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
         </div>
 
         {/* Right Column: Financials & Customer */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-8">
           <Card title="Financial Summary" className="shadow-sm bg-gray-50">
             <div className="space-y-3">
               <div className="flex justify-between text-gray-600">
@@ -363,7 +356,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
                   >
                     Contact Info
                   </Text>
-                  <div className="pl-2 border-l-2 border-green-500">
+                  <div className="pl-2 border-l-2 border-gray-200">
                     <Text strong className="block">
                       {order.customer.name}
                     </Text>

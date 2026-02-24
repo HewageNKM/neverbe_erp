@@ -1,3 +1,4 @@
+import api from "@/lib/api";
 import React, { useState } from "react";
 import {
   IconLoader,
@@ -8,7 +9,6 @@ import {
   IconPaperclip,
 } from "@tabler/icons-react";
 import { PettyCash } from "@/model/PettyCash";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import {
   Modal,
@@ -44,12 +44,11 @@ const PettyCashViewModal: React.FC<PettyCashViewModalProps> = ({
 
     setProcessing(newStatus === "APPROVED" ? "approve" : "reject");
     try {
-      const token = await getToken();
       const res = await fetch(`/api/v1/erp/finance/petty-cash/${entry.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          
         },
         body: JSON.stringify({ status: newStatus }),
       });

@@ -1,6 +1,6 @@
+import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   IconEye,
   IconFileInvoice,
@@ -9,12 +9,10 @@ import {
   IconAlertCircle,
   IconSearch,
   IconFilter,
-  IconRefresh,
   IconX,
 } from "@tabler/icons-react";
 import PageContainer from "../components/container/PageContainer";
 import toast from "react-hot-toast";
-import { getToken } from "@/firebase/firebaseClient";
 import { useAppSelector } from "@/lib/hooks";
 import { Order } from "@/model/Order";
 import {
@@ -27,8 +25,6 @@ import {
   Space,
   Tooltip,
   Form,
-  Row,
-  Col,
   Card,
   Typography,
 } from "antd";
@@ -55,48 +51,35 @@ const OrdersPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // --- Fetch orders from API ---
-  const fetchOrders = async (values?: any) => {
+  const fetchOrders = async (values?: Record<string, unknown>) => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams();
-
       params.append("page", String(pagination.current));
       params.append("size", String(pagination.pageSize));
 
       const filters = values || form.getFieldsValue();
-
       if (filters.payment && filters.payment !== "all")
-        params.append("payment", filters.payment);
+        params.append("payment", filters.payment as string);
       if (filters.status && filters.status !== "all")
-        params.append("status", filters.status);
-      if (filters.search) params.append("search", filters.search.trim());
-
+        params.append("status", filters.status as string);
+      if (filters.search)
+        params.append("search", (filters.search as string).trim());
       if (filters.dateRange) {
-        if (filters.dateRange[0])
-          params.append("from", filters.dateRange[0].format("YYYY-MM-DD"));
-        if (filters.dateRange[1])
-          params.append("to", filters.dateRange[1].format("YYYY-MM-DD"));
+        const range = filters.dateRange as [
+          { format: (f: string) => string },
+          { format: (f: string) => string },
+        ];
+        if (range[0]) params.append("from", range[0].format("YYYY-MM-DD"));
+        if (range[1]) params.append("to", range[1].format("YYYY-MM-DD"));
       }
 
-      const token = await getToken();
-      const { data } = await axios.get(
-        `/api/v1/orders?${params.toString()}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
+      const { data } = await api.get(`/api/v1/erp/orders?${params.toString()}`);
       setOrders(data.dataList);
-      setPagination((prev) => ({
-        ...prev,
-        total: data.total,
-      }));
-    } catch (err: any) {
-      console.error(err);
-      toast(
-        err?.response?.data?.message || "Failed to fetch orders",
-        "error",
-      );
+      setPagination((prev) => ({ ...prev, total: data.total }));
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      toast.error(e?.response?.data?.message || "Failed to fetch orders");
     } finally {
       setIsLoading(false);
     }
@@ -196,9 +179,7 @@ const OrdersPage = () => {
         <div className="flex flex-col">
           <Typography.Text strong>#{order.orderId}</Typography.Text>
           <Typography.Text type="secondary" className="text-xs">
-            {order.createdAt
-              ? new Date(order.createdAt as any).toLocaleString()
-              : "-"}
+            {order.createdAt ? String(order.createdAt) : "-"}
           </Typography.Text>
           <Typography.Text type="secondary" className="text-xs">
             via {order.from}
@@ -283,63 +264,49 @@ const OrdersPage = () => {
               {pagination.total} Total Orders
             </Typography.Text>
           </div>
-          <Button
-            icon={<IconRefresh size={18} />}
-            onClick={() => fetchOrders()}
-            loading={isLoading}
-          >
-            Refresh
-          </Button>
         </div>
 
         {/* Filters */}
-        <Card size="small" className="bg-gray-50/50">
+        <Card size="small" className="shadow-sm">
           <Form
             form={form}
-            layout="vertical"
+            layout="inline"
             onFinish={handleFilterSubmit}
             initialValues={{ payment: "all", status: "all" }}
+            className="flex flex-wrap gap-2 w-full"
           >
-            <Row gutter={[16, 0]}>
-              <Col xs={24} md={6}>
-                <Form.Item name="search" label="Search">
-                  <Input
-                    prefix={<IconSearch size={16} className="text-gray-400" />}
-                    placeholder="Order ID..."
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item name="payment" label="Payment">
-                  <Select>
-                    <Option value="all">All Payment</Option>
-                    <Option value="Paid">Paid</Option>
-                    <Option value="Pending">Pending</Option>
-                    <Option value="Failed">Failed</Option>
-                    <Option value="Refunded">Refunded</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item name="status" label="Status">
-                  <Select>
-                    <Option value="all">All Status</Option>
-                    <Option value="Processing">Processing</Option>
-                    <Option value="Completed">Completed</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="dateRange" label="Date Range">
-                  <RangePicker className="w-full" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={4} className="flex items-end pb-6 gap-2">
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search orders..."
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item name="payment" className="!mb-0 w-40">
+              <Select>
+                <Option value="all">All Payment</Option>
+                <Option value="Paid">Paid</Option>
+                <Option value="Pending">Pending</Option>
+                <Option value="Failed">Failed</Option>
+                <Option value="Refunded">Refunded</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="status" className="!mb-0 w-36">
+              <Select>
+                <Option value="all">All Status</Option>
+                <Option value="Processing">Processing</Option>
+                <Option value="Completed">Completed</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="dateRange" className="!mb-0 w-64">
+              <RangePicker className="w-full" />
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
                 <Button
                   type="primary"
                   htmlType="submit"
                   icon={<IconFilter size={16} />}
-                  block
                 >
                   Filter
                 </Button>
@@ -347,8 +314,8 @@ const OrdersPage = () => {
                   icon={<IconX size={16} />}
                   onClick={handleClearFilters}
                 />
-              </Col>
-            </Row>
+              </Space>
+            </Form.Item>
           </Form>
         </Card>
 

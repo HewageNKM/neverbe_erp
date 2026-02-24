@@ -1,3 +1,5 @@
+import { Spin } from "antd";
+import { Card, Form, Input, Select, Button, Space } from "antd";
 import React, { useState, useEffect } from "react";
 import {
   IconEye,
@@ -15,7 +17,6 @@ import {
 import { PettyCash } from "@/model/PettyCash";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
-import { getToken } from "@/firebase/firebaseClient";
 import { EXPENSE_CATEGORIES } from "@/utils/expenseCategories";
 import toast from "react-hot-toast";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
@@ -25,18 +26,17 @@ import PageContainer from "../../components/container/PageContainer";
 
 // --- STYLES ---
 const styles = {
-  label:
-    "block text-xs font-bold text-gray-500   mb-2",
+  label: "block text-xs font-bold text-gray-500   mb-2",
   input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none placeholder:text-gray-400",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none placeholder:text-gray-400",
   select:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none appearance-none cursor-pointer",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none appearance-none cursor-pointer",
   filterButton:
     "flex items-center justify-center px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-800 transition-all",
   clearButton:
-    "flex items-center justify-center px-6 py-3 border-2 border-gray-200 text-gray-500 text-xs font-bold   hover:border-green-600 hover:text-black transition-all bg-white",
+    "flex items-center justify-center px-6 py-3 border border-gray-200 rounded-lg text-gray-500 text-xs font-bold   hover:border-gray-200 hover:text-black transition-all bg-white",
   iconBtn:
-    "w-8 h-8 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:border-green-600 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-300",
+    "w-8 h-8 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:border-gray-200 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-300",
 };
 
 export default function PettyCashList() {
@@ -52,12 +52,7 @@ export default function PettyCashList() {
   const [selectedEntry, setSelectedEntry] = useState<PettyCash | null>(null);
 
   // Filters state
-  const [filters, setFilters] = useState({
-    search: "",
-    status: "ALL",
-    type: "ALL",
-    category: "ALL",
-  });
+  const [form] = Form.useForm();
 
   const [appliedFilters, setAppliedFilters] = useState({
     search: "",
@@ -76,7 +71,6 @@ export default function PettyCashList() {
   const fetchPettyCash = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
       let url = `/api/v1/erp/finance/petty-cash?page=${page}&size=10`;
 
       if (appliedFilters.search)
@@ -87,9 +81,7 @@ export default function PettyCashList() {
       if (appliedFilters.category !== "ALL")
         url += `&category=${encodeURIComponent(appliedFilters.category)}`;
 
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(url);
 
       const data = await res.json();
       setPettyCashList(data.data || []);
@@ -102,20 +94,24 @@ export default function PettyCashList() {
     }
   };
 
-  const handleFilter = () => {
-    setAppliedFilters(filters);
+  const handleFilterSubmit = (values: Record<string, any>) => {
+    setAppliedFilters({
+      search: values.search || "",
+      status: values.status || "ALL",
+      type: values.type || "ALL",
+      category: values.category || "ALL",
+    });
     setPage(1);
   };
 
-  const handleClear = () => {
-    const defaults = {
+  const handleClearFilters = () => {
+    form.resetFields();
+    setAppliedFilters({
       search: "",
       status: "ALL",
       type: "ALL",
       category: "ALL",
-    };
-    setFilters(defaults);
-    setAppliedFilters(defaults);
+    });
     setPage(1);
   };
 
@@ -127,10 +123,8 @@ export default function PettyCashList() {
       onSuccess: async () => {
         try {
           setDeletingId(id);
-          const token = await getToken();
           await fetch(`/api/v1/erp/finance/petty-cash/${id}`, {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
           });
           toast.success("ENTRY DELETED");
           fetchPettyCash();
@@ -168,17 +162,13 @@ export default function PettyCashList() {
   // Helper for Status Badges
   const renderStatus = (status: string) => {
     const map = {
-      APPROVED: "bg-green-600 text-white border-green-600",
-      PENDING: "bg-white text-black border-green-600 border-2",
+      APPROVED: "bg-green-600 text-white border-gray-200",
+      PENDING: "bg-white text-black border-gray-200 border-2",
       REJECTED: "bg-white text-gray-400 border-gray-200 line-through",
     };
     const style = map[status as keyof typeof map] || map.PENDING;
     return (
-      <span
-        className={`px-2 py-1 text-xs font-bold   ${style}`}
-      >
-        {status}
-      </span>
+      <span className={`px-2 py-1 text-xs font-bold   ${style}`}>{status}</span>
     );
   };
 
@@ -186,7 +176,7 @@ export default function PettyCashList() {
     <PageContainer title="Petty Cash" description="Manage Expenses">
       <div className="w-full space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b-2 border-green-600 pb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b-2 border-gray-200 pb-6">
           <div className="flex flex-col">
             <span className="text-xs font-bold  text-gray-500  mb-1">
               Financial Records
@@ -195,117 +185,76 @@ export default function PettyCashList() {
               Petty Cash
             </h2>
           </div>
-          <button
-            onClick={handleOpenCreate}
-            className="flex items-center justify-center px-6 py-4 bg-green-600 text-white text-sm font-bold   hover:bg-gray-900 transition-all shadow-[4px_4px_0px_0px_rgba(156,163,175,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+          <Button type="primary" size="large" onClick={handleOpenCreate}>Create Entry</Button>
+        </div>
+
+        {/* Filters */}
+        <Card size="small" className="shadow-sm">
+          <Form
+            form={form}
+            layout="inline"
+            onFinish={handleFilterSubmit}
+            initialValues={{
+              search: "",
+              status: "ALL",
+              type: "ALL",
+              category: "ALL",
+            }}
+            className="flex flex-wrap items-center gap-2 w-full"
           >
-            <IconPlus size={18} className="mr-2" />
-            Create Entry
-          </button>
-        </div>
-
-        {/* Filters Panel */}
-        <div className="bg-white border border-gray-200 p-6 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-            {/* Search */}
-            <div className="md:col-span-4">
-              <label className={styles.label}>Search Notes</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="SEARCH..."
-                  value={filters.search}
-                  onChange={(e) =>
-                    setFilters({ ...filters, search: e.target.value })
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleFilter();
-                  }}
-                  className={styles.input}
-                />
-                <IconSearch
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={16}
-                />
-              </div>
-            </div>
-
-            {/* Status */}
-            <div className="md:col-span-2">
-              <label className={styles.label}>Status</label>
-              <select
-                value={filters.status}
-                onChange={(e) =>
-                  setFilters({ ...filters, status: e.target.value })
-                }
-                className={styles.select}
-              >
-                <option value="ALL">ALL STATUS</option>
-                <option value="PENDING">PENDING</option>
-                <option value="APPROVED">APPROVED</option>
-                <option value="REJECTED">REJECTED</option>
-              </select>
-            </div>
-
-            {/* Type */}
-            <div className="md:col-span-2">
-              <label className={styles.label}>Type</label>
-              <select
-                value={filters.type}
-                onChange={(e) =>
-                  setFilters({ ...filters, type: e.target.value })
-                }
-                className={styles.select}
-              >
-                <option value="ALL">ALL TYPES</option>
-                <option value="expense">EXPENSE</option>
-                <option value="income">INCOME</option>
-              </select>
-            </div>
-
-            {/* Category */}
-            <div className="md:col-span-2">
-              <label className={styles.label}>Category</label>
-              <select
-                value={filters.category}
-                onChange={(e) =>
-                  setFilters({ ...filters, category: e.target.value })
-                }
-                className={styles.select}
-              >
-                <option value="ALL">ALL CATS</option>
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[150px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search Notes..."
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item name="status" className="!mb-0 w-32">
+              <Select>
+                <Select.Option value="ALL">All Status</Select.Option>
+                <Select.Option value="PENDING">Pending</Select.Option>
+                <Select.Option value="APPROVED">Approved</Select.Option>
+                <Select.Option value="REJECTED">Rejected</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="type" className="!mb-0 w-32">
+              <Select>
+                <Select.Option value="ALL">All Types</Select.Option>
+                <Select.Option value="expense">Expense</Select.Option>
+                <Select.Option value="income">Income</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="category" className="!mb-0 w-44">
+              <Select>
+                <Select.Option value="ALL">All Categories</Select.Option>
                 {EXPENSE_CATEGORIES.map((cat) => (
-                  <option key={cat.name} value={cat.name}>
+                  <Select.Option key={cat.name} value={cat.name}>
                     {cat.name.toUpperCase()}
-                  </option>
+                  </Select.Option>
                 ))}
-              </select>
-            </div>
-
-            {/* Actions */}
-            <div className="md:col-span-2 flex gap-2">
-              <button
-                onClick={handleFilter}
-                disabled={loading}
-                className={`${styles.filterButton} w-full`}
-              >
-                <IconFilter size={16} />
-              </button>
-              <button
-                onClick={handleClear}
-                disabled={loading}
-                className={`${styles.clearButton} w-full`}
-              >
-                <IconX size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
+              </Select>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<IconFilter size={15} />}
+                >
+                  Filter
+                </Button>
+                <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
 
         {/* Table Content */}
         {loading ? (
           <div className="text-center py-20 flex flex-col items-center">
-            <IconLoader className="animate-spin text-black mb-3" size={32} />
+            <Spin size="small" />
             <p className="text-xs font-bold   text-gray-400">
               Loading Records...
             </p>
@@ -320,7 +269,7 @@ export default function PettyCashList() {
         ) : (
           <div className="w-full overflow-x-auto bg-white border border-gray-200">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-green-600">
+              <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-gray-200">
                 <tr>
                   <th className="p-6">Details</th>
                   <th className="p-6">Amount</th>
@@ -342,7 +291,7 @@ export default function PettyCashList() {
                         </span>
                         <span className="text-xs text-gray-400 font-bold  ">
                           {new Date(
-                            entry.createdAt as string
+                            entry.createdAt as string,
                           ).toLocaleDateString()}
                         </span>
                       </div>
@@ -396,7 +345,7 @@ export default function PettyCashList() {
                           title="Delete"
                         >
                           {deletingId === entry.id ? (
-                            <IconLoader size={16} className="animate-spin" />
+                            <Spin size="small" />
                           ) : (
                             <IconTrash size={16} stroke={2} />
                           )}

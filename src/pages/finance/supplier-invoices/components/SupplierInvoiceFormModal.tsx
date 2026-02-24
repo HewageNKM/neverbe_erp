@@ -1,3 +1,5 @@
+import { Spin, Button } from "antd";
+import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import {
   IconX,
@@ -10,9 +12,7 @@ import {
   IconCurrencyDollar,
 } from "@tabler/icons-react";
 import { SupplierInvoice } from "@/model/SupplierInvoice";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
-import axios from "axios";
 
 interface SupplierInvoiceFormModalProps {
   open: boolean;
@@ -35,14 +35,13 @@ const emptyForm = {
 };
 
 const styles = {
-  label:
-    "block text-xs font-bold text-gray-500   mb-2",
+  label: "block text-xs font-bold text-gray-500   mb-2",
   input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none placeholder:text-gray-400",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none placeholder:text-gray-400",
   select:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none appearance-none cursor-pointer",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none appearance-none cursor-pointer",
   fileButton:
-    "flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 hover:border-green-600 hover:bg-gray-50 transition-all cursor-pointer text-xs font-bold   text-gray-500 hover:text-black",
+    "flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-300 hover:border-gray-200 hover:bg-gray-50 transition-all cursor-pointer text-xs font-bold   text-gray-500 hover:text-black",
 };
 
 const SupplierInvoiceFormModal: React.FC<SupplierInvoiceFormModalProps> = ({
@@ -53,7 +52,7 @@ const SupplierInvoiceFormModal: React.FC<SupplierInvoiceFormModalProps> = ({
 }) => {
   const [formData, setFormData] = useState(emptyForm);
   const [suppliers, setSuppliers] = useState<{ id: string; name: string }[]>(
-    []
+    [],
   );
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
@@ -98,15 +97,12 @@ const SupplierInvoiceFormModal: React.FC<SupplierInvoiceFormModalProps> = ({
   const fetchSuppliers = async () => {
     setFetchingSuppliers(true);
     try {
-      const token = await getToken();
-      const res = await axios.get("/api/v1/erp/procurement/suppliers", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/api/v1/erp/procurement/suppliers");
       // Assuming api returns array of Supplier objects
       setSuppliers(
         res.data
           .filter((s: any) => s.status === "active")
-          .map((s: any) => ({ id: s.id, name: s.name }))
+          .map((s: any) => ({ id: s.id, name: s.name })),
       );
     } catch (error) {
       console.error(error);
@@ -118,7 +114,7 @@ const SupplierInvoiceFormModal: React.FC<SupplierInvoiceFormModalProps> = ({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => {
@@ -144,13 +140,12 @@ const SupplierInvoiceFormModal: React.FC<SupplierInvoiceFormModalProps> = ({
       !formData.amount ||
       !formData.dueDate
     ) {
-      toast("Missing required fields", { icon: '⚠️' });
+      toast("Missing required fields");
       return;
     }
 
     setSaving(true);
     try {
-      const token = await getToken();
       const formPayload = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         formPayload.append(key, value);
@@ -164,25 +159,18 @@ const SupplierInvoiceFormModal: React.FC<SupplierInvoiceFormModalProps> = ({
         : "/api/v1/erp/finance/supplier-invoices";
       const method = invoice ? "PUT" : "POST";
 
-      await axios({
+      await api({
         method,
         url,
         data: formPayload,
-        headers: { Authorization: `Bearer ${token}` },
       });
 
-      toast(
-        invoice ? "Invoice updated" : "Invoice created",
-        "success"
-      );
+      toast.success(invoice ? "Invoice updated" : "Invoice created");
       onSave();
       onClose();
     } catch (error: any) {
       console.error(error);
-      toast(
-        error.response?.data?.message || "Operation failed",
-        "error"
-      );
+      toast.error(error.response?.data?.message || "Operation failed");
     } finally {
       setSaving(false);
     }
@@ -386,14 +374,15 @@ const SupplierInvoiceFormModal: React.FC<SupplierInvoiceFormModalProps> = ({
           >
             Cancel
           </button>
-          <button
+          <Button
+            type="primary"
+            size="large"
             onClick={handleSubmit}
             disabled={saving}
-            className="px-6 py-2 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 disabled:opacity-50 flex items-center gap-2"
           >
-            {saving && <IconLoader2 size={14} className="animate-spin" />}
+            {saving && <Spin size="small" />}
             {invoice ? "Save Changes" : "Create Invoice"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

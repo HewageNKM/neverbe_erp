@@ -23,8 +23,6 @@ import {
   Space,
   Tooltip,
   Form,
-  Row,
-  Col,
   Card,
   Typography,
 } from "antd";
@@ -220,10 +218,10 @@ const ProductPage = () => {
             <img
               src={record.thumbnail.url}
               alt="thumb"
-              className="w-10 h-10 object-cover rounded-sm border border-gray-200"
+              className="w-10 h-10 object-cover rounded-lg border border-gray-200"
             />
           ) : (
-            <div className="w-10 h-10 bg-gray-100 rounded-sm"></div>
+            <div className="w-10 h-10 bg-gray-100 rounded-lg"></div>
           )}
           <div>
             <Typography.Text strong className="block">
@@ -255,11 +253,11 @@ const ProductPage = () => {
     },
     {
       title: "Status",
-      dataIndex: "isActive",
+      dataIndex: "status",
       key: "status",
-      render: (isActive) => (
-        <Tag color={isActive ? "success" : "error"}>
-          {isActive ? "ACTIVE" : "INACTIVE"}
+      render: (status: boolean) => (
+        <Tag color={status ? "success" : "error"}>
+          {status ? "ACTIVE" : "INACTIVE"}
         </Tag>
       ),
     },
@@ -291,6 +289,7 @@ const ProductPage = () => {
   return (
     <PageContainer title="Products" description="Products Management">
       <Space direction="vertical" size="large" className="w-full">
+        {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <Typography.Title level={2} className="!m-0">
@@ -309,73 +308,67 @@ const ProductPage = () => {
           </Button>
         </div>
 
-        <Card size="small" className="bg-gray-50/50">
+        {/* Filter bar */}
+        <Card size="small" className="shadow-sm">
           <Form
             form={form}
-            layout="vertical"
+            layout="inline"
             onFinish={handleFilterSubmit}
             initialValues={{ brand: "all", category: "all", status: "all" }}
+            className="flex flex-wrap gap-2 w-full"
           >
-            <Row gutter={[16, 0]}>
-              <Col xs={24} md={8}>
-                <Form.Item name="search" label="Search">
-                  <Input
-                    prefix={<IconSearch size={16} className="text-gray-400" />}
-                    placeholder="Product Name..."
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item name="category" label="Category">
-                  <Select>
-                    <Option value="all">All Categories</Option>
-                    {categories.map((c) => (
-                      <Option key={c.id} value={c.label}>
-                        {c.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item name="brand" label="Brand">
-                  <Select>
-                    <Option value="all">All Brands</Option>
-                    {brands.map((b) => (
-                      <Option key={b.id} value={b.label}>
-                        {b.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item name="status" label="Status">
-                  <Select>
-                    <Option value="all">All Status</Option>
-                    <Option value="true">Active</Option>
-                    <Option value="false">Inactive</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={4} className="flex items-end pb-6 gap-2">
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[160px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search products..."
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item name="category" className="!mb-0 w-40">
+              <Select>
+                <Option value="all">All Categories</Option>
+                {categories.map((c) => (
+                  <Option key={c.id} value={c.label}>
+                    {c.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="brand" className="!mb-0 w-36">
+              <Select>
+                <Option value="all">All Brands</Option>
+                {brands.map((b) => (
+                  <Option key={b.id} value={b.label}>
+                    {b.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="status" className="!mb-0 w-32">
+              <Select>
+                <Option value="all">All Status</Option>
+                <Option value="true">Active</Option>
+                <Option value="false">Inactive</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
                 <Button
                   type="primary"
                   htmlType="submit"
-                  icon={<IconFilter size={16} />}
-                  block
+                  icon={<IconFilter size={15} />}
                 >
                   Filter
                 </Button>
-                <Button
-                  icon={<IconX size={16} />}
-                  onClick={handleClearFilters}
-                />
-              </Col>
-            </Row>
+                <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
           </Form>
         </Card>
 
+        {/* Table */}
         <Table
           columns={columns}
           dataSource={products}
@@ -383,7 +376,8 @@ const ProductPage = () => {
           pagination={pagination}
           loading={loading}
           onChange={handleTableChange}
-          bordered
+          size="small"
+          className="rounded-lg overflow-hidden border border-gray-100"
         />
       </Space>
 

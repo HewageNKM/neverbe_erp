@@ -1,3 +1,5 @@
+import { Button } from "antd";
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import PageContainer from "../../components/container/PageContainer";
@@ -6,8 +8,6 @@ import {
   IconChevronLeft,
   IconChevronRight,
 } from "@tabler/icons-react";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
 import { Promotion } from "@/model/Promotion";
 import PromotionListTable from "./components/PromotionListTable";
 import PromotionFormModal from "./components/PromotionFormModal"; // Will create next
@@ -34,15 +34,13 @@ const PromotionsPage = () => {
   const fetchPromotions = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
       const params: any = {
         page: pagination.page,
         size: pagination.size,
       };
       if (filterStatus) params.status = filterStatus;
 
-      const response = await axios.get("/api/v1/erp/catalog/promotions", {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get("/api/v1/erp/catalog/promotions", {
         params,
       });
 
@@ -87,10 +85,7 @@ const PromotionsPage = () => {
       confirmText: "Delete",
       onSuccess: async () => {
         try {
-          const token = await getToken();
-          await axios.delete(`/api/v1/erp/catalog/promotions/${item.id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await api.delete(`/api/v1/erp/catalog/promotions/${item.id}`);
           toast.success("Promotion deleted");
           fetchPromotions();
         } catch (e) {
@@ -116,22 +111,16 @@ const PromotionsPage = () => {
               Promotions
             </h2>
           </div>
-          <button
-            onClick={handleOpenCreateModal}
-            className="flex items-center px-6 py-4 bg-green-600 text-white text-sm font-bold   hover:bg-gray-900 transition-all shadow-[4px_4px_0px_0px_rgba(156,163,175,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
-          >
-            <IconPlus size={18} className="mr-2" />
-            Create Promotion
-          </button>
+          <Button type="primary" size="large" onClick={handleOpenCreateModal}>Create Promotion</Button>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-sm shadow-sm p-6 mb-6">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
           {/* Filters */}
           <div className="flex gap-4 mb-6">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"
             >
               <option value="">All Statuses</option>
               <option value="ACTIVE">Active</option>
@@ -157,7 +146,7 @@ const PromotionsPage = () => {
                   }))
                 }
                 disabled={pagination.page === 1 || loading}
-                className="p-2 border border-gray-200 rounded-sm hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
               >
                 <IconChevronLeft size={18} />
               </button>
@@ -172,7 +161,7 @@ const PromotionsPage = () => {
                   }))
                 }
                 disabled={loading || promotions.length < pagination.size} // Simple check
-                className="p-2 border border-gray-200 rounded-sm hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
               >
                 <IconChevronRight size={18} />
               </button>

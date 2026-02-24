@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import {
   IconTrendingUp,
   IconTrendingDown,
-  IconRefresh,
   IconArrowRight,
 } from "@tabler/icons-react";
 import { List, Tag, Button, Spin, Typography, Space } from "antd";
@@ -44,13 +43,7 @@ const MonthlyComparison = () => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
           <h4 className="text-lg font-bold text-black m-0">Monthly</h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchData}
-            loading={loading}
-          />
+          
         </div>
         <Space size={4} className="text-xs font-bold text-gray-500">
           <span>vs Last</span>

@@ -1,4 +1,6 @@
+import api from "@/lib/api";
 
+import {  Card, Form , Spin } from "antd";
 import React, { useState } from "react";
 import {
   IconFilter,
@@ -7,10 +9,7 @@ import {
   IconChevronRight,
 } from "@tabler/icons-react";
 import * as XLSX from "xlsx";
-import axios from "axios";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import { getToken } from "@/firebase/firebaseClient";
 import {
   BarChart,
   Bar,
@@ -38,14 +37,12 @@ const SalesByBrandPage = () => {
 
   const totalPages = Math.ceil(brands.length / rowsPerPage);
 
-  const fetchReport = async (evt: React.FormEvent) => {
+  const fetchReport = async (evt?: React.FormEvent) => {
     evt.preventDefault();
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get("/api/v1/erp/reports/sales/by-brand", {
+      const res = await api.get("/api/v1/erp/reports/sales/by-brand", {
         params: { from, to },
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       setBrands(res.data.brands || []);
@@ -60,10 +57,8 @@ const SalesByBrandPage = () => {
 
   const exportExcel = async () => {
     try {
-      const token = await getToken();
-      const res = await axios.get("/api/v1/erp/reports/sales/by-brand", {
+      const res = await api.get("/api/v1/erp/reports/sales/by-brand", {
         params: { from, to, page: 1, size: totalBrands || 1000 },
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       const allBrands = res.data.brands || [];
@@ -110,17 +105,20 @@ const SalesByBrandPage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
-            <form
-              onSubmit={fetchReport}
-              className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
-            >
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Card size="small" className="shadow-sm w-full xl:w-auto">
+          <Form
+            layout="inline"
+            onFinish={() => fetchReport()}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <Form.Item className="!mb-0">
+              <div className="flex items-center gap-2">
                 <input
                   type="date"
                   required
                   value={from}
                   onChange={(e) => setFrom(e.target.value)}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-sm focus:outline-none focus:border-gray-900 w-full sm:w-auto"
+                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
                 />
                 <span className="text-gray-400 font-medium">-</span>
                 <input
@@ -128,22 +126,26 @@ const SalesByBrandPage = () => {
                   required
                   value={to}
                   onChange={(e) => setTo(e.target.value)}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-sm focus:outline-none focus:border-gray-900 w-full sm:w-auto"
+                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
                 />
               </div>
+            </Form.Item>
+            <Form.Item className="!mb-0">
               <button
                 type="submit"
-                className="px-6 py-2 bg-gray-900 text-white text-xs font-bold   rounded-sm hover:bg-green-600 transition-colors min-w-[100px] flex items-center justify-center gap-2 w-full sm:w-auto"
+                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
               >
-                <IconFilter size={16} />
+                <IconFilter size={15} />
                 Filter
               </button>
-            </form>
+            </Form.Item>
+          </Form>
+        </Card>
 
             <button
               onClick={exportExcel}
               disabled={!brands.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               <IconDownload size={16} />
               Export
@@ -154,7 +156,7 @@ const SalesByBrandPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         )}
 
@@ -163,7 +165,7 @@ const SalesByBrandPage = () => {
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white border border-gray-200 p-6 rounded-sm shadow-sm">
+              <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
                 <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
                   Sales Comparison
                 </h3>
@@ -224,7 +226,7 @@ const SalesByBrandPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 p-6 rounded-sm shadow-sm">
+              <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
                 <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
                   Quantity Distribution
                 </h3>
@@ -262,7 +264,7 @@ const SalesByBrandPage = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
@@ -356,7 +358,7 @@ const SalesByBrandPage = () => {
                         setRowsPerPage(Number(e.target.value));
                         setPage(0);
                       }}
-                      className="bg-white border border-gray-300 rounded-sm px-2 py-1 focus:outline-none focus:border-gray-900"
+                      className="bg-white border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-900"
                     >
                       <option value={5}>5</option>
                       <option value={10}>10</option>
@@ -375,7 +377,7 @@ const SalesByBrandPage = () => {
                       <button
                         onClick={() => setPage(Math.max(0, page - 1))}
                         disabled={page === 0}
-                        className="p-1 rounded-sm hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
                       >
                         <IconChevronLeft size={16} />
                       </button>
@@ -384,7 +386,7 @@ const SalesByBrandPage = () => {
                           setPage(Math.min(totalPages - 1, page + 1))
                         }
                         disabled={page >= totalPages - 1}
-                        className="p-1 rounded-sm hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
                       >
                         <IconChevronRight size={16} />
                       </button>

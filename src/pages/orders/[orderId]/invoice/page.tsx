@@ -1,9 +1,9 @@
+import {  Spin , Button } from "antd";
+import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Order } from "@/model/Order";
 
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import { useAppSelector } from "@/lib/hooks";
 
 import { IconPrinter, IconChevronLeft } from "@tabler/icons-react";
@@ -23,10 +23,7 @@ const OrderInvoice = () => {
   const fetchOrderById = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
-      const response = await axios.get(`/api/v1/erp/orders/${orderId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(`/api/v1/erp/orders/${orderId}`);
       setOrder(response.data);
     } catch (error) {
       console.error(error);
@@ -41,7 +38,7 @@ const OrderInvoice = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-gray-100 border-t-black rounded-full animate-spin"></div>
+          <Spin />
           <p className="text-gray-400 font-bold text-xs  ">
             Generating Invoice...
           </p>
@@ -73,15 +70,10 @@ const OrderInvoice = () => {
         >
           <IconChevronLeft size={16} /> Back to Orders
         </Link>
-        <button
-          onClick={handlePrint}
-          className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all shadow-lg"
-        >
-          <IconPrinter size={16} /> Print Document
-        </button>
+        <Button type="primary" size="large" onClick={handlePrint}>Print Document</Button>
       </div>
 
-      <div className="min-h-screen bg-gray-100 pb-20 print:bg-white print:pb-0">
+      <div className="min-h-screen bg-gray-100 pb-20 pt-8 print:bg-white print:py-0">
         <div className="max-w-[800px] mx-auto">
           {/* Invoice Paper */}
           <div
@@ -89,7 +81,7 @@ const OrderInvoice = () => {
             className="bg-white p-12 md:p-16 shadow-2xl min-h-[1100px] relative text-black print:shadow-none print:p-0"
           >
             {/* Header */}
-            <div className="flex justify-between items-start border-b-4 border-green-600 pb-8 mb-8">
+            <div className="flex justify-between items-start border-b-4 border-gray-200 pb-10 mb-10">
               <div className="flex flex-col">
                 <h1 className="text-5xl font-bold  tracking-tighter text-black leading-none mb-1">
                   Invoice
@@ -115,7 +107,7 @@ const OrderInvoice = () => {
             </div>
 
             {/* Meta Data Grid */}
-            <div className="grid grid-cols-2 gap-8 mb-12 border-b border-gray-100 pb-8">
+            <div className="grid grid-cols-2 gap-10 mb-14 border-b border-gray-100 pb-10">
               <div className="space-y-6">
                 <div>
                   <span className="block text-xs font-bold text-gray-400   mb-1">
@@ -177,10 +169,10 @@ const OrderInvoice = () => {
             </div>
 
             {/* Items Table */}
-            <div className="mb-12">
+            <div className="mb-14">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b-2 border-green-600">
+                  <tr className="border-b-2 border-gray-200">
                     <th className="text-left font-bold   text-xs py-3 pr-4">
                       Item Description
                     </th>
@@ -407,7 +399,7 @@ const OrderInvoice = () => {
                   </div>
                 )}
 
-                <div className="border-t-2 border-green-600 pt-4 mt-4 flex justify-between items-end">
+                <div className="border-t-2 border-gray-200 pt-4 mt-4 flex justify-between items-end">
                   <span className="text-sm font-bold  tracking-tight">
                     Total Due
                   </span>

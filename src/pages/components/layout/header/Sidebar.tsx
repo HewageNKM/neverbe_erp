@@ -101,7 +101,7 @@ const Sidebar = ({
   const menuItems = useMemo(
     () => transformMenuItems(Menuitems),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [currentUser, pathname, isMobile, onClose],
+    [currentUser, pathname, isMobile, onClose, collapsed],
   );
 
   const handleLogout = () => {

@@ -29,7 +29,7 @@ export default function AppLayout() {
         <div className="w-full h-1 bg-black fixed top-0 z-[100] left-0"></div>
 
         {/* Mobile Header (Only visible on lg < screens) */}
-        <header className="lg:hidden sticky top-0 bg-white border-b-2 border-green-600 h-16 flex items-center justify-between px-4 z-40">
+        <header className="lg:hidden sticky top-0 bg-white border-b-2 border-gray-200 h-16 flex items-center justify-between px-4 z-40">
           <Button
             type="text"
             icon={<IconMenu2 size={24} />}

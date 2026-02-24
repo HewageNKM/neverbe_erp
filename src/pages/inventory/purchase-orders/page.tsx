@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import {  Card, Form, Input, Select, Button, Space , Spin } from "antd";
 import {
   IconPlus,
   IconEye,
   IconSearch,
   IconFilter,
   IconShoppingCart,
+  IconX,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
+import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -30,13 +30,13 @@ interface PurchaseOrder {
 // --- NIKE AESTHETIC STYLES ---
 const styles = {
   input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium pl-12 pr-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none placeholder:text-gray-400",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium pl-12 pr-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none placeholder:text-gray-400",
   select:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium pl-12 pr-8 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none appearance-none cursor-pointer ",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium pl-12 pr-8 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none appearance-none cursor-pointer ",
   primaryBtn:
-    "flex items-center justify-center px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-sm shadow-sm hover:shadow-md",
+    "flex items-center justify-center px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-lg shadow-sm hover:shadow-md",
   iconBtn:
-    "w-8 h-8 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:border-green-600 hover:text-white transition-colors",
+    "w-8 h-8 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:border-gray-200 hover:text-white transition-colors",
 };
 
 const PurchaseOrdersPage = () => {
@@ -44,26 +44,32 @@ const PurchaseOrdersPage = () => {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [form] = Form.useForm();
+
+  const handleFilterSubmit = (values: any) => {
+    setSearch(values.search || "");
+    setStatusFilter(values.status || "");
+  };
+
+  const handleClearFilters = () => {
+    form.resetFields();
+    setSearch("");
+    setStatusFilter("");
+  };
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
       const params: Record<string, string> = {};
       if (statusFilter) params.status = statusFilter;
-
-      const res = await axios.get<PurchaseOrder[]>(
+      const res = await api.get<PurchaseOrder[]>(
         "/api/v1/erp/procurement/purchase-orders",
-        {
-          params,
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { params },
       );
       setOrders(res.data);
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Failed to fetch purchase orders");
     } finally {
       setLoading(false);
@@ -84,7 +90,7 @@ const PurchaseOrdersPage = () => {
     <PageContainer title="Purchase Orders">
       <div className="w-full space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b-2 border-green-600 pb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b-2 border-gray-200 pb-6">
           <div className="flex flex-col">
             <span className="text-xs font-bold  text-gray-500  mb-1 flex items-center gap-2">
               <IconShoppingCart size={14} /> Procurement
@@ -103,46 +109,52 @@ const PurchaseOrdersPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white border border-gray-200 p-6 shadow-sm">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <IconSearch
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+        <Card size="small" className="shadow-sm">
+          <Form
+            form={form}
+            layout="inline"
+            onFinish={handleFilterSubmit}
+            initialValues={{ search: "", status: "" }}
+            className="flex flex-wrap items-center gap-2 w-full"
+          >
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search PO Number or Supplier..."
+                allowClear
               />
-              <input
-                type="text"
-                placeholder="SEARCH ORDERS OR SUPPLIERS..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className={styles.input}
-              />
-            </div>
-            <div className="relative min-w-[200px]">
-              <IconFilter
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className={styles.select}
-              >
-                <option value="">ALL STATUS</option>
-                <option value="draft">DRAFT</option>
-                <option value="sent">SENT</option>
-                <option value="partial">PARTIAL</option>
-                <option value="received">RECEIVED</option>
-                <option value="cancelled">CANCELLED</option>
-              </select>
-            </div>
-          </div>
-        </div>
+            </Form.Item>
+            <Form.Item name="status" className="!mb-0 w-40">
+              <Select>
+                <Select.Option value="">All Status</Select.Option>
+                <Select.Option value="draft">Draft</Select.Option>
+                <Select.Option value="sent">Sent</Select.Option>
+                <Select.Option value="partial">Partial</Select.Option>
+                <Select.Option value="received">Received</Select.Option>
+                <Select.Option value="cancelled">Cancelled</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<IconFilter size={15} />}
+                >
+                  Filter
+                </Button>
+                <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
 
         {/* Loading */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
             <span className="text-xs font-bold   text-gray-400 mt-4">
               Loading Orders
             </span>
@@ -154,7 +166,7 @@ const PurchaseOrdersPage = () => {
           <div className="bg-white border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left border-collapse">
-                <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-green-600">
+                <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-gray-200">
                   <tr>
                     <th className="px-6 py-5">PO Number</th>
                     <th className="px-6 py-5">Supplier</th>

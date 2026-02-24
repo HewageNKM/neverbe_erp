@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { getExpenseSummaryAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
-import { IconReceipt, IconRefresh, IconCategory } from "@tabler/icons-react";
+import { IconReceipt, IconCategory } from "@tabler/icons-react";
 import { Row, Col, Statistic, Card, Spin, Button, Typography, Tag } from "antd";
 
 interface ExpenseData {
@@ -41,13 +41,7 @@ const ExpenseSummary = () => {
         <div className="flex items-center gap-2">
           <IconReceipt size={18} className="text-red-500" />
           <h4 className="text-lg font-bold text-black m-0">Expenses</h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchData}
-            loading={loading}
-          />
+          
         </div>
       </div>
 
@@ -86,7 +80,7 @@ const ExpenseSummary = () => {
                 <Card
                   size="small"
                   bordered={false}
-                  className="bg-green-50/50 rounded-2xl shadow-sm border border-green-200 transition-all hover:-translate-y-0.5 h-full"
+                  className="bg-green-50/50 rounded-2xl shadow-sm border border-gray-200 transition-all hover:-translate-y-0.5 h-full"
                 >
                   <Statistic
                     title={

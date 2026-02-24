@@ -1,3 +1,5 @@
+import { Spin, Button } from "antd";
+import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -5,12 +7,8 @@ import {
   IconTrash,
   IconLoader2,
   IconArrowLeft,
-  IconShoppingCart,
-} from "@tabler/icons-react";
+  IconShoppingCart} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -20,16 +18,15 @@ import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 const styles = {
   label: "block text-xs font-bold text-gray-500   mb-2",
   input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none placeholder:text-gray-400",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none placeholder:text-gray-400",
   select:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none appearance-none cursor-pointer ",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none appearance-none cursor-pointer ",
   primaryBtn:
-    "flex items-center justify-center px-6 py-4 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-sm shadow-sm hover:shadow-md disabled:opacity-50",
+    "flex items-center justify-center px-6 py-4 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-lg shadow-sm hover:shadow-md disabled:opacity-50",
   secondaryBtn:
-    "flex items-center justify-center px-6 py-4 border-2 border-green-600 text-black text-xs font-bold   hover:bg-gray-50 transition-all rounded-sm disabled:opacity-50",
+    "flex items-center justify-center px-6 py-4 border border-gray-200 rounded-lg shadow-sm text-green-700 bg-green-50 hover:bg-green-100 text-xs font-bold   hover:bg-gray-50 transition-all rounded-lg disabled:opacity-50",
   iconBtn:
-    "w-10 h-10 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:border-green-600 hover:text-white transition-colors disabled:opacity-30",
-};
+    "w-10 h-10 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:border-gray-200 hover:text-white transition-colors disabled:opacity-30"};
 
 interface Supplier {
   id: string;
@@ -99,27 +96,14 @@ const NewPurchaseOrderPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
       const [suppliersRes, productsRes, stocksRes, sizesRes] =
         await Promise.all([
-          axios.get<Supplier[]>(
-            "/api/v1/erp/procurement/suppliers?dropdown=true",
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          ),
-          axios.get<Product[]>("/api/v1/erp/catalog/products/dropdown", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get<{ id: string; label: string }[]>(
-            "/api/v1/erp/catalog/sizes/dropdown",
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          ),
+          api.get<Supplier[]>(
+            "/api/v1/erp/procurement/suppliers?dropdown=true"),
+          api.get<Product[]>("/api/v1/erp/catalog/products/dropdown"),
+          api.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown"),
+          api.get<{ id: string; label: string }[]>(
+            "/api/v1/erp/catalog/sizes/dropdown"),
         ]);
       setSuppliers(suppliersRes.data);
       setProducts(productsRes.data);
@@ -153,12 +137,9 @@ const NewPurchaseOrderPage = () => {
 
       if (selectedProduct) {
         try {
-          const token = await getToken();
           // Fetch variants
-          const variantsRes = await axios.get<Variant[]>(
-            `/api/v1/erp/catalog/products/${selectedProduct}/variants/dropdown`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
+          const variantsRes = await api.get<Variant[]>(
+            `/api/v1/erp/catalog/products/${selectedProduct}/variants/dropdown`);
           setAvailableVariants(variantsRes.data || []);
         } catch (e) {
           console.error("Failed to fetch product details", e);
@@ -210,9 +191,7 @@ const NewPurchaseOrderPage = () => {
   const handleAddItem = () => {
     if (!selectedProduct || !selectedSize || quantity <= 0) {
       toast(
-        "Please select Product, Size and valid Quantity",
-        "warning",
-      );
+        "Please select Product, Size and valid Quantity");
       return;
     }
 
@@ -230,8 +209,7 @@ const NewPurchaseOrderPage = () => {
       size: selectedSize,
       quantity,
       unitCost,
-      totalCost: quantity * unitCost,
-    };
+      totalCost: quantity * unitCost};
 
     setItems([...items, newItem]);
 
@@ -247,11 +225,11 @@ const NewPurchaseOrderPage = () => {
 
   const handleSave = async (status: "draft" | "sent") => {
     if (!supplierId) {
-      toast("Please select a supplier", { icon: '⚠️' });
+      toast("Please select a supplier");
       return;
     }
     if (items.length === 0) {
-      toast("Please add at least one item", { icon: '⚠️' });
+      toast("Please add at least one item");
       return;
     }
 
@@ -266,8 +244,7 @@ const NewPurchaseOrderPage = () => {
       onSuccess: async () => {
         setSaving(true);
         try {
-          const token = await getToken();
-          await axios.post(
+          await api.post(
             "/api/v1/erp/procurement/purchase-orders",
             {
               supplierId,
@@ -276,14 +253,9 @@ const NewPurchaseOrderPage = () => {
               expectedDate,
               notes,
               items,
-              status,
-            },
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
+              status});
           toast.error(
-            status === "draft" ? "PO SAVED AS DRAFT" : "PO CREATED AND SENT",
-            "success",
-          );
+            status === "draft" ? "PO SAVED AS DRAFT" : "PO CREATED AND SENT");
           navigate("/inventory/purchase-orders");
         } catch (error) {
           console.error(error);
@@ -291,15 +263,14 @@ const NewPurchaseOrderPage = () => {
         } finally {
           setSaving(false);
         }
-      },
-    });
+      }});
   };
 
   if (loading) {
     return (
       <PageContainer title="New Purchase Order">
         <div className="flex flex-col items-center justify-center py-40">
-          <ComponentsLoader />
+          <div className="flex justify-center py-12"><Spin size="large" /></div>
           <span className="text-xs font-bold   text-gray-400 mt-4">
             Loading Resources
           </span>
@@ -312,7 +283,7 @@ const NewPurchaseOrderPage = () => {
     <PageContainer title="New Purchase Order">
       <div className="w-full space-y-8 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 border-b-2 border-green-600 pb-6">
+        <div className="flex items-center gap-4 border-b-2 border-gray-200 pb-6">
           <button
             onClick={() => navigate(-1)}
             className="w-10 h-10 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:text-white transition-colors"
@@ -465,12 +436,7 @@ const NewPurchaseOrderPage = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <button
-                    onClick={handleAddItem}
-                    className="w-full flex items-center justify-center bg-green-600 text-white px-4 py-3 text-xs font-bold   hover:bg-gray-900 transition-all border-2 border-transparent"
-                  >
-                    <IconPlus size={16} />
-                  </button>
+                  <Button type="primary" size="large" onClick={handleAddItem}></Button>
                 </div>
               </div>
 
@@ -495,7 +461,7 @@ const NewPurchaseOrderPage = () => {
             <div className="bg-white border border-gray-200">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
-                  <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-green-600">
+                  <thead className="bg-white text-xs font-bold text-gray-400   border-b-2 border-gray-200">
                     <tr>
                       <th className="p-4">Product</th>
                       <th className="p-4">Variant</th>
@@ -552,7 +518,7 @@ const NewPurchaseOrderPage = () => {
                       ))
                     )}
                   </tbody>
-                  <tfoot className="bg-gray-50 border-t-2 border-green-600">
+                  <tfoot className="bg-gray-50 border-t-2 border-gray-200">
                     <tr>
                       <td
                         colSpan={5}
@@ -593,7 +559,7 @@ const NewPurchaseOrderPage = () => {
                   className={`${styles.primaryBtn} w-full`}
                 >
                   {saving ? (
-                    <IconLoader2 className="animate-spin" size={20} />
+                    <Spin size="small" />
                   ) : (
                     "CREATE & SEND ORDER"
                   )}

@@ -1,3 +1,5 @@
+import { Spin } from "antd";
+import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
 import {
@@ -6,11 +8,8 @@ import {
   IconChevronLeft,
   IconChevronRight,
 } from "@tabler/icons-react";
-import axios from "axios";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import { getToken } from "@/firebase/firebaseClient";
 import { useAppSelector } from "@/lib/hooks";
 
 export interface LiveStockItem {
@@ -45,10 +44,7 @@ const LiveStockPage = () => {
   // Fetch stock dropdown
   const fetchStocksDropdown = async () => {
     try {
-      const token = await getToken();
-      const res = await axios.get("/api/v1/erp/catalog/stocks/dropdown", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/api/v1/erp/catalog/stocks/dropdown");
       setStocksDropdown([
         { id: "all", label: "All Stocks" },
         ...(res.data || []),
@@ -62,10 +58,8 @@ const LiveStockPage = () => {
   const fetchStock = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get("/api/v1/erp/reports/stocks/live-stock", {
+      const res = await api.get("/api/v1/erp/reports/stocks/live-stock", {
         params: { stockId: selectedStock },
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       const allStock: LiveStockItem[] = res.data.stock || [];
@@ -125,7 +119,7 @@ const LiveStockPage = () => {
     title: string;
     value: string | number;
   }) => (
-    <div className="bg-white border border-gray-200 p-6 rounded-sm shadow-sm flex flex-col justify-center">
+    <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
       <p className="text-xs font-bold   text-gray-500 mb-2">
         {title}
       </p>
@@ -152,7 +146,7 @@ const LiveStockPage = () => {
               <select
                 value={selectedStock}
                 onChange={(e) => setSelectedStock(e.target.value)}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-sm focus:outline-none focus:border-gray-900 min-w-[200px]"
+                className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-lg focus:outline-none focus:border-gray-900 min-w-[200px]"
               >
                 {stocksDropdown.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -163,7 +157,7 @@ const LiveStockPage = () => {
 
               <button
                 onClick={handleApply}
-                className="px-6 py-2 bg-gray-900 text-white text-xs font-bold   rounded-sm hover:bg-green-600 transition-colors min-w-[100px] flex items-center justify-center gap-2"
+                className="px-6 py-2 bg-gray-900 text-white text-xs font-bold   rounded-lg hover:bg-green-600 transition-colors min-w-[100px] flex items-center justify-center gap-2"
               >
                 <IconFilter size={16} />
                 Apply
@@ -173,7 +167,7 @@ const LiveStockPage = () => {
             <button
               onClick={exportExcel}
               disabled={!stock.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               <IconDownload size={16} />
               Export
@@ -184,7 +178,7 @@ const LiveStockPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         )}
 
@@ -204,7 +198,7 @@ const LiveStockPage = () => {
             </div>
 
             {/* Stock Table */}
-            <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs text-gray-500  bg-gray-50 border-b border-gray-200">
@@ -291,7 +285,7 @@ const LiveStockPage = () => {
                         setRowsPerPage(Number(e.target.value));
                         setPage(0);
                       }}
-                      className="bg-white border border-gray-300 rounded-sm px-2 py-1 focus:outline-none focus:border-gray-900"
+                      className="bg-white border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:border-gray-900"
                     >
                       <option value={5}>5</option>
                       <option value={10}>10</option>
@@ -310,7 +304,7 @@ const LiveStockPage = () => {
                       <button
                         onClick={() => setPage(Math.max(0, page - 1))}
                         disabled={page === 0}
-                        className="p-1 rounded-sm hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
                       >
                         <IconChevronLeft size={16} />
                       </button>
@@ -319,7 +313,7 @@ const LiveStockPage = () => {
                           setPage(Math.min(totalPages - 1, page + 1))
                         }
                         disabled={page >= totalPages - 1}
-                        className="p-1 rounded-sm hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                        className="p-1 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
                       >
                         <IconChevronRight size={16} />
                       </button>

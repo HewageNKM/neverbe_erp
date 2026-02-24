@@ -1,3 +1,5 @@
+import { Spin } from "antd";
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,9 +10,6 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -79,10 +78,8 @@ const ViewAdjustmentPage = () => {
   const fetchAdjustment = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await axios.get<Adjustment>(
-        `/api/v1/erp/inventory/adjustments/${adjustmentId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.get<Adjustment>(
+        `/api/v1/erp/inventory/adjustments/${adjustmentId}`
       );
       setAdjustment(res.data);
     } catch (error) {
@@ -111,11 +108,9 @@ const ViewAdjustmentPage = () => {
           : "Confirm",
       onSuccess: async () => {
         try {
-          const token = await getToken();
-          await axios.put(
+          await api.put(
             `/api/v1/erp/inventory/adjustments/${adjustmentId}/status`,
-            { status },
-            { headers: { Authorization: `Bearer ${token}` } }
+            { status }
           );
           toast.success(`Adjustment ${status.toLowerCase()}`);
           fetchAdjustment(); // Refresh data
@@ -135,7 +130,7 @@ const ViewAdjustmentPage = () => {
     return (
       <PageContainer title="Adjustment">
         <div className="flex justify-center py-20">
-          <ComponentsLoader />
+          <div className="flex justify-center py-12"><Spin size="large" /></div>
         </div>
       </PageContainer>
     );

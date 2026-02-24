@@ -8,7 +8,6 @@ import {
 import toast from "react-hot-toast";
 import {
   IconChartPie,
-  IconRefresh,
   IconClock,
   IconTruck,
   IconAlertCircle,
@@ -132,13 +131,7 @@ const OrderStatusPanel = () => {
         <div className="flex items-center gap-2">
           <IconChartPie size={18} className="text-purple-500" />
           <h4 className="text-lg font-bold text-black m-0">Order Status</h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchAll}
-            loading={loading}
-          />
+          
         </div>
         <Tag className="m-0 text-xs font-bold text-gray-500 bg-gray-100 border-none">
           This Month

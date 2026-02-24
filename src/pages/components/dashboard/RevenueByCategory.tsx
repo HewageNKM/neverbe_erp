@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { getRevenueByCategoryAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
-import { IconRefresh, IconCategory2 } from "@tabler/icons-react";
+import { IconCategory2 } from "@tabler/icons-react";
 import { Button, Tag, Spin, Tooltip, List, Typography } from "antd";
 
 interface CategoryData {
@@ -52,13 +52,7 @@ const RevenueByCategory = () => {
           <h4 className="text-lg font-bold text-black m-0">
             Revenue by Category
           </h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchData}
-            loading={loading}
-          />
+          
         </div>
         <Tag className="m-0 text-xs font-bold text-gray-500 bg-gray-100 border-none">
           This Month
@@ -69,7 +63,7 @@ const RevenueByCategory = () => {
         {data.length > 0 ? (
           <div className="space-y-4">
             {/* Stacked Bar */}
-            <div className="flex h-3 w-full overflow-hidden rounded-sm bg-gray-100">
+            <div className="flex h-3 w-full overflow-hidden rounded-lg bg-gray-100">
               {data.map((cat, idx) => (
                 <Tooltip
                   key={cat.category}

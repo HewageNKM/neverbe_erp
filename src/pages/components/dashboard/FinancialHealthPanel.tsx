@@ -11,7 +11,6 @@ import {
   IconPercentage,
   IconReceipt,
   IconPackage,
-  IconRefresh,
   IconCoin,
   IconCategory,
 } from "@tabler/icons-react";
@@ -200,7 +199,7 @@ const FinancialHealthPanel = () => {
                   <Card
                     size="small"
                     bordered={false}
-                    className="rounded-2xl shadow-sm border border-green-200 bg-green-50/50"
+                    className="rounded-2xl shadow-sm border border-gray-200 bg-green-50/50"
                   >
                     <Statistic
                       title={
@@ -267,7 +266,7 @@ const FinancialHealthPanel = () => {
               <Card
                 size="small"
                 bordered={false}
-                className="bg-linear-to-bl from-green-500 to-green-600 rounded-2xl shadow-sm border border-green-500"
+                className="bg-linear-to-bl from-green-500 to-green-600 rounded-2xl shadow-sm border border-gray-200"
               >
                 <Statistic
                   title={
@@ -341,13 +340,7 @@ const FinancialHealthPanel = () => {
     <DashboardCard>
       <div className="flex justify-between items-center mb-2">
         <h4 className="text-lg font-bold text-black m-0">Financial Health</h4>
-        <Button
-          type="text"
-          shape="circle"
-          icon={<IconRefresh size={14} />}
-          onClick={fetchAll}
-          loading={loading}
-        />
+        
       </div>
       <Tabs items={tabItems} size="small" defaultActiveKey="margins" />
     </DashboardCard>

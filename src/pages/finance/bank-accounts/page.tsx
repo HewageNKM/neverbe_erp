@@ -1,3 +1,5 @@
+import { Spin, Button } from "antd";
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -10,9 +12,6 @@ import {
   IconWallet,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -62,17 +61,10 @@ const BankAccountsPage = () => {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
       const [accountsRes, summaryRes] = await Promise.all([
-        axios.get<BankAccount[]>("/api/v1/erp/finance/bank-accounts", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get<{ totalBalance: number }>(
-          "/api/v1/erp/finance/bank-accounts?summary=true",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        ),
+        api.get<BankAccount[]>("/api/v1/erp/finance/bank-accounts"),
+        api.get<{ totalBalance: number }>(
+          "/api/v1/erp/finance/bank-accounts?summary=true"),
       ]);
       setAccounts(accountsRes.data);
       setTotalBalance(summaryRes.data.totalBalance);
@@ -120,25 +112,20 @@ const BankAccountsPage = () => {
 
   const handleSave = async () => {
     if (!formData.accountName.trim()) {
-      toast("Please enter account name", { icon: '⚠️' });
+      toast("Please enter account name");
       return;
     }
 
     setSaving(true);
     try {
-      const token = await getToken();
 
       if (editingId) {
-        await axios.put(
+        await api.put(
           `/api/v1/erp/finance/bank-accounts/${editingId}`,
-          formData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+          formData);
         toast.success("Account updated");
       } else {
-        await axios.post("/api/v1/erp/finance/bank-accounts", formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post("/api/v1/erp/finance/bank-accounts", formData);
         toast.success("Account created");
       }
 
@@ -156,10 +143,7 @@ const BankAccountsPage = () => {
     if (!confirm("Are you sure you want to delete this account?")) return;
 
     try {
-      const token = await getToken();
-      await axios.delete(`/api/v1/erp/finance/bank-accounts/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/api/v1/erp/finance/bank-accounts/${id}`);
       toast.success("Account deleted");
       fetchAccounts();
     } catch (error) {
@@ -185,13 +169,7 @@ const BankAccountsPage = () => {
               Manage company bank accounts and balances
             </p>
           </div>
-          <button
-            onClick={openAddModal}
-            className="w-full md:w-auto px-4 py-2.5 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 flex items-center justify-center gap-2"
-          >
-            <IconPlus size={14} />
-            Add Account
-          </button>
+          <Button type="primary" size="large" onClick={openAddModal}>Add Account</Button>
         </div>
 
         {/* Summary Card */}
@@ -210,7 +188,7 @@ const BankAccountsPage = () => {
         {/* List */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         ) : accounts.length === 0 ? (
           <div className="bg-white border border-gray-200 p-12 text-center">
@@ -310,7 +288,7 @@ const BankAccountsPage = () => {
                       setFormData({ ...formData, accountName: e.target.value })
                     }
                     placeholder="e.g., Main Operating Account"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                   />
                 </div>
                 <div>
@@ -324,7 +302,7 @@ const BankAccountsPage = () => {
                       setFormData({ ...formData, bankName: e.target.value })
                     }
                     placeholder="e.g., Commercial Bank"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                   />
                 </div>
                 <div>
@@ -341,7 +319,7 @@ const BankAccountsPage = () => {
                       })
                     }
                     placeholder="e.g., 1234567890"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -357,7 +335,7 @@ const BankAccountsPage = () => {
                           accountType: e.target.value as any,
                         })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                      className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                     >
                       {ACCOUNT_TYPES.map((type) => (
                         <option key={type.value} value={type.value}>
@@ -375,7 +353,7 @@ const BankAccountsPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, currency: e.target.value })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                      className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                     >
                       <option value="LKR">LKR</option>
                       <option value="USD">USD</option>
@@ -396,7 +374,7 @@ const BankAccountsPage = () => {
                         currentBalance: Number(e.target.value),
                       })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                   />
                 </div>
                 <div>
@@ -410,7 +388,7 @@ const BankAccountsPage = () => {
                       setFormData({ ...formData, notes: e.target.value })
                     }
                     placeholder="Optional notes"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                   />
                 </div>
                 <div className="flex items-center gap-3">
@@ -435,14 +413,8 @@ const BankAccountsPage = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-4 py-2 bg-green-600 text-white text-xs font-bold  hover:bg-gray-900 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {saving && <IconLoader2 size={14} className="animate-spin" />}
-                  Save
-                </button>
+                <Button type="primary" size="large" onClick={handleSave} disabled={saving}>{saving && <Spin size="small" />}
+                  Save</Button>
               </div>
             </div>
           </div>

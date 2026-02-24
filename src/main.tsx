@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "@/lib/store";
 import GlobalProvider from "@/components/GlobalProvider";
+import { ConfirmationDialogProvider } from "@/contexts/ConfirmationDialogContext";
 import { Toaster } from "react-hot-toast";
 import { ConfigProvider } from "antd";
 import App from "./App";
@@ -21,8 +22,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           }}
         >
           <GlobalProvider>
-            <Toaster position="top-right" />
-            <App />
+            <ConfirmationDialogProvider>
+              <Toaster position="top-right" />
+              <App />
+            </ConfirmationDialogProvider>
           </GlobalProvider>
         </ConfigProvider>
       </BrowserRouter>

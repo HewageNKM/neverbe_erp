@@ -7,6 +7,8 @@ import {
   IconAward,
   IconPhoto,
   IconUpload,
+  IconFilter,
+  IconX,
 } from "@tabler/icons-react";
 import api from "@/lib/api";
 import PageContainer from "../../components/container/PageContainer";
@@ -288,10 +290,16 @@ const BrandPage: React.FC = () => {
               </Select>
             </div>
             <div className="flex gap-2">
-              <Button type="primary" onClick={handleFilterSearch}>
-                Search
+              <Button
+                type="primary"
+                icon={<IconFilter size={15} />}
+                onClick={handleFilterSearch}
+              >
+                Filter
               </Button>
-              <Button onClick={handleClearFilters}>Clear</Button>
+              <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                Clear
+              </Button>
             </div>
           </div>
         </Card>

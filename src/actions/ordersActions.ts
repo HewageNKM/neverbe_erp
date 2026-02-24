@@ -1,53 +1,46 @@
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
+import api from "@/lib/api";
 import { Order } from "@/model/Order";
 
 export const fetchOrdersAction = async (page: number, size: number) => {
   try {
-    const token = await getToken();
-    const response = await axios({
-      method: "GET",
-      url: `/api/v1/orders?size=${size}&page=${page}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get(
+      `/api/v1/erp/orders?size=${size}&page=${page}`,
+    );
     return response.data;
-  } catch (e) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };
 
 export const getOrdersByDateAction = async (date: string) => {
   try {
-    const token = await getToken();
-    const response = await axios({
-      method: "GET",
-      url: `/api/v1/erp/orders/date?date=${date}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get(`/api/v1/erp/orders/date?date=${date}`);
     return response.data;
-  } catch (e) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };
 
 export const updateAOrderAction = async (order: Order) => {
   try {
-    const token = await getToken();
-    const response = await axios({
-      method: "PUT",
-      url: `/api/v1/erp/orders/${order.orderId}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify(order),
-    });
+    const response = await api.put(
+      `/api/v1/erp/orders/${order.orderId}`,
+      order,
+    );
     return response.data;
-  } catch (e) {
-    throw new Error(e.response ? e.response.data.message : e.message);
+  } catch (e: unknown) {
+    const err = e as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    throw new Error(err.response?.data?.message ?? err.message);
   }
 };

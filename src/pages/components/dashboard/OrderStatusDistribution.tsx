@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { getOrderStatusDistributionAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
-import { IconRefresh, IconChartPie } from "@tabler/icons-react";
+import { IconChartPie } from "@tabler/icons-react";
 import { lazy } from "react";
 import { Button, Tag, Spin } from "antd";
 
@@ -117,13 +117,7 @@ const OrderStatusDistribution = () => {
         <div className="flex items-center gap-2">
           <IconChartPie size={18} className="text-purple-500" />
           <h4 className="text-lg font-bold text-black m-0">Order Status</h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={14} />}
-            onClick={fetchData}
-            loading={loading}
-          />
+          
         </div>
         <Tag className="m-0 text-xs font-bold text-gray-500 bg-gray-100 border-none">
           This Month

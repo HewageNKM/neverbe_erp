@@ -1,3 +1,5 @@
+import { Spin, Button } from "antd";
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,12 +9,8 @@ import {
   IconPlus,
   IconTrash,
   IconAdjustments,
-  IconChevronDown,
-} from "@tabler/icons-react";
+  IconChevronDown} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -81,15 +79,10 @@ const NewAdjustmentPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
 
       const [productsRes, stocksRes] = await Promise.all([
-        axios.get<Product[]>("/api/v1/erp/catalog/products/dropdown", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        api.get<Product[]>("/api/v1/erp/catalog/products/dropdown"),
+        api.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown"),
       ]);
 
       setProducts(productsRes.data);
@@ -108,15 +101,12 @@ const NewAdjustmentPage = () => {
 
   const handleAddItem = () => {
     if (!selectedProduct || !size || quantity <= 0 || !stockId) {
-      toast("Please fill all item fields", { icon: '⚠️' });
+      toast("Please fill all item fields");
       return;
     }
 
     if (type === "transfer" && !destinationStockId) {
-      toast(
-        "Please select destination stock for transfer",
-        "warning"
-      );
+      toast.error("Please select destination stock for transfer");
       return;
     }
 
@@ -145,10 +135,8 @@ const NewAdjustmentPage = () => {
       ...(type === "transfer" && destStock
         ? {
             destinationStockId: destStock.id,
-            destinationStockName: destStock.label,
-          }
-        : {}),
-    };
+            destinationStockName: destStock.label}
+        : {})};
 
     setItems([...items, newItem]);
     setSelectedProduct("");
@@ -163,28 +151,24 @@ const NewAdjustmentPage = () => {
 
   const handleSave = async (status: "DRAFT" | "SUBMITTED") => {
     if (!reason.trim()) {
-      toast("Please enter a reason", { icon: '⚠️' });
+      toast("Please enter a reason");
       return;
     }
     if (items.length === 0) {
-      toast("Please add at least one item", { icon: '⚠️' });
+      toast("Please add at least one item");
       return;
     }
 
     setSaving(true);
     try {
-      const token = await getToken();
 
-      await axios.post(
+      await api.post(
         "/api/v1/erp/inventory/adjustments",
-        { type, reason, notes, items, status },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { type, reason, notes, items, status }
       );
 
       toast.error(
-        `Adjustment ${status === "DRAFT" ? "saved as draft" : "submitted"}`,
-        "success"
-      );
+        `Adjustment ${status === "DRAFT" ? "saved as draft" : "submitted"}`);
       navigate("/inventory/adjustments");
     } catch (error) {
       console.error(error);
@@ -222,7 +206,7 @@ const NewAdjustmentPage = () => {
     return (
       <PageContainer title="New Adjustment">
         <div className="flex justify-center py-20">
-          <ComponentsLoader />
+          <div className="flex justify-center py-12"><Spin size="large" /></div>
         </div>
       </PageContainer>
     );
@@ -260,7 +244,7 @@ const NewAdjustmentPage = () => {
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as AdjustmentType)}
-                  className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600 appearance-none bg-white"
+                  className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200 appearance-none bg-white"
                 >
                   {TYPE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -282,7 +266,7 @@ const NewAdjustmentPage = () => {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="e.g., Physical count correction"
-                className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
               />
             </div>
           </div>
@@ -295,7 +279,7 @@ const NewAdjustmentPage = () => {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional additional notes"
-              className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+              className="w-full px-3 md:px-4 py-2.5 md:py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
             />
           </div>
         </div>
@@ -320,7 +304,7 @@ const NewAdjustmentPage = () => {
                     setSelectedVariant("");
                     setSize("");
                   }}
-                  className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-green-600 appearance-none bg-white"
+                  className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-200 appearance-none bg-white"
                 >
                   <option value="">Select Product</option>
                   {products.map((p) => (
@@ -347,7 +331,7 @@ const NewAdjustmentPage = () => {
                       setSelectedVariant(e.target.value);
                       setSize("");
                     }}
-                    className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-green-600 appearance-none bg-white"
+                    className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-200 appearance-none bg-white"
                   >
                     <option value="">Select Variant</option>
                     {currentProduct?.variants.map((v) => (
@@ -399,7 +383,7 @@ const NewAdjustmentPage = () => {
                         <select
                           value={size}
                           onChange={(e) => setSize(e.target.value)}
-                          className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-green-600 appearance-none bg-white"
+                          className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-200 appearance-none bg-white"
                         >
                           <option value="">Select Size</option>
                           {availableSizes.map((s) => (
@@ -424,7 +408,7 @@ const NewAdjustmentPage = () => {
                       placeholder="Size (e.g. XL, 42)"
                       value={size}
                       onChange={(e) => setSize(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                      className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                     />
                   );
                 })()}
@@ -439,7 +423,7 @@ const NewAdjustmentPage = () => {
                   min={1}
                   value={quantity}
                   onChange={(e) => setQuantity(Number(e.target.value))}
-                  className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                  className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                 />
               </div>
             </div>
@@ -451,7 +435,7 @@ const NewAdjustmentPage = () => {
                 <select
                   value={stockId}
                   onChange={(e) => setStockId(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-green-600 appearance-none bg-white"
+                  className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-200 appearance-none bg-white"
                 >
                   <option value="">Select Stock</option>
                   {stocks.map((s) => (
@@ -474,7 +458,7 @@ const NewAdjustmentPage = () => {
                   <select
                     value={destinationStockId}
                     onChange={(e) => setDestinationStockId(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-green-600 appearance-none bg-white"
+                    className="w-full px-3 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-gray-200 appearance-none bg-white"
                   >
                     <option value="">To Stock</option>
                     {stocks
@@ -492,13 +476,7 @@ const NewAdjustmentPage = () => {
               </div>
             )}
             <div className={type === "transfer" ? "md:col-span-6" : ""}>
-              <button
-                onClick={handleAddItem}
-                className="w-full px-4 py-2.5 bg-green-600 text-white text-xs font-bold  hover:bg-gray-900 flex items-center justify-center gap-2"
-              >
-                <IconPlus size={14} />
-                Add
-              </button>
+              <Button type="primary" size="large" onClick={handleAddItem}>Add</Button>
             </div>
           </div>
         </div>
@@ -614,7 +592,7 @@ const NewAdjustmentPage = () => {
           <button
             onClick={() => handleSave("DRAFT")}
             disabled={saving}
-            className="w-full md:w-auto px-6 md:px-8 py-3 border border-green-600 text-black text-xs font-bold   hover:bg-gray-50 disabled:opacity-50 flex items-center justify-center gap-2 mr-2"
+            className="w-full md:w-auto px-6 md:px-8 py-3 border border-gray-200 text-black text-xs font-bold   hover:bg-gray-50 disabled:opacity-50 flex items-center justify-center gap-2 mr-2"
           >
             Save Draft
           </button>
@@ -624,7 +602,7 @@ const NewAdjustmentPage = () => {
             className="w-full md:w-auto px-6 md:px-8 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {saving ? (
-              <IconLoader2 size={14} className="animate-spin" />
+              <Spin size="small" />
             ) : (
               <IconAdjustments size={14} />
             )}

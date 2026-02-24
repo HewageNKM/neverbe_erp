@@ -98,7 +98,7 @@ const Reports = () => {
     <PageContainer title="Reports">
       <div className="w-full space-y-12">
         {/* Header */}
-        <div className="flex flex-col gap-2 border-b-4 border-green-600 pb-8">
+        <div className="flex flex-col gap-2 border-b-4 border-gray-200 pb-8">
           <span className="text-xs font-bold  text-gray-500  flex items-center gap-2">
             <div className="w-2 h-2 bg-green-600"></div> Data Intelligence
           </span>
@@ -126,7 +126,7 @@ const Reports = () => {
                   <Link
                     key={index}
                     to={report.link}
-                    className="group flex flex-col justify-between p-6 h-[140px] bg-white border border-gray-200 hover:border-green-600 hover:bg-green-600 transition-all duration-300 relative overflow-hidden"
+                    className="group flex flex-col justify-between p-6 h-[140px] bg-white border border-gray-200 hover:border-gray-200 hover:bg-green-600 transition-all duration-300 relative overflow-hidden"
                   >
                     {/* Background Icon Decoration */}
                     <div className="absolute -right-4 -bottom-4 text-gray-50 opacity-0 group-hover:opacity-10 group-hover:scale-150 transition-all duration-500">

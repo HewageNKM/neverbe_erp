@@ -5,7 +5,6 @@ import { getDailyOverviewAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
 import {
   IconCurrencyDollar,
-  IconRefresh,
   IconReceiptRefund,
 } from "@tabler/icons-react";
 import { Row, Col, Statistic, Card, Spin, Tag, Button } from "antd";
@@ -49,13 +48,7 @@ const DailyEarnings = () => {
           <h4 className="text-lg font-bold text-black truncate">
             Daily Snapshot
           </h4>
-          <Button
-            type="text"
-            shape="circle"
-            icon={<IconRefresh size={16} />}
-            onClick={fetchDailyEarnings}
-            loading={loading}
-          />
+          
         </div>
 
         <Tag color="green" className="m-0 font-bold">
@@ -123,7 +116,7 @@ const DailyEarnings = () => {
               <Card
                 size="small"
                 bordered={false}
-                className="h-full rounded-2xl shadow-sm border border-green-200 bg-green-50 transition-all hover:-translate-y-0.5"
+                className="h-full rounded-2xl shadow-sm border border-gray-200 bg-green-50 transition-all hover:-translate-y-0.5"
                 bodyStyle={{ padding: "16px" }}
               >
                 <Statistic
@@ -173,7 +166,7 @@ const DailyEarnings = () => {
           </Row>
 
           {/* Row 3: Net Profit (Hero) */}
-          <div className="bg-linear-to-r from-green-500 to-green-600 rounded-2xl shadow-lg border border-green-500 p-5 transition-all hover:-translate-y-0.5 hover:shadow-green-500/30">
+          <div className="bg-linear-to-r from-green-500 to-green-600 rounded-2xl shadow-lg border border-gray-200 p-5 transition-all hover:-translate-y-0.5 hover:shadow-green-500/30">
             <Statistic
               title={
                 <div className="flex items-center gap-2 mb-1">

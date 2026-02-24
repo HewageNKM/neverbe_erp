@@ -1,11 +1,11 @@
+import {  Spin , Button } from "antd";
+import api from "@/lib/api";
 
 import React, { useState } from "react";
 import { Order } from "@/model/Order";
 import { Customer } from "@/model/Customer";
 import { IoCheckmark, IoClose } from "react-icons/io5";
 import toast from "react-hot-toast";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 import { IconLoader, IconAlertTriangle } from "@tabler/icons-react";
 
@@ -19,11 +19,11 @@ const styles = {
   label:
     "block text-xs font-bold text-gray-500   mb-2",
   input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-bold px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none placeholder:text-gray-400",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-bold px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none placeholder:text-gray-400",
   select:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-bold px-4 py-3 rounded-sm border-2 border-transparent focus:bg-white focus:border-green-600 transition-all duration-200 outline-none appearance-none cursor-pointer ",
+    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-bold px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none appearance-none cursor-pointer ",
   sectionTitle:
-    "text-lg font-bold text-black  tracking-tighter mb-6 pb-2 border-b-2 border-green-600",
+    "text-lg font-bold text-black  tracking-tighter mb-6 pb-2 border-b-2 border-gray-200",
 };
 
 export const OrderEditForm: React.FC<OrderEditFormProps> = ({
@@ -88,20 +88,14 @@ export const OrderEditForm: React.FC<OrderEditFormProps> = ({
       onSuccess: async () => {
         try {
           setIsSubmitting(true);
-          const token = await getToken();
 
-          await axios.put(`/api/v1/erp/orders/${order.orderId}`, formData, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await api.put(`/api/v1/erp/orders/${order.orderId}`, formData);
 
           toast.success(`ORDER #${order.orderId} UPDATED`);
           onRefresh?.();
         } catch (error: any) {
           console.error(error);
-          toast(
-            error.response?.data?.message || "Failed to update order",
-            "error"
-          );
+          toast.error(error.response?.data?.message || "Failed to update order");
         } finally {
           setIsSubmitting(false);
         }
@@ -113,7 +107,7 @@ export const OrderEditForm: React.FC<OrderEditFormProps> = ({
     <form onSubmit={handleSubmit} className="flex flex-col gap-8">
       {/* ⚠️ Tampered Order Warning */}
       {order && order.integrity === false && (
-        <div className="bg-red-600 text-white p-4 border-2 border-green-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <div className="bg-red-600 text-white p-4 border border-red-500 rounded-lg shadow-sm">
           <div className="flex items-center gap-3">
             <IconAlertTriangle size={24} stroke={2} />
             <div>
@@ -256,22 +250,16 @@ export const OrderEditForm: React.FC<OrderEditFormProps> = ({
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-4 mt-4 pt-6 border-t-2 border-green-600">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-8 py-4 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
-            >
-              {isSubmitting && (
-                <IconLoader size={16} className="animate-spin" />
+          <div className="flex items-center gap-4 mt-4 pt-6 border-t-2 border-gray-200">
+            <Button type="primary" size="large" disabled={isSubmitting} htmlType="submit">{isSubmitting && (
+                <Spin size="small" />
               )}
-              Save Changes
-            </button>
+              Save Changes</Button>
             <button
               type="button"
               disabled={isSubmitting}
               onClick={handleReset}
-              className="px-8 py-4 bg-white text-black border-2 border-gray-200 text-xs font-bold   hover:border-green-600 transition-all"
+              className="px-8 py-4 bg-white text-black border border-gray-200 rounded-lg text-xs font-bold   hover:border-gray-200 transition-all"
             >
               Reset Form
             </button>

@@ -1,20 +1,17 @@
+import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import {
   Promotion,
   PromotionCondition,
-  PromotionAction,
-} from "@/model/Promotion";
+  PromotionAction} from "@/model/Promotion";
 
 import {
   IconTag,
   IconSettings,
   IconUpload,
   IconBolt,
-  IconCalendarEvent,
-} from "@tabler/icons-react";
+  IconCalendarEvent} from "@tabler/icons-react";
 import toast from "react-hot-toast";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
 import { DropdownOption } from "../../../master/products/page";
 import {
   Modal,
@@ -32,8 +29,7 @@ import {
   Typography,
   Divider,
   Space,
-  Slider,
-} from "antd";
+  Slider} from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 
@@ -59,15 +55,13 @@ const emptyPromotion: Partial<Promotion> = {
   usageCount: 0,
   perUserLimit: 0,
   stackable: false,
-  priority: 1,
-};
+  priority: 1};
 
 const PromotionFormModal: React.FC<Props> = ({
   open,
   onClose,
   onSave,
-  promotion,
-}) => {
+  promotion}) => {
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
   const [products, setProducts] = useState<DropdownOption[]>([]);
@@ -82,10 +76,7 @@ const PromotionFormModal: React.FC<Props> = ({
   // -- Data Fetching --
   const fetchProducts = async () => {
     try {
-      const token = await getToken();
-      const res = await axios.get("/api/v1/erp/catalog/products/dropdown", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/api/v1/erp/catalog/products/dropdown");
       setProducts(res.data || []);
     } catch (e) {
       console.error("Failed to fetch products", e);
@@ -95,15 +86,11 @@ const PromotionFormModal: React.FC<Props> = ({
   const fetchVariantsForProduct = async (productId: string) => {
     if (!productId || productVariants[productId]) return;
     try {
-      const token = await getToken();
-      const res = await axios.get(`/api/v1/erp/catalog/products/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get(`/api/v1/erp/catalog/products/${productId}`);
       const product = res.data;
       const variants = (product?.variants || []).map((v: any) => ({
         variantId: v.variantId,
-        variantName: v.variantName || v.variantId,
-      }));
+        variantName: v.variantName || v.variantId}));
       setProductVariants((prev) => ({ ...prev, [productId]: variants }));
     } catch (e) {
       // Silently fail or log
@@ -134,8 +121,7 @@ const PromotionFormModal: React.FC<Props> = ({
         form.setFieldsValue({
           ...promotion,
           startDate: parseDate(promotion.startDate),
-          endDate: parseDate(promotion.endDate),
-        });
+          endDate: parseDate(promotion.endDate)});
 
         if (promotion.bannerUrl) {
           setBannerPreview(promotion.bannerUrl);
@@ -151,8 +137,7 @@ const PromotionFormModal: React.FC<Props> = ({
         form.setFieldsValue({
           ...emptyPromotion,
           startDate: dayjs(),
-          endDate: null,
-        });
+          endDate: null});
         setBannerPreview("");
       }
     } else {
@@ -185,7 +170,6 @@ const PromotionFormModal: React.FC<Props> = ({
 
     setSaving(true);
     try {
-      const token = await getToken();
 
       const payloadObj = {
         ...values,
@@ -197,14 +181,11 @@ const PromotionFormModal: React.FC<Props> = ({
         actions: values.actions?.map((a: any) => ({
           ...a,
           value: Number(a.value),
-          maxDiscount: a.maxDiscount ? Number(a.maxDiscount) : undefined,
-        })),
+          maxDiscount: a.maxDiscount ? Number(a.maxDiscount) : undefined})),
         conditions: values.conditions?.map((c: any) => ({
           ...c,
           // Ensure array type for variantIds
-          variantIds: c.variantIds || [],
-        })),
-      };
+          variantIds: c.variantIds || []}))};
 
       const formDataToSend = new FormData();
       if (bannerFile) {
@@ -235,18 +216,12 @@ const PromotionFormModal: React.FC<Props> = ({
       }
 
       if (isEditing && promotion) {
-        await axios.put(
+        await api.put(
           `/api/v1/erp/catalog/promotions/${promotion.id}`,
-          formDataToSend,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+          formDataToSend);
         toast.success("PROMOTION UPDATED");
       } else {
-        await axios.post("/api/v1/erp/catalog/promotions", formDataToSend, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post("/api/v1/erp/catalog/promotions", formDataToSend);
         toast.success("PROMOTION CREATED");
       }
       onSave();
@@ -403,7 +378,7 @@ const PromotionFormModal: React.FC<Props> = ({
             <Card
               title="Reward Configuration"
               size="small"
-              className="mb-4 bg-gray-50 border-green-200"
+              className="mb-4 bg-gray-50 border-gray-200"
               headStyle={{ color: "#135200" }}
             >
               <Form.List name="actions">
@@ -495,8 +470,7 @@ const PromotionFormModal: React.FC<Props> = ({
                       conditions: [
                         ...current,
                         { type: "MIN_AMOUNT", value: 0 },
-                      ],
-                    });
+                      ]});
                   }}
                 >
                   Add Rule

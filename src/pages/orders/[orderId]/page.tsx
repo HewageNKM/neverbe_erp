@@ -1,3 +1,5 @@
+import { Spin } from "antd";
+import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -5,8 +7,6 @@ import { Order } from "@/model/Order";
 import PageContainer from "../../components/container/PageContainer";
 import DashboardCard from "../../components/shared/DashboardCard";
 import { useAppSelector } from "@/lib/hooks";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
 import { OrderEditForm } from "./components/OrderEditForm";
 import { OrderExchangeHistory } from "./components/OrderExchangeHistory";
 import toast from "react-hot-toast";
@@ -30,10 +30,7 @@ const OrderEditPage = () => {
   const fetchOrder = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
-      const response = await axios.get(`/api/v1/erp/orders/${param.orderId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(`/api/v1/erp/orders/${param.orderId}`);
       setOrder(response.data);
     } catch (error: any) {
       console.error(error);
@@ -61,7 +58,7 @@ const OrderEditPage = () => {
       <PageContainer title="Edit Order">
         <DashboardCard title="Loading Order...">
           <div className="flex justify-center items-center min-h-[50vh]">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600" />
+            <Spin />
           </div>
         </DashboardCard>
       </PageContainer>

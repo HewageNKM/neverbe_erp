@@ -1,3 +1,5 @@
+import { Spin, Button } from "antd";
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -9,9 +11,6 @@ import {
   IconSearch,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import ComponentsLoader from "@/components/ComponentsLoader";
-import axios from "axios";
-import { getToken } from "@/firebase/firebaseClient";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
@@ -49,15 +48,12 @@ const ExpenseCategoriesPage = () => {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const token = await getToken();
       const url =
         typeFilter === "all"
           ? "/api/v1/erp/finance/expense-categories"
           : `/api/v1/erp/finance/expense-categories?type=${typeFilter}`;
 
-      const res = await axios.get<ExpenseCategory[]>(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get<ExpenseCategory[]>(url);
       setCategories(res.data);
     } catch (error) {
       console.error(error);
@@ -90,25 +86,20 @@ const ExpenseCategoriesPage = () => {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      toast("Please enter a category name", { icon: '⚠️' });
+      toast("Please enter a category name");
       return;
     }
 
     setSaving(true);
     try {
-      const token = await getToken();
 
       if (editingId) {
-        await axios.put(
+        await api.put(
           `/api/v1/erp/finance/expense-categories/${editingId}`,
-          formData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+          formData);
         toast.success("Category updated");
       } else {
-        await axios.post("/api/v1/erp/finance/expense-categories", formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post("/api/v1/erp/finance/expense-categories", formData);
         toast.success("Category created");
       }
 
@@ -126,10 +117,7 @@ const ExpenseCategoriesPage = () => {
     if (!confirm("Are you sure you want to delete this category?")) return;
 
     try {
-      const token = await getToken();
-      await axios.delete(`/api/v1/erp/finance/expense-categories/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/api/v1/erp/finance/expense-categories/${id}`);
       toast.success("Category deleted");
       fetchCategories();
     } catch (error) {
@@ -151,13 +139,7 @@ const ExpenseCategoriesPage = () => {
               Manage expense and income categories
             </p>
           </div>
-          <button
-            onClick={openAddModal}
-            className="w-full md:w-auto px-4 py-2.5 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 flex items-center justify-center gap-2"
-          >
-            <IconPlus size={14} />
-            Add Category
-          </button>
+          <Button type="primary" size="large" onClick={openAddModal}>Add Category</Button>
         </div>
 
         {/* Filters */}
@@ -168,7 +150,7 @@ const ExpenseCategoriesPage = () => {
               onClick={() => setTypeFilter(type as any)}
               className={`px-4 py-2 text-xs font-bold   border transition-colors ${
                 typeFilter === type
-                  ? "bg-green-600 text-white border-green-600"
+                  ? "bg-green-600 text-white border-gray-200"
                   : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
               }`}
             >
@@ -180,7 +162,7 @@ const ExpenseCategoriesPage = () => {
         {/* List */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <ComponentsLoader />
+            <div className="flex justify-center py-12"><Spin size="large" /></div>
           </div>
         ) : categories.length === 0 ? (
           <div className="bg-white border border-gray-200 p-12 text-center">
@@ -330,7 +312,7 @@ const ExpenseCategoriesPage = () => {
                       setFormData({ ...formData, name: e.target.value })
                     }
                     placeholder="e.g., Office Supplies"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                   />
                 </div>
                 <div>
@@ -344,7 +326,7 @@ const ExpenseCategoriesPage = () => {
                       setFormData({ ...formData, description: e.target.value })
                     }
                     placeholder="Optional description"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                   />
                 </div>
                 <div>
@@ -356,7 +338,7 @@ const ExpenseCategoriesPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, type: e.target.value as any })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-green-600"
+                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
                   >
                     <option value="expense">Expense</option>
                     <option value="income">Income</option>
@@ -384,14 +366,8 @@ const ExpenseCategoriesPage = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-4 py-2 bg-green-600 text-white text-xs font-bold  hover:bg-gray-900 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {saving && <IconLoader2 size={14} className="animate-spin" />}
-                  Save
-                </button>
+                <Button type="primary" size="large" onClick={handleSave} disabled={saving}>{saving && <Spin size="small" />}
+                  Save</Button>
               </div>
             </div>
           </div>

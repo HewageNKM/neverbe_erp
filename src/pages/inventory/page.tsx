@@ -6,12 +6,10 @@ import {
   IconX,
   IconStack2,
   IconFilter,
-  IconRefresh,
   IconEdit,
 } from "@tabler/icons-react";
-import { getToken } from "@/firebase/firebaseClient";
 import { useAppSelector } from "@/lib/hooks";
-import axios from "axios";
+import api from "@/lib/api";
 import { DropdownOption } from "../master/products/page";
 import { InventoryItem } from "@/model/InventoryItem";
 import InventoryFormModal from "./components/InventoryFormModal";
@@ -77,17 +75,14 @@ const InventoryPage = () => {
     }
   }, [pagination.current, pagination.pageSize]);
 
-  const fetchInventory = async (values?: any) => {
+  const fetchInventory = async (values?: Record<string, unknown>) => {
     setLoading(true);
     try {
-      const token = await getToken();
       const filters = values || form.getFieldsValue();
-
-      const params: any = {
+      const params: Record<string, unknown> = {
         page: pagination.current,
         size: pagination.pageSize,
       };
-
       if (filters.productId) params.productId = filters.productId;
       if (filters.variantId && filters.variantId !== "all")
         params.variantId = filters.variantId;
@@ -96,33 +91,28 @@ const InventoryPage = () => {
       if (filters.stockId && filters.stockId !== "all")
         params.stockId = filters.stockId;
 
-      const response = await axios.get("/api/v1/inventory", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: params,
-      });
-
+      const response = await api.get("/api/v1/erp/inventory", { params });
       setInventoryItems(response.data.dataList || []);
       setPagination((prev) => ({
         ...prev,
         total: response.data.rowCount || 0,
       }));
-    } catch (e: any) {
-      console.error("Failed to fetch inventory", e);
+    } catch {
       toast.error("Failed to fetch inventory");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchDropdown = async (url: string, setData: (data: any[]) => void) => {
+  const fetchDropdown = async (
+    url: string,
+    setData: (data: DropdownOption[]) => void,
+  ) => {
     try {
-      const token = await getToken();
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(url);
       setData(response.data || []);
-    } catch (e) {
-      console.error(`Failed to fetch dropdown data from ${url}`, e);
+    } catch {
+      console.error(`Failed to fetch dropdown data from ${url}`);
     }
   };
 
@@ -130,14 +120,12 @@ const InventoryPage = () => {
     setVariantLoading(true);
     setVariants([]);
     try {
-      const url = `/api/v1/erp/catalog/products/${productId}/variants/dropdown`;
-      const token = await getToken();
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get(
+        `/api/v1/erp/catalog/products/${productId}/variants/dropdown`,
+      );
       setVariants(response.data || []);
-    } catch (e) {
-      console.error(`Failed to fetch variants for product ${productId}`, e);
+    } catch {
+      console.error(`Failed to fetch variants for product ${productId}`);
     } finally {
       setVariantLoading(false);
     }
@@ -183,33 +171,29 @@ const InventoryPage = () => {
   };
 
   const handleSaveStock = async (itemData: InventoryItem) => {
-    // ... logic remains same, just calling API
     const { productId, variantId, size, stockId, quantity } = itemData;
     const payload = { productId, variantId, size, stockId, quantity };
     const isEditing = !!editingItem;
-    const url = isEditing
-      ? `/api/v1/erp/inventory/${editingItem!.id}`
-      : "/api/v1/inventory";
-    const method = isEditing ? "PUT" : "POST";
-
     try {
-      const token = await getToken();
-      await axios({
-        method,
-        url,
-        data: payload,
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (isEditing) {
+        await api.put(`/api/v1/erp/inventory/${editingItem!.id}`, payload);
+      } else {
+        await api.post("/api/v1/erp/inventory", payload);
+      }
       handleCloseModal();
       fetchInventory();
       toast.success("Stock item saved successfully");
-    } catch (error) {
+    } catch {
       toast.error("Error saving stock item");
     }
   };
 
-  const handleTableChange = (newPagination: any) => {
-    setPagination(newPagination);
+  const handleTableChange = (newPagination: {
+    current?: number;
+    pageSize?: number;
+    total?: number;
+  }) => {
+    setPagination(newPagination as typeof pagination);
   };
 
   const columns: ColumnsType<InventoryItem> = [
@@ -222,10 +206,10 @@ const InventoryPage = () => {
             <img
               src={(record as any).thumbnail}
               alt="thumbnail"
-              className="w-8 h-8 object-cover rounded-sm border border-gray-200"
+              className="w-8 h-8 object-cover rounded-lg border border-gray-200"
             />
           ) : (
-            <div className="w-8 h-8 bg-gray-100 rounded-sm"></div>
+            <div className="w-8 h-8 bg-gray-100 rounded-lg"></div>
           )}
           <div>
             <Typography.Text strong className="block">
@@ -306,87 +290,76 @@ const InventoryPage = () => {
           </Space>
         </div>
 
-        <Card size="small" className="bg-gray-50/50">
+        <Card size="small" className="shadow-sm">
           <Form
             form={form}
-            layout="vertical"
+            layout="inline"
             onFinish={handleFilterSubmit}
             initialValues={{ variantId: "all", size: "all", stockId: "all" }}
+            className="flex flex-wrap gap-2 w-full"
           >
-            <Row gutter={[16, 0]}>
-              <Col xs={24} md={6}>
-                <Form.Item name="productId" label="Product">
-                  <Select
-                    showSearch
-                    placeholder="Select Product"
-                    optionFilterProp="children"
-                    onChange={handleProductChange}
-                    allowClear
-                  >
-                    {products.map((p) => (
-                      <Option key={p.id} value={p.id}>
-                        {p.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item name="variantId" label="Variant">
-                  <Select
-                    disabled={
-                      !form.getFieldValue("productId") || variantLoading
-                    }
-                    loading={variantLoading}
-                  >
-                    <Option value="all">All Variants</Option>
-                    {variants.map((v) => (
-                      <Option key={v.id} value={v.id}>
-                        {v.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item name="size" label="Size">
-                  <Select>
-                    <Option value="all">All Sizes</Option>
-                    {sizes.map((s) => (
-                      <Option key={s.id} value={s.label}>
-                        {s.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={12} md={4}>
-                <Form.Item name="stockId" label="Location">
-                  <Select>
-                    <Option value="all">All Locations</Option>
-                    {stockLocations.map((l) => (
-                      <Option key={l.id} value={l.id}>
-                        {l.label}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={4} className="flex items-end pb-6 gap-2">
+            <Form.Item name="productId" className="!mb-0 flex-1 min-w-[160px]">
+              <Select
+                showSearch
+                placeholder="All Products"
+                optionFilterProp="children"
+                onChange={handleProductChange}
+                allowClear
+              >
+                {products.map((p) => (
+                  <Option key={p.id} value={p.id}>
+                    {p.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="variantId" className="!mb-0 w-40">
+              <Select
+                disabled={!form.getFieldValue("productId") || variantLoading}
+                loading={variantLoading}
+              >
+                <Option value="all">All Variants</Option>
+                {variants.map((v) => (
+                  <Option key={v.id} value={v.id}>
+                    {v.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="size" className="!mb-0 w-32">
+              <Select>
+                <Option value="all">All Sizes</Option>
+                {sizes.map((s) => (
+                  <Option key={s.id} value={s.label}>
+                    {s.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="stockId" className="!mb-0 w-40">
+              <Select>
+                <Option value="all">All Locations</Option>
+                {stockLocations.map((l) => (
+                  <Option key={l.id} value={l.id}>
+                    {l.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
                 <Button
                   type="primary"
                   htmlType="submit"
-                  icon={<IconFilter size={16} />}
-                  block
+                  icon={<IconFilter size={15} />}
                 >
                   Filter
                 </Button>
-                <Button
-                  icon={<IconX size={16} />}
-                  onClick={handleClearFilters}
-                />
-              </Col>
-            </Row>
+                <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
           </Form>
         </Card>
 

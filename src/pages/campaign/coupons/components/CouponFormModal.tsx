@@ -1,3 +1,4 @@
+import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import { Coupon } from "@/model/Coupon";
@@ -8,8 +9,6 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import toast from "react-hot-toast";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
 import {
   Modal,
   Form,
@@ -97,7 +96,6 @@ const CouponFormModal: React.FC<Props> = ({
   const handleFinish = async (values: any) => {
     setSaving(true);
     try {
-      const token = await getToken();
       const payload = {
         ...values,
         code: values.code?.toUpperCase(),
@@ -113,14 +111,10 @@ const CouponFormModal: React.FC<Props> = ({
       };
 
       if (isEditing && coupon) {
-        await axios.put(`/api/v1/erp/catalog/coupons/${coupon.id}`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.put(`/api/v1/erp/catalog/coupons/${coupon.id}`, payload);
         toast.success("COUPON UPDATED");
       } else {
-        await axios.post("/api/v1/erp/catalog/coupons", payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await api.post("/api/v1/erp/catalog/coupons", payload);
         toast.success("COUPON CREATED");
       }
       onSave();
@@ -214,7 +208,7 @@ const CouponFormModal: React.FC<Props> = ({
             <Card
               title="Discount Logic"
               size="small"
-              className="mb-4 bg-gray-50 border-green-100"
+              className="mb-4 bg-gray-50 border-gray-200"
             >
               <Row gutter={16}>
                 <Col span={24}>
@@ -284,7 +278,7 @@ const CouponFormModal: React.FC<Props> = ({
               </Row>
               <Divider />
               <Form.Item name="firstOrderOnly" valuePropName="checked" noStyle>
-                <label className="flex items-center gap-2 cursor-pointer p-2 border border-gray-200 rounded hover:border-green-600 transition-colors">
+                <label className="flex items-center gap-2 cursor-pointer p-2 border border-gray-200 rounded hover:border-gray-200 transition-colors">
                   <Form.Item
                     name="firstOrderOnly"
                     valuePropName="checked"

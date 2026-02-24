@@ -46,9 +46,7 @@ const PaymentMethodsPage = () => {
       const token = await auth.currentUser?.getIdToken();
       if (!token) return;
 
-      const res = await fetch("/api/v1/erp/finance/payment-methods", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch("/api/v1/erp/finance/payment-methods");
       if (res.ok) {
         const data = await res.json();
         // Filter out deleted if API doesn't already
@@ -153,7 +151,6 @@ const PaymentMethodsPage = () => {
 
       const res = await fetch(`/api/v1/erp/finance/payment-methods/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         toast.success("METHOD DELETED");

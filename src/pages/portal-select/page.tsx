@@ -76,7 +76,7 @@ const PortalSelect = () => {
             <Col xs={24} md={12}>
               <Card
                 hoverable
-                className="h-[280px] flex flex-col items-center justify-center text-center border-2 border-gray-100 hover:border-green-600 transition-colors group"
+                className="h-[280px] flex flex-col items-center justify-center text-center border-2 border-gray-100 hover:border-gray-200 transition-colors group"
                 onClick={() => navigate("/dashboard")}
               >
                 <div className="flex flex-col items-center gap-6">

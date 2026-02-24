@@ -1,3 +1,4 @@
+import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import { ComboProduct, ComboItem } from "@/model/ComboProduct";
 import {
@@ -11,8 +12,6 @@ import {
 } from "@tabler/icons-react";
 
 import toast from "react-hot-toast";
-import { getToken } from "@/firebase/firebaseClient";
-import axios from "axios";
 import { DropdownOption } from "../../../master/products/page";
 import {
   Modal,
@@ -78,10 +77,7 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
   // -- Data Fetching --
   const fetchProducts = async () => {
     try {
-      const token = await getToken();
-      const res = await axios.get("/api/v1/erp/catalog/products/dropdown", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/api/v1/erp/catalog/products/dropdown");
       setProducts(res.data || []);
     } catch (e) {
       console.error("Failed to fetch products", e);
@@ -91,10 +87,7 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
   const fetchVariantsForProduct = async (productId: string) => {
     if (!productId || productVariants[productId]) return;
     try {
-      const token = await getToken();
-      const res = await axios.get(`/api/v1/erp/catalog/products/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get(`/api/v1/erp/catalog/products/${productId}`);
       const product = res.data;
       const variants = (product?.variants || []).map((v: any) => ({
         variantId: v.variantId,
@@ -151,7 +144,7 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
   const handleBeforeUpload = (file: File) => {
     const isAllowed = ALLOWED_FILE_TYPES.includes(file.type);
     if (!isAllowed) {
-      toast.error("Invalid file type. Use JPEG, PNG, or WEBP.");
+      toast.success("Invalid file type. Use JPEG, PNG, or WEBP.");
       return Upload.LIST_IGNORE;
     }
     const isLt1M = file.size / 1024 / 1024 < 1;
@@ -174,7 +167,6 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
   const handleFinish = async (values: any) => {
     setSaving(true);
     try {
-      const token = await getToken();
       const payload = new FormData();
 
       // Basic fields
@@ -221,20 +213,18 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
           : "/api/v1/erp/catalog/combos";
       const method = isEditing && combo ? "PUT" : "POST";
 
-      await axios({
+      await api({
         method,
         url,
         data: payload,
         headers: {
-          Authorization: `Bearer ${token}`,
+          
           "Content-Type": "multipart/form-data",
         },
       });
 
       toast.error(
-        isEditing ? "COMBO UPDATED" : "COMBO CREATED",
-        "success",
-      );
+        isEditing ? "COMBO UPDATED" : "COMBO CREATED");
       onSave();
     } catch (e: any) {
       console.error("Save failed", e);
@@ -510,7 +500,7 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
                 </div>
               }
               size="small"
-              className="mb-4 shadow-sm border-green-200"
+              className="mb-4 shadow-sm border-gray-200"
               headStyle={{ backgroundColor: "#f6ffed", color: "#389e0d" }}
             >
               <Form.Item
