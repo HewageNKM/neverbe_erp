@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import { Spin, Table, Tag } from "antd";
 import { Card, Form, Input, Select, Button, Space } from "antd";
 import React, { useState, useEffect } from "react";
@@ -173,64 +173,93 @@ export default function PettyCashList() {
     );
   };
   const columns: ColumnsType<any> = [
-    {title: 'Details', key: 'details', render: (_, entry) => (<><div className="flex flex-col gap-1">
-                        <span className="font-bold text-gray-900 leading-tight line-clamp-2 max-w-[250px]">
-                          {entry.note || "NO NOTE"}
-                        </span>
-                        <span className="text-xs text-gray-400 font-bold  ">
-                          {new Date(
-                            entry.createdAt as string,
-                          ).toLocaleDateString()}
-                        </span>
-                      </div></>) },
-    {title: 'Amount', key: 'amount', render: (_, entry) => (<><div className="flex items-center gap-2">
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            entry.type === "income"
-                              ? "bg-green-500"
-                              : "bg-red-500"
-                          }`}
-                        ></span>
-                        <span className="font-bold text-lg font-mono tracking-tight">
-                          {Number(entry.amount).toLocaleString()}
-                        </span>
-                      </div></>) },
-    {title: 'Category', key: 'category', render: (_, entry) => (<><span className="font-bold text-xs   text-gray-700 bg-gray-100 px-2 py-1">
-                        {entry.category}
-                      </span></>) },
-    {title: 'Status', key: 'status', render: (_, entry) => (<>{renderStatus(entry.status)}</>) },
-    {title: 'Actions', key: 'actions', render: (_, entry) => (<><div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
-                        <button
-                          onClick={() => handleOpenView(entry)}
-                          className={styles.iconBtn}
-                          title="View"
-                        >
-                          <IconEye size={16} stroke={2} />
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(entry)}
-                          disabled={entry.status === "APPROVED"}
-                          className={styles.iconBtn}
-                          title="Edit"
-                        >
-                          <IconPencil size={16} stroke={2} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(entry.id!)}
-                          disabled={
-                            entry.status === "APPROVED" ||
-                            deletingId === entry.id
-                          }
-                          className={`${styles.iconBtn} hover:border-red-600 hover:bg-red-600`}
-                          title="Delete"
-                        >
-                          {deletingId === entry.id ? (
-                            <Spin size="small" />
-                          ) : (
-                            <IconTrash size={16} stroke={2} />
-                          )}
-                        </button>
-                      </div></>) },
+    {
+      title: "Details",
+      key: "details",
+      render: (_, entry) => (
+        <>
+          <div className="flex flex-col gap-1">
+            <span className="font-bold text-gray-900 leading-tight line-clamp-2 max-w-[250px]">
+              {entry.note || "NO NOTE"}
+            </span>
+            <span className="text-xs text-gray-400 font-bold  ">
+              {new Date(entry.createdAt as string).toLocaleDateString()}
+            </span>
+          </div>
+        </>
+      ),
+    },
+    {
+      title: "Amount",
+      key: "amount",
+      render: (_, entry) => (
+        <>
+          <div className="flex items-center gap-2">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                entry.type === "income" ? "bg-green-500" : "bg-red-500"
+              }`}
+            ></span>
+            <span className="font-bold text-lg font-mono tracking-tight">
+              {Number(entry.amount).toLocaleString()}
+            </span>
+          </div>
+        </>
+      ),
+    },
+    {
+      title: "Category",
+      key: "category",
+      render: (_, entry) => (
+        <>
+          <span className="font-bold text-xs   text-gray-700 bg-gray-100 px-2 py-1">
+            {entry.category}
+          </span>
+        </>
+      ),
+    },
+    {
+      title: "Status",
+      key: "status",
+      render: (_, entry) => <>{renderStatus(entry.status)}</>,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, entry) => (
+        <>
+          <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
+            <button
+              onClick={() => handleOpenView(entry)}
+              className={styles.iconBtn}
+              title="View"
+            >
+              <IconEye size={16} stroke={2} />
+            </button>
+            <button
+              onClick={() => handleOpenEdit(entry)}
+              disabled={entry.status === "APPROVED"}
+              className={styles.iconBtn}
+              title="Edit"
+            >
+              <IconPencil size={16} stroke={2} />
+            </button>
+            <button
+              onClick={() => handleDelete(entry.id!)}
+              disabled={entry.status === "APPROVED" || deletingId === entry.id}
+              className={`${styles.iconBtn} hover:border-red-600 hover:bg-red-600`}
+              title="Delete"
+            >
+              {deletingId === entry.id ? (
+                <Spin size="small" />
+              ) : (
+                <IconTrash size={16} stroke={2} />
+              )}
+            </button>
+          </div>
+        </>
+      ),
+    },
   ];
 
   return (
@@ -246,7 +275,14 @@ export default function PettyCashList() {
               Petty Cash
             </h2>
           </div>
-          <Button type="primary" size="large" onClick={handleOpenCreate}>Create Entry</Button>
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPlus size={16} />}
+            onClick={handleOpenCreate}
+          >
+            Create Entry
+          </Button>
         </div>
 
         {/* Filters */}
@@ -321,21 +357,24 @@ export default function PettyCashList() {
             </p>
           </div>
         ) : pettyCashList.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center">
+          <div className="text-center py-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center">
             <IconWallet className="text-gray-300 mb-4" size={48} />
             <p className="text-lg font-bold  tracking-tighter text-gray-300">
               No Entries Found
             </p>
           </div>
         ) : (
-          <div className="w-full overflow-x-auto bg-white border border-gray-200">
-            <Table 
-            columns={columns}
-            dataSource={pettyCashList}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-          />
+          <div className="w-full overflow-x-auto bg-white border border-gray-100 rounded-2xl shadow-sm">
+            <Table
+              scroll={{ x: "max-content" }}
+              columns={columns}
+              dataSource={pettyCashList}
+              rowKey={(r: any) =>
+                r.id || r.date || r.month || Math.random().toString()
+              }
+              pagination={{ pageSize: 15 }}
+              className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            />
           </div>
         )}
 

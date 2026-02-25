@@ -206,7 +206,7 @@ const InventoryPage = () => {
             <img
               src={(record as any).thumbnail}
               alt="thumbnail"
-              className="w-8 h-8 object-cover rounded-lg border border-gray-200"
+              className="w-8 h-8 object-cover rounded-lg border border-gray-100"
             />
           ) : (
             <div className="w-8 h-8 bg-gray-100 rounded-lg"></div>
@@ -363,15 +363,18 @@ const InventoryPage = () => {
           </Form>
         </Card>
 
-        <Table
-          columns={columns}
-          dataSource={inventoryItems}
-          rowKey="id"
-          pagination={pagination}
-          loading={loading}
-          onChange={handleTableChange}
-          bordered
-        />
+        <div className="mt-6">
+          <Table
+            scroll={{ x: "max-content" }}
+            columns={columns}
+            dataSource={inventoryItems}
+            rowKey="id"
+            pagination={pagination}
+            loading={loading}
+            onChange={handleTableChange}
+            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm"
+          />
+        </div>
       </Space>
 
       <InventoryFormModal

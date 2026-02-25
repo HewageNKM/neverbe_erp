@@ -1,4 +1,4 @@
-import { Spin, Button } from "antd";
+import { Spin, Button, Input, InputNumber, Select, Modal } from "antd";
 import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import {
@@ -176,216 +176,163 @@ const SupplierInvoiceFormModal: React.FC<SupplierInvoiceFormModalProps> = ({
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 bg-green-600/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-          <h3 className="text-sm font-bold   text-gray-900">
-            {invoice ? "Edit Invoice" : "New Supplier Invoice"}
-          </h3>
-          <button
-            onClick={onClose}
-            disabled={saving}
-            className="text-gray-400 hover:text-black transition-colors"
-          >
-            <IconX size={20} />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Supplier & Invoice No */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className={styles.label}>
-                Supplier <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  name="supplierId"
-                  value={formData.supplierId}
-                  onChange={handleChange}
-                  className={styles.select}
-                  disabled={saving || !!invoice}
-                >
-                  <option value="">
-                    {fetchingSuppliers ? "Loading..." : "Select Supplier"}
-                  </option>
-                  {suppliers.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-                <IconBuildingStore
-                  size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
-              </div>
-            </div>
-            <div>
-              <label className={styles.label}>
-                Invoice Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="invoiceNumber"
-                value={formData.invoiceNumber}
-                onChange={handleChange}
-                className={styles.input}
-                placeholder="INV-001"
-                disabled={saving}
-              />
-            </div>
-          </div>
-
-          {/* Amounts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className={styles.label}>
-                Total Amount <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  name="amount"
-                  value={formData.amount}
-                  onChange={handleChange}
-                  className={`${styles.input} text-xl font-bold`}
-                  placeholder="0.00"
-                  disabled={saving}
-                />
-                <IconCurrencyDollar
-                  size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-              </div>
-            </div>
-            <div>
-              <label className={styles.label}>Paid Amount</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  name="paidAmount"
-                  value={formData.paidAmount}
-                  onChange={handleChange}
-                  className={styles.input}
-                  placeholder="0.00"
-                  disabled={saving}
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">
-                  LKR
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className={styles.label}>Issue Date</label>
-              <div className="relative">
-                <input
-                  type="date"
-                  name="issueDate"
-                  value={formData.issueDate}
-                  onChange={handleChange}
-                  className={styles.input}
-                  disabled={saving}
-                />
-                <IconCalendar
-                  size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
-              </div>
-            </div>
-            <div>
-              <label className={styles.label}>
-                Due Date <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  name="dueDate"
-                  value={formData.dueDate}
-                  onChange={handleChange}
-                  className={styles.input}
-                  disabled={saving}
-                />
-                <IconCalendar
-                  size={16}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Notes & Attachment */}
-          <div>
-            <label className={styles.label}>Notes</label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows={3}
-              className={styles.input}
-              placeholder="Payment terms, item details..."
-              disabled={saving}
-            />
-          </div>
-
-          <div>
-            <label className={styles.label}>Attachment</label>
-            <label className={styles.fileButton}>
-              <IconUpload size={16} className="mr-2" />
-              {file ? "Change File" : "Upload Invoice PDF/Image"}
-              <input
-                type="file"
-                className="hidden"
-                onChange={handleFileChange}
-                disabled={saving}
-              />
-            </label>
-            {file && (
-              <div className="flex items-center gap-2 mt-2 text-xs font-bold text-black ">
-                <IconPaperclip size={14} />
-                <span className="truncate">{file.name}</span>
-              </div>
-            )}
-            {invoice?.attachment && !file && (
-              <a
-                href={invoice.attachment}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs font-bold text-green-600 hover:underline mt-2  tracking-wide"
-              >
-                <IconPaperclip size={12} /> View Current
-              </a>
-            )}
-          </div>
-        </div>
-
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 border border-gray-300 text-xs font-bold   hover:bg-gray-100"
-            disabled={saving}
-          >
+    <Modal
+      open={open}
+      title={invoice ? "Edit Invoice" : "New Supplier Invoice"}
+      onCancel={onClose}
+      width={640}
+      footer={
+        <div className="flex justify-end gap-3">
+          <Button onClick={onClose} disabled={saving}>
             Cancel
-          </button>
-          <Button
-            type="primary"
-            size="large"
-            onClick={handleSubmit}
-            disabled={saving}
-          >
-            {saving && <Spin size="small" />}
+          </Button>
+          <Button type="primary" onClick={handleSubmit} loading={saving}>
             {invoice ? "Save Changes" : "Create Invoice"}
           </Button>
         </div>
+      }
+    >
+      <div className="space-y-6 pt-2">
+        {/* Supplier & Invoice No */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className={styles.label}>
+              Supplier <span className="text-red-500">*</span>
+            </label>
+            <Select
+              className="w-full"
+              value={formData.supplierId || undefined}
+              onChange={(val) => {
+                const sup = suppliers.find((s) => s.id === val);
+                setFormData((prev) => ({
+                  ...prev,
+                  supplierId: val,
+                  supplierName: sup?.name || "",
+                }));
+              }}
+              placeholder={fetchingSuppliers ? "Loading..." : "Select Supplier"}
+              disabled={saving || !!invoice}
+              loading={fetchingSuppliers}
+              options={suppliers.map((s) => ({ value: s.id, label: s.name }))}
+            />
+          </div>
+          <div>
+            <label className={styles.label}>
+              Invoice Number <span className="text-red-500">*</span>
+            </label>
+            <Input
+              name="invoiceNumber"
+              value={formData.invoiceNumber}
+              onChange={handleChange}
+              placeholder="INV-001"
+              disabled={saving}
+            />
+          </div>
+        </div>
+
+        {/* Amounts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className={styles.label}>
+              Total Amount <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="number"
+              name="amount"
+              value={formData.amount}
+              onChange={handleChange}
+              placeholder="0.00"
+              disabled={saving}
+              prefix={
+                <IconCurrencyDollar size={16} className="text-gray-400" />
+              }
+            />
+          </div>
+          <div>
+            <label className={styles.label}>Paid Amount</label>
+            <Input
+              type="number"
+              name="paidAmount"
+              value={formData.paidAmount}
+              onChange={handleChange}
+              placeholder="0.00"
+              disabled={saving}
+              suffix="LKR"
+            />
+          </div>
+        </div>
+
+        {/* Dates */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className={styles.label}>Issue Date</label>
+            <Input
+              type="date"
+              name="issueDate"
+              value={formData.issueDate}
+              onChange={handleChange}
+              disabled={saving}
+            />
+          </div>
+          <div>
+            <label className={styles.label}>
+              Due Date <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="date"
+              name="dueDate"
+              value={formData.dueDate}
+              onChange={handleChange}
+              disabled={saving}
+            />
+          </div>
+        </div>
+
+        {/* Notes & Attachment */}
+        <div>
+          <label className={styles.label}>Notes</label>
+          <Input.TextArea
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            rows={3}
+            placeholder="Payment terms, item details..."
+            disabled={saving}
+          />
+        </div>
+
+        <div>
+          <label className={styles.label}>Attachment</label>
+          <label className={styles.fileButton}>
+            <IconUpload size={16} className="mr-2" />
+            {file ? "Change File" : "Upload Invoice PDF/Image"}
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={saving}
+            />
+          </label>
+          {file && (
+            <div className="flex items-center gap-2 mt-2 text-xs font-bold text-black ">
+              <IconPaperclip size={14} />
+              <span className="truncate">{file.name}</span>
+            </div>
+          )}
+          {invoice?.attachment && !file && (
+            <a
+              href={invoice.attachment}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs font-bold text-green-600 hover:underline mt-2  tracking-wide"
+            >
+              <IconPaperclip size={12} /> View Current
+            </a>
+          )}
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

@@ -59,8 +59,14 @@ const emptyCombo: Partial<ComboProduct> = {
   thumbnail: undefined,
 };
 
-const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
-const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+const ALLOWED_FILE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+];
 
 const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
   const [form] = Form.useForm();
@@ -142,14 +148,17 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
 
   // -- Handlers --
   const handleBeforeUpload = (file: File) => {
-    const isAllowed = ALLOWED_FILE_TYPES.includes(file.type);
+    const isAllowed =
+      ALLOWED_FILE_TYPES.includes(file.type) ||
+      file.name.toLowerCase().endsWith(".heic") ||
+      file.name.toLowerCase().endsWith(".heif");
     if (!isAllowed) {
-      toast.success("Invalid file type. Use JPEG, PNG, or WEBP.");
+      toast.error("Invalid file type. Use JPEG, PNG, WEBP, or HEIC.");
       return Upload.LIST_IGNORE;
     }
-    const isLt1M = file.size / 1024 / 1024 < 1;
-    if (!isLt1M) {
-      toast.error("Image must be smaller than 1MB!");
+    const isLt3M = file.size / 1024 / 1024 < 3;
+    if (!isLt3M) {
+      toast.error("Image must be smaller than 3MB!");
       return Upload.LIST_IGNORE;
     }
 
@@ -218,13 +227,11 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
         url,
         data: payload,
         headers: {
-          
           "Content-Type": "multipart/form-data",
         },
       });
 
-      toast.error(
-        isEditing ? "COMBO UPDATED" : "COMBO CREATED");
+      toast.error(isEditing ? "COMBO UPDATED" : "COMBO CREATED");
       onSave();
     } catch (e: any) {
       console.error("Save failed", e);
@@ -294,7 +301,7 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
                   <Upload
                     beforeUpload={handleBeforeUpload}
                     showUploadList={false}
-                    accept="image/png, image/jpeg, image/webp"
+                    accept="image/png, image/jpeg, image/webp, image/heic, image/heif"
                   >
                     <Button icon={<IconUpload size={16} />}>
                       Select Image

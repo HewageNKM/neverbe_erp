@@ -619,7 +619,7 @@ const UsersPage = () => {
           </Space>
         </div>
 
-        <Table
+        <Table scroll={{ x: 'max-content' }}
           columns={columns}
           dataSource={displayedUsers}
           rowKey="userId"

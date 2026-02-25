@@ -136,7 +136,7 @@ const Sidebar = ({
       collapsed={collapsed}
       onCollapse={(value) => onCollapse && onCollapse(value)}
       trigger={null}
-      className="border-r border-gray-200 shadow-sm fixed h-screen z-50 left-0 top-0 no-scrollbar custom-sidebar"
+      className={`border-r border-gray-200 shadow-sm no-scrollbar custom-sidebar ${isMobile ? "h-full" : "fixed h-screen z-50 left-0 top-0"}`}
       style={{
         background: "#ffffff",
       }}

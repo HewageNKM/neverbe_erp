@@ -433,7 +433,7 @@ const ProductViewPage = () => {
             <IconRuler size={16} />
             Product Variants ({product.variants?.length || 0})
           </div>
-          <Table
+          <Table scroll={{ x: 'max-content' }}
             columns={variantColumns}
             dataSource={product.variants || []}
             rowKey="variantId"

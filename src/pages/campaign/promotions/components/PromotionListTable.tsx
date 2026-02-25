@@ -127,7 +127,7 @@ const PromotionListTable: React.FC<Props> = ({
   ];
 
   return (
-    <Table
+    <Table scroll={{ x: 'max-content' }}
       columns={columns}
       dataSource={items}
       loading={loading}

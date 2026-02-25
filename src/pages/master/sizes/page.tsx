@@ -252,7 +252,7 @@ const SizePage: React.FC = () => {
         </Card>
 
         {/* Table */}
-        <Table
+        <Table scroll={{ x: 'max-content' }}
           columns={columns}
           dataSource={sizes}
           loading={loading}

@@ -36,18 +36,11 @@ const PurchaseOrders = lazy(
 const PurchaseOrderDetail = lazy(
   () => import("@/pages/inventory/purchase-orders/[id]/page"),
 );
-const PurchaseOrderNew = lazy(
-  () => import("@/pages/inventory/purchase-orders/new/page"),
-);
 const GRNList = lazy(() => import("@/pages/inventory/grn/page"));
 const GRNDetail = lazy(() => import("@/pages/inventory/grn/[id]/page"));
-const GRNNew = lazy(() => import("@/pages/inventory/grn/new/page"));
 const Adjustments = lazy(() => import("@/pages/inventory/adjustments/page"));
 const AdjustmentDetail = lazy(
   () => import("@/pages/inventory/adjustments/[id]/page"),
-);
-const AdjustmentNew = lazy(
-  () => import("@/pages/inventory/adjustments/new/page"),
 );
 
 // Finance
@@ -187,18 +180,12 @@ export default function App() {
             element={<PurchaseOrders />}
           />
           <Route
-            path="inventory/purchase-orders/new"
-            element={<PurchaseOrderNew />}
-          />
-          <Route
             path="inventory/purchase-orders/:id"
             element={<PurchaseOrderDetail />}
           />
           <Route path="inventory/grn" element={<GRNList />} />
-          <Route path="inventory/grn/new" element={<GRNNew />} />
           <Route path="inventory/grn/:id" element={<GRNDetail />} />
           <Route path="inventory/adjustments" element={<Adjustments />} />
-          <Route path="inventory/adjustments/new" element={<AdjustmentNew />} />
           <Route
             path="inventory/adjustments/:id"
             element={<AdjustmentDetail />}

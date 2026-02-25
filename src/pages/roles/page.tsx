@@ -168,7 +168,7 @@ const RolesPage = () => {
           </Button>
         </div>
 
-        <Table
+        <Table scroll={{ x: 'max-content' }}
           columns={columns}
           dataSource={roles}
           rowKey="id"

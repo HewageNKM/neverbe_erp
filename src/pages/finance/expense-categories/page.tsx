@@ -1,5 +1,5 @@
-import type { ColumnsType } from 'antd/es/table';
-import { Spin, Button, Table, Tag } from "antd";
+import type { ColumnsType } from "antd/es/table";
+import { Spin, Button, Table, Input, Select, Switch, Modal } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
@@ -28,7 +28,7 @@ const ExpenseCategoriesPage = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [typeFilter, setTypeFilter] = useState<"all" | "expense" | "income">(
-    "all"
+    "all",
   );
 
   // Modal
@@ -93,11 +93,11 @@ const ExpenseCategoriesPage = () => {
 
     setSaving(true);
     try {
-
       if (editingId) {
         await api.put(
           `/api/v1/erp/finance/expense-categories/${editingId}`,
-          formData);
+          formData,
+        );
         toast.success("Category updated");
       } else {
         await api.post("/api/v1/erp/finance/expense-categories", formData);
@@ -127,40 +127,68 @@ const ExpenseCategoriesPage = () => {
     }
   };
   const columns: ColumnsType<any> = [
-    {title: 'Name', key: 'name', render: (_, cat) => (<>{cat.name}</>) },
-    {title: 'Description', key: 'description', render: (_, cat) => (<>{cat.description || "-"}</>) },
-    {title: 'Type', key: 'type', render: (_, cat) => (<><span
-                          className={`px-2 py-1 text-xs font-bold  ${
-                            cat.type === "expense"
-                              ? "bg-red-50 text-red-700"
-                              : "bg-green-50 text-green-700"
-                          }`}
-                        >
-                          {cat.type}
-                        </span></>) },
-    {title: 'Status', key: 'status', render: (_, cat) => (<><span
-                          className={`px-2 py-1 text-xs font-bold  ${
-                            cat.status
-                              ? "bg-green-50 text-green-700"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
-                        >
-                          {cat.status ? "Active" : "Inactive"}
-                        </span></>) },
-    {title: '', key: 'col4', render: (_, cat) => (<><div className="flex gap-2 justify-end">
-                          <button
-                            onClick={() => openEditModal(cat)}
-                            className="p-1.5 text-gray-600 hover:bg-gray-100"
-                          >
-                            <IconEdit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(cat.id)}
-                            className="p-1.5 text-red-600 hover:bg-red-50"
-                          >
-                            <IconTrash size={16} />
-                          </button>
-                        </div></>) },
+    { title: "Name", key: "name", render: (_, cat) => <>{cat.name}</> },
+    {
+      title: "Description",
+      key: "description",
+      render: (_, cat) => <>{cat.description || "-"}</>,
+    },
+    {
+      title: "Type",
+      key: "type",
+      render: (_, cat) => (
+        <>
+          <span
+            className={`px-2 py-1 text-xs font-bold rounded-lg ${
+              cat.type === "expense"
+                ? "bg-red-50 text-red-700"
+                : "bg-green-50 text-green-700"
+            }`}
+          >
+            {cat.type}
+          </span>
+        </>
+      ),
+    },
+    {
+      title: "Status",
+      key: "status",
+      render: (_, cat) => (
+        <>
+          <span
+            className={`px-2 py-1 text-xs font-bold rounded-lg ${
+              cat.status
+                ? "bg-green-50 text-green-700"
+                : "bg-gray-100 text-gray-500"
+            }`}
+          >
+            {cat.status ? "Active" : "Inactive"}
+          </span>
+        </>
+      ),
+    },
+    {
+      title: "",
+      key: "col4",
+      render: (_, cat) => (
+        <>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => openEditModal(cat)}
+              className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg"
+            >
+              <IconEdit size={16} />
+            </button>
+            <button
+              onClick={() => handleDelete(cat.id)}
+              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+            >
+              <IconTrash size={16} />
+            </button>
+          </div>
+        </>
+      ),
+    },
   ];
 
   return (
@@ -176,7 +204,14 @@ const ExpenseCategoriesPage = () => {
               Manage expense and income categories
             </p>
           </div>
-          <Button type="primary" size="large" onClick={openAddModal}>Add Category</Button>
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPlus size={16} />}
+            onClick={openAddModal}
+          >
+            Add Category
+          </Button>
         </div>
 
         {/* Filters */}
@@ -185,7 +220,7 @@ const ExpenseCategoriesPage = () => {
             <button
               key={type}
               onClick={() => setTypeFilter(type as any)}
-              className={`px-4 py-2 text-xs font-bold   border transition-colors ${
+              className={`px-4 py-2 text-xs font-bold   border rounded-lg transition-colors ${
                 typeFilter === type
                   ? "bg-green-600 text-white border-gray-200"
                   : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
@@ -197,26 +232,26 @@ const ExpenseCategoriesPage = () => {
         </div>
 
         {/* List */}
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
-          </div>
-        ) : categories.length === 0 ? (
-          <div className="bg-white border border-gray-200 p-12 text-center">
+        {!loading && categories.length === 0 ? (
+          <div className="bg-white border border-gray-100 p-12 text-center rounded-2xl shadow-sm">
             <IconCategory size={48} className="mx-auto text-gray-300 mb-4" />
             <p className="text-gray-500">No categories found</p>
           </div>
         ) : (
-          <div className="bg-white border border-gray-200 overflow-hidden">
+          <div className="bg-white border border-gray-100 overflow-hidden rounded-2xl shadow-sm">
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
-              <Table 
-            columns={columns}
-            dataSource={categories}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-          />
+              <Table
+                scroll={{ x: "max-content" }}
+                columns={columns}
+                dataSource={categories}
+                loading={loading}
+                rowKey={(r: any) =>
+                  r.id || r.date || r.month || Math.random().toString()
+                }
+                pagination={{ pageSize: 15 }}
+                className="overflow-hidden bg-white"
+              />
             </div>
             {/* Mobile Cards */}
             <div className="md:hidden divide-y divide-gray-100">
@@ -230,7 +265,7 @@ const ExpenseCategoriesPage = () => {
                       </p>
                       <div className="flex gap-2 mt-2">
                         <span
-                          className={`px-2 py-0.5 text-xs font-bold  ${
+                          className={`px-2 py-0.5 text-xs font-bold rounded-lg ${
                             cat.type === "expense"
                               ? "bg-red-50 text-red-700"
                               : "bg-green-50 text-green-700"
@@ -239,7 +274,7 @@ const ExpenseCategoriesPage = () => {
                           {cat.type}
                         </span>
                         <span
-                          className={`px-2 py-0.5 text-xs font-bold  ${
+                          className={`px-2 py-0.5 text-xs font-bold rounded-lg ${
                             cat.status
                               ? "bg-green-50 text-green-700"
                               : "bg-gray-100 text-gray-500"
@@ -252,13 +287,13 @@ const ExpenseCategoriesPage = () => {
                     <div className="flex gap-1">
                       <button
                         onClick={() => openEditModal(cat)}
-                        className="p-1.5 text-gray-600 hover:bg-gray-100"
+                        className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg"
                       >
                         <IconEdit size={16} />
                       </button>
                       <button
                         onClick={() => handleDelete(cat.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50"
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
                       >
                         <IconTrash size={16} />
                       </button>
@@ -270,87 +305,69 @@ const ExpenseCategoriesPage = () => {
           </div>
         )}
 
-        {/* Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-green-600/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white w-full max-w-md">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-sm font-bold  ">
-                  {editingId ? "Edit Category" : "Add Category"}
-                </h3>
-              </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-bold   text-gray-500 mb-2">
-                    Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="e.g., Office Supplies"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold   text-gray-500 mb-2">
-                    Description
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    placeholder="Optional description"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold   text-gray-500 mb-2">
-                    Type *
-                  </label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value as any })
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                  >
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="status"
-                    checked={formData.status}
-                    onChange={(e) =>
-                      setFormData({ ...formData, status: e.target.checked })
-                    }
-                    className="w-4 h-4"
-                  />
-                  <label htmlFor="status" className="text-sm text-gray-700">
-                    Active
-                  </label>
-                </div>
-              </div>
-              <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 text-xs font-bold  hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <Button type="primary" size="large" onClick={handleSave} disabled={saving}>{saving && <Spin size="small" />}
-                  Save</Button>
-              </div>
+        <Modal
+          open={showModal}
+          title={editingId ? "Edit Category" : "Add Category"}
+          onCancel={() => setShowModal(false)}
+          footer={
+            <div className="flex justify-end gap-3">
+              <Button onClick={() => setShowModal(false)}>Cancel</Button>
+              <Button type="primary" onClick={handleSave} loading={saving}>
+                Save
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2">
+                Name *
+              </label>
+              <Input
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                placeholder="e.g., Office Supplies"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2">
+                Description
+              </label>
+              <Input
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder="Optional description"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2">
+                Type *
+              </label>
+              <Select
+                className="w-full"
+                value={formData.type}
+                onChange={(val) => setFormData({ ...formData, type: val })}
+                options={[
+                  { value: "expense", label: "Expense" },
+                  { value: "income", label: "Income" },
+                ]}
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={formData.status}
+                onChange={(checked) =>
+                  setFormData({ ...formData, status: checked })
+                }
+              />
+              <span className="text-sm text-gray-700">Active</span>
             </div>
           </div>
-        )}
+        </Modal>
       </div>
     </PageContainer>
   );

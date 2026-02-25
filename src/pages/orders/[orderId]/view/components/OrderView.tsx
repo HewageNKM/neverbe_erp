@@ -4,16 +4,7 @@ import { Link } from "react-router-dom";
 import { Order } from "@/model/Order";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
-import {
-  Card,
-  Descriptions,
-  Table,
-  Tag,
-  Typography,
-  Space,
-  Alert,
-  Divider,
-} from "antd";
+import { Card, Descriptions, Table, Tag, Typography, Space, Alert } from "antd";
 
 const { Title, Text } = Typography;
 
@@ -209,65 +200,83 @@ const OrderView = ({
           description="This order has failed system integrity checks. Please exercise extreme caution before proceeding."
           type="error"
           showIcon
-          className="shadow-sm"
+          className="rounded-2xl border-none shadow-sm"
         />
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-200 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
         <div>
           <Text
             type="secondary"
-            className="block text-xs uppercase tracking-wider mb-1"
+            className="block text-[10px] uppercase font-bold tracking-widest text-green-600 mb-2"
           >
-            Order Detail
+            Order Overview
           </Text>
-          <Title level={2} style={{ margin: 0 }}>
+          <Title
+            level={2}
+            className="!m-0 !text-3xl font-black tracking-tight text-gray-900"
+          >
             #{order?.orderId}
           </Title>
         </div>
-        <Space>
+        <div className="flex items-center gap-3">
           <Tag
             color={getPaymentStatusColor(order?.paymentStatus)}
-            className="px-3 py-1 text-sm"
+            className="px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider"
           >
-            {order?.paymentStatus?.toUpperCase()}
+            {order?.paymentStatus}
           </Tag>
           <Tag
             color={getOrderStatusColor(order?.status)}
-            className="px-3 py-1 text-sm"
+            className="px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider"
           >
-            {order?.status?.toUpperCase()}
+            {order?.status}
           </Tag>
-        </Space>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Items */}
         <div className="lg:col-span-2 flex flex-col gap-8">
           <Card
-            title={`Order Items (${order?.items?.length || 0})`}
-            className="shadow-sm border border-gray-100 rounded-xl overflow-hidden"
+            title={
+              <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                Order Items ({order?.items?.length || 0})
+              </span>
+            }
+            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none"
+            styles={{
+              header: {
+                borderBottom: "1px solid #f1f5f9",
+                background: "#f8fafc",
+              },
+            }}
           >
             <Table
+              scroll={{ x: "max-content" }}
               dataSource={order?.items || []}
               columns={columns}
               pagination={false}
               rowKey={(record, index) => `${record.productId}_${index}`}
               size="small"
-              className="rounded-lg overflow-hidden"
-              summary={(pageData) => {
-                // Determine combos for grouping visually in summary if needed,
-                // but standard table summary row is usually just totals.
-                // We'll skip complex summary row here as the financial card covers it.
-                return null;
-              }}
+              className="rounded-xl overflow-hidden"
             />
           </Card>
 
           <Card
-            title="Transaction & Processing"
-            className="shadow-sm border border-gray-100 rounded-xl overflow-hidden border-t-2 border-t-green-600"
+            title={
+              <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                Transaction & Processing
+              </span>
+            }
+            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none border-t-4 border-t-green-500"
+            styles={{
+              header: {
+                borderBottom: "1px solid #f1f5f9",
+                background: "#f8fafc",
+              },
+            }}
           >
             <Descriptions
               bordered
@@ -330,83 +339,93 @@ const OrderView = ({
         {/* Right Column: Financials & Customer */}
         <div className="lg:col-span-1 flex flex-col gap-8">
           <Card
-            title={<span className="font-semibold">Financial Summary</span>}
-            className="shadow-sm bg-gray-50/50 border border-gray-100 rounded-xl overflow-hidden"
+            title={
+              <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                Financial Summary
+              </span>
+            }
+            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none"
+            styles={{
+              header: {
+                borderBottom: "1px solid #f1f5f9",
+                background: "#f8fafc",
+              },
+            }}
           >
-            <div className="space-y-3">
-              <div className="flex justify-between text-gray-600">
-                <Text>Subtotal</Text>
-                <Text strong>{subtotal.toLocaleString()} LKR</Text>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Text className="text-gray-500 text-sm">Subtotal</Text>
+                <Text strong className="text-gray-900">
+                  {subtotal.toLocaleString()} LKR
+                </Text>
               </div>
 
               {order?.couponCode && (order?.couponDiscount || 0) > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <Text type="success">Coupon ({order.couponCode})</Text>
-                  <Text type="success">
+                <div className="flex justify-between items-center">
+                  <Text className="text-green-600 text-sm font-medium">
+                    Coupon ({order.couponCode})
+                  </Text>
+                  <Text className="text-green-600 font-bold">
                     - {(order.couponDiscount || 0).toLocaleString()} LKR
                   </Text>
                 </div>
               )}
 
               {(order?.promotionDiscount || 0) > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <Text type="secondary" className="text-green-600">
-                    Auto Promotion
-                  </Text>
-                  <Text type="secondary" className="text-green-600">
+                <div className="flex justify-between items-center text-green-600">
+                  <Text className="text-sm font-medium">Auto Promotion</Text>
+                  <Text className="font-bold">
                     - {(order.promotionDiscount || 0).toLocaleString()} LKR
                   </Text>
                 </div>
               )}
 
-              {/* General Discount Fallback */}
-              {discount >
-                (order?.couponDiscount || 0) +
-                  (order?.promotionDiscount || 0) && (
-                <div className="flex justify-between text-red-500">
-                  <Text type="danger">Other Discounts</Text>
-                  <Text type="danger">
-                    -{" "}
-                    {(
-                      discount -
-                      ((order?.couponDiscount || 0) +
-                        (order?.promotionDiscount || 0))
-                    ).toLocaleString()}{" "}
-                    LKR
-                  </Text>
-                </div>
-              )}
-
-              <div className="flex justify-between text-gray-600">
-                <Text>Shipping</Text>
-                <Text>{shippingFee.toLocaleString()} LKR</Text>
+              <div className="flex justify-between items-center text-gray-500">
+                <Text className="text-sm">Shipping</Text>
+                <Text className="font-medium text-gray-700">
+                  {shippingFee.toLocaleString()} LKR
+                </Text>
               </div>
 
-              <div className="flex justify-between text-gray-600">
-                <Text>Processing Fee</Text>
-                <Text>{fee.toLocaleString()} LKR</Text>
+              <div className="flex justify-between items-center text-gray-500">
+                <Text className="text-sm">Processing Fee</Text>
+                <Text className="font-medium text-gray-700">
+                  {fee.toLocaleString()} LKR
+                </Text>
               </div>
 
-              <Divider className="my-2" />
-
-              <div className="border-t-2 border-green-200 pt-4 mt-4 flex justify-between items-end">
-                <span className="text-sm font-bold tracking-tight text-green-800">
-                  Total Due
-                </span>
-                <span className="text-xl font-bold font-mono tracking-tighter text-green-700">
-                  {order?.total?.toLocaleString()}{" "}
-                  <span className="text-xs text-green-400 font-bold align-top">
-                    LKR
+              <div className="pt-6 mt-2 border-t border-dashed border-gray-100">
+                <div className="flex justify-between items-end">
+                  <span className="text-xs font-black uppercase tracking-widest text-green-800">
+                    Grand Total
                   </span>
-                </span>
+                  <div className="text-right">
+                    <span className="text-3xl font-black tracking-tighter text-green-700">
+                      {order?.total?.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-green-500 font-bold ml-1">
+                      LKR
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
 
           {order?.customer && (
             <Card
-              title={<span className="font-semibold">Customer Details</span>}
-              className="shadow-sm border border-gray-100 rounded-xl overflow-hidden"
+              title={
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                  Customer Intelligence
+                </span>
+              }
+              className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none"
+              styles={{
+                header: {
+                  borderBottom: "1px solid #f1f5f9",
+                  background: "#f8fafc",
+                },
+              }}
             >
               <Space direction="vertical" size="large" className="w-full">
                 {(order.customer.address || order.customer.city) && (

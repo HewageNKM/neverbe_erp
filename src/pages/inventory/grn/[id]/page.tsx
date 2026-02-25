@@ -1,8 +1,8 @@
 import type { ColumnsType } from "antd/es/table";
-import { Spin, Table, Tag } from "antd";
+import { Spin, Table, Button } from "antd";
 import api from "@/lib/api";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
@@ -48,7 +48,7 @@ const ViewGRNPage = () => {
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
-  const fetchGRN = async () => {
+  const fetchGRN = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get<GRN>(`/api/v1/erp/inventory/grn/${grnId}`);
@@ -59,19 +59,17 @@ const ViewGRNPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [grnId]);
 
   useEffect(() => {
     if (currentUser && grnId) fetchGRN();
-  }, [currentUser, grnId]);
+  }, [currentUser, grnId, fetchGRN]);
 
   if (loading) {
     return (
       <PageContainer title="GRN">
         <div className="flex justify-center py-20">
-          <div className="flex justify-center py-12">
-            <Spin size="large" />
-          </div>
+          <Spin size="large" />
         </div>
       </PageContainer>
     );
@@ -123,12 +121,11 @@ const ViewGRNPage = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
           <div className="flex items-center gap-4">
-            <button
+            <Button
+              icon={<IconArrowLeft size={20} />}
               onClick={() => navigate(-1)}
-              className="p-2 text-green-600 hover:bg-gray-100 transition-colors"
-            >
-              <IconArrowLeft size={20} />
-            </button>
+              shape="circle"
+            />
             <div>
               <h2 className="text-xl sm:text-2xl font-bold  tracking-tight text-gray-900">
                 {grn.grnNumber}
@@ -139,7 +136,7 @@ const ViewGRNPage = () => {
             </div>
           </div>
           {grn.inventoryUpdated && (
-            <span className="px-4 py-2 bg-green-100 text-green-800 text-xs font-bold  flex items-center gap-2">
+            <span className="px-4 py-2 bg-green-50 text-green-700 text-xs font-bold rounded-lg border border-green-100 flex items-center gap-2">
               <IconCheck size={14} />
               Inventory Updated
             </span>
@@ -147,7 +144,7 @@ const ViewGRNPage = () => {
         </div>
 
         {/* Details */}
-        <div className="bg-white border border-gray-200 p-6">
+        <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
               <p className="text-xs font-bold  text-gray-500">Supplier</p>
@@ -179,21 +176,20 @@ const ViewGRNPage = () => {
         </div>
 
         {/* Items */}
-        <div className="bg-white border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="text-sm font-bold   text-gray-900">
-              Received Items
-            </h3>
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h3 className="text-sm font-bold text-gray-900">Received Items</h3>
           </div>
           <div className="overflow-x-auto">
             <Table
+              scroll={{ x: "max-content" }}
               columns={columns}
               dataSource={grn.items}
-              rowKey={(r: any) =>
-                r.id || r.date || r.month || Math.random().toString()
+              rowKey={(r: GRNItem) =>
+                r.productId + (r.variantId || "") + r.size
               }
-              pagination={{ pageSize: 15 }}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+              pagination={false}
+              className="border border-gray-100 rounded-2xl overflow-hidden bg-white mt-4"
             />
           </div>
         </div>

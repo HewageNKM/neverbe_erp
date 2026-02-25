@@ -265,7 +265,7 @@ const PaymentMethodsPage = () => {
           </Button>
         </div>
 
-        <Table
+        <Table scroll={{ x: 'max-content' }}
           columns={columns}
           dataSource={methods}
           rowKey="id"

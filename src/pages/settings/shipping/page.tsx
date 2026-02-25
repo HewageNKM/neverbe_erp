@@ -260,7 +260,7 @@ const ShippingSettingsPage = () => {
           </Button>
         </div>
 
-        <Table
+        <Table scroll={{ x: 'max-content' }}
           columns={columns}
           dataSource={rules}
           rowKey="id"

@@ -350,7 +350,7 @@ const CustomerAnalyticsPage = () => {
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <Table
+                  <Table scroll={{ x: 'max-content' }}
                     columns={columns}
                     dataSource={report.topCustomers}
                     rowKey={(r: any) =>

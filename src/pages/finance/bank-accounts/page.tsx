@@ -1,4 +1,4 @@
-import { Spin, Button } from "antd";
+import { Spin, Button, Input, InputNumber, Select, Switch, Modal } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
@@ -64,7 +64,8 @@ const BankAccountsPage = () => {
       const [accountsRes, summaryRes] = await Promise.all([
         api.get<BankAccount[]>("/api/v1/erp/finance/bank-accounts"),
         api.get<{ totalBalance: number }>(
-          "/api/v1/erp/finance/bank-accounts?summary=true"),
+          "/api/v1/erp/finance/bank-accounts?summary=true",
+        ),
       ]);
       setAccounts(accountsRes.data);
       setTotalBalance(summaryRes.data.totalBalance);
@@ -118,11 +119,11 @@ const BankAccountsPage = () => {
 
     setSaving(true);
     try {
-
       if (editingId) {
         await api.put(
           `/api/v1/erp/finance/bank-accounts/${editingId}`,
-          formData);
+          formData,
+        );
         toast.success("Account updated");
       } else {
         await api.post("/api/v1/erp/finance/bank-accounts", formData);
@@ -169,14 +170,19 @@ const BankAccountsPage = () => {
               Manage company bank accounts and balances
             </p>
           </div>
-          <Button type="primary" size="large" onClick={openAddModal}>Add Account</Button>
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPlus size={16} />}
+            onClick={openAddModal}
+          >
+            Add Account
+          </Button>
         </div>
 
         {/* Summary Card */}
-        <div className="bg-green-600 text-white p-6">
-          <p className="text-xs font-bold   text-gray-400">
-            Total Balance
-          </p>
+        <div className="bg-green-600 text-white p-6 rounded-2xl shadow-sm">
+          <p className="text-xs font-bold   text-gray-400">Total Balance</p>
           <p className="text-3xl md:text-4xl font-bold mt-2">
             {formatCurrency(totalBalance)}
           </p>
@@ -188,10 +194,10 @@ const BankAccountsPage = () => {
         {/* List */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <Spin size="large" />
           </div>
         ) : accounts.length === 0 ? (
-          <div className="bg-white border border-gray-200 p-12 text-center">
+          <div className="bg-white border border-gray-100 p-12 text-center rounded-2xl shadow-sm">
             <IconBuildingBank
               size={48}
               className="mx-auto text-gray-300 mb-4"
@@ -207,15 +213,15 @@ const BankAccountsPage = () => {
               return (
                 <div
                   key={account.id}
-                  className={`bg-white border p-5 ${
+                  className={`bg-white border p-5 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${
                     account.status
-                      ? "border-gray-200"
+                      ? "border-gray-100"
                       : "border-gray-100 opacity-60"
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-100 flex items-center justify-center">
+                      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
                         <TypeIcon size={20} className="text-gray-600" />
                       </div>
                       <div>
@@ -230,13 +236,13 @@ const BankAccountsPage = () => {
                     <div className="flex gap-1">
                       <button
                         onClick={() => openEditModal(account)}
-                        className="p-1.5 text-gray-600 hover:bg-gray-100"
+                        className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg"
                       >
                         <IconEdit size={16} />
                       </button>
                       <button
                         onClick={() => handleDelete(account.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50"
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
                       >
                         <IconTrash size={16} />
                       </button>
@@ -251,7 +257,7 @@ const BankAccountsPage = () => {
                         •••• {account.accountNumber.slice(-4)}
                       </span>
                       <span
-                        className={`px-2 py-0.5 text-xs font-bold  ${
+                        className={`px-2 py-0.5 text-xs font-bold rounded-lg ${
                           account.status
                             ? "bg-green-50 text-green-700"
                             : "bg-gray-100 text-gray-500"
@@ -267,158 +273,126 @@ const BankAccountsPage = () => {
           </div>
         )}
 
-        {/* Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-green-600/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white w-full max-w-md max-h-[90vh] overflow-y-auto">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-sm font-bold  ">
-                  {editingId ? "Edit Account" : "Add Account"}
-                </h3>
+        <Modal
+          open={showModal}
+          title={editingId ? "Edit Account" : "Add Account"}
+          onCancel={() => setShowModal(false)}
+          footer={
+            <div className="flex justify-end gap-3">
+              <Button onClick={() => setShowModal(false)}>Cancel</Button>
+              <Button type="primary" onClick={handleSave} loading={saving}>
+                Save
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2">
+                Account Name *
+              </label>
+              <Input
+                value={formData.accountName}
+                onChange={(e) =>
+                  setFormData({ ...formData, accountName: e.target.value })
+                }
+                placeholder="e.g., Main Operating Account"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2">
+                Bank Name
+              </label>
+              <Input
+                value={formData.bankName}
+                onChange={(e) =>
+                  setFormData({ ...formData, bankName: e.target.value })
+                }
+                placeholder="e.g., Commercial Bank"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2">
+                Account Number
+              </label>
+              <Input
+                value={formData.accountNumber}
+                onChange={(e) =>
+                  setFormData({ ...formData, accountNumber: e.target.value })
+                }
+                placeholder="e.g., 1234567890"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2">
+                  Account Type
+                </label>
+                <Select
+                  className="w-full"
+                  value={formData.accountType}
+                  onChange={(val) =>
+                    setFormData({ ...formData, accountType: val })
+                  }
+                  options={ACCOUNT_TYPES.map((t) => ({
+                    value: t.value,
+                    label: t.label,
+                  }))}
+                />
               </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-bold   text-gray-500 mb-2">
-                    Account Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.accountName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, accountName: e.target.value })
-                    }
-                    placeholder="e.g., Main Operating Account"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold   text-gray-500 mb-2">
-                    Bank Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.bankName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bankName: e.target.value })
-                    }
-                    placeholder="e.g., Commercial Bank"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold   text-gray-500 mb-2">
-                    Account Number
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.accountNumber}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        accountNumber: e.target.value,
-                      })
-                    }
-                    placeholder="e.g., 1234567890"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold   text-gray-500 mb-2">
-                      Account Type
-                    </label>
-                    <select
-                      value={formData.accountType}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          accountType: e.target.value as any,
-                        })
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                    >
-                      {ACCOUNT_TYPES.map((type) => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold   text-gray-500 mb-2">
-                      Currency
-                    </label>
-                    <select
-                      value={formData.currency}
-                      onChange={(e) =>
-                        setFormData({ ...formData, currency: e.target.value })
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                    >
-                      <option value="LKR">LKR</option>
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold   text-gray-500 mb-2">
-                    Current Balance
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.currentBalance}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        currentBalance: Number(e.target.value),
-                      })
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold   text-gray-500 mb-2">
-                    Notes
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.notes}
-                    onChange={(e) =>
-                      setFormData({ ...formData, notes: e.target.value })
-                    }
-                    placeholder="Optional notes"
-                    className="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-gray-200"
-                  />
-                </div>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="status"
-                    checked={formData.status}
-                    onChange={(e) =>
-                      setFormData({ ...formData, status: e.target.checked })
-                    }
-                    className="w-4 h-4"
-                  />
-                  <label htmlFor="status" className="text-sm text-gray-700">
-                    Active
-                  </label>
-                </div>
-              </div>
-              <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 text-xs font-bold  hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <Button type="primary" size="large" onClick={handleSave} disabled={saving}>{saving && <Spin size="small" />}
-                  Save</Button>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2">
+                  Currency
+                </label>
+                <Select
+                  className="w-full"
+                  value={formData.currency}
+                  onChange={(val) =>
+                    setFormData({ ...formData, currency: val })
+                  }
+                  options={[
+                    { value: "LKR", label: "LKR" },
+                    { value: "USD", label: "USD" },
+                    { value: "EUR", label: "EUR" },
+                  ]}
+                />
               </div>
             </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2">
+                Current Balance
+              </label>
+              <InputNumber
+                className="w-full"
+                value={formData.currentBalance}
+                onChange={(val) =>
+                  setFormData({ ...formData, currentBalance: val || 0 })
+                }
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2">
+                Notes
+              </label>
+              <Input
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
+                placeholder="Optional notes"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={formData.status}
+                onChange={(checked) =>
+                  setFormData({ ...formData, status: checked })
+                }
+              />
+              <span className="text-sm text-gray-700">Active</span>
+            </div>
           </div>
-        )}
+        </Modal>
       </div>
     </PageContainer>
   );

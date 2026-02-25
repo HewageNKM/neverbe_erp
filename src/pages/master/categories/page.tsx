@@ -280,7 +280,7 @@ const CategoryPage: React.FC = () => {
         </Card>
 
         {/* Table */}
-        <Table
+        <Table scroll={{ x: 'max-content' }}
           columns={columns}
           dataSource={categories}
           loading={loading}

@@ -15,8 +15,14 @@ import {
   Space,
 } from "antd";
 
-const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
-const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+const ALLOWED_FILE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+];
 
 interface VariantFormModalProps {
   open: boolean;
@@ -65,12 +71,16 @@ const VariantFormModal: React.FC<VariantFormModalProps> = ({
   }, [variant, open, form]);
 
   const beforeUpload = (file: File) => {
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+    if (
+      !ALLOWED_FILE_TYPES.includes(file.type) &&
+      !file.name.toLowerCase().endsWith(".heic") &&
+      !file.name.toLowerCase().endsWith(".heif")
+    ) {
       toast.error(`${file.name}: Invalid Type`);
       return Upload.LIST_IGNORE;
     }
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(`${file.name}: Too Large`);
+      toast.error(`${file.name}: Too Large (>3MB)`);
       return Upload.LIST_IGNORE;
     }
     setNewImageFiles((prev) => [...prev, file]);

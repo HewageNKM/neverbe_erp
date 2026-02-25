@@ -297,7 +297,7 @@ const StockPage: React.FC = () => {
         </Card>
 
         {/* Table */}
-        <Table
+        <Table scroll={{ x: 'max-content' }}
           columns={columns}
           dataSource={locations}
           loading={loading}

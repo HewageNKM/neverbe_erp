@@ -26,6 +26,7 @@ import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
 import { PO_STATUS_COLORS, PO_STATUS_LABELS } from "@/model/PurchaseOrder";
+import NewPOModal from "./components/NewPOModal";
 
 interface PurchaseOrder {
   id: string;
@@ -55,6 +56,7 @@ const PurchaseOrdersPage = () => {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
 
   const handleFilterSubmit = (values: any) => {
@@ -122,7 +124,7 @@ const PurchaseOrdersPage = () => {
       key: "status",
       render: (_, po) => (
         <span
-          className={`px-3 py-1 text-xs font-bold border ${PO_STATUS_COLORS[po.status] || "bg-gray-100 border-gray-200"}`}
+          className={`px-3 py-1 text-xs font-bold rounded-lg border ${PO_STATUS_COLORS[po.status] || "bg-gray-100 border-gray-200"}`}
         >
           {PO_STATUS_LABELS[po.status] || po.status}
         </span>
@@ -156,7 +158,7 @@ const PurchaseOrdersPage = () => {
         <div className="flex justify-end opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all">
           <Link
             to={`/inventory/purchase-orders/${po.id}`}
-            className={styles.iconBtn}
+            className={`${styles.iconBtn} rounded-lg`}
             title="View Details"
           >
             <IconEye size={16} stroke={2} />
@@ -170,23 +172,33 @@ const PurchaseOrdersPage = () => {
     <PageContainer title="Purchase Orders">
       <div className="w-full space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b-2 border-gray-200 pb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pb-6">
           <div className="flex flex-col">
             <span className="text-xs font-bold  text-gray-500  mb-1 flex items-center gap-2">
               <IconShoppingCart size={14} /> Procurement
             </span>
-            <h2 className="text-4xl font-bold text-black  tracking-tighter leading-none">
+            <h2 className="text-2xl font-bold text-black tracking-tight leading-none">
               Purchase Orders
             </h2>
           </div>
-          <Link
-            to="/inventory/purchase-orders/new"
-            className={styles.primaryBtn}
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPlus size={16} />}
+            onClick={() => setIsModalOpen(true)}
           >
-            <IconPlus size={16} className="mr-2" />
             New Order
-          </Link>
+          </Button>
         </div>
+
+        <NewPOModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => {
+            setIsModalOpen(false);
+            fetchOrders();
+          }}
+        />
 
         {/* Filters */}
         <Card size="small" className="shadow-sm">
@@ -231,28 +243,18 @@ const PurchaseOrdersPage = () => {
           </Form>
         </Card>
 
-        {/* Loading */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="flex justify-center py-12">
-              <Spin size="large" />
-            </div>
-            <span className="text-xs font-bold   text-gray-400 mt-4">
-              Loading Orders
-            </span>
-          </div>
-        )}
-
         {/* Table */}
-        {!loading && (
+        <div className="mt-6">
           <Table
+            scroll={{ x: "max-content" }}
             columns={columns}
             dataSource={filteredOrders}
+            loading={loading}
             rowKey="id"
             pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm"
           />
-        )}
+        </div>
       </div>
     </PageContainer>
   );

@@ -105,8 +105,8 @@ const BrandPage: React.FC = () => {
   };
 
   const beforeUpload = (file: File) => {
-    if (file.size > 1024 * 1024) {
-      toast.error("Logo must be less than 1MB");
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("Logo must be less than 3MB");
       return Upload.LIST_IGNORE;
     }
     setLogoFile(file);
@@ -305,7 +305,7 @@ const BrandPage: React.FC = () => {
         </Card>
 
         {/* Table */}
-        <Table
+        <Table scroll={{ x: 'max-content' }}
           columns={columns}
           dataSource={brands}
           loading={loading}

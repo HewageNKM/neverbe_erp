@@ -1,22 +1,18 @@
 import type { ColumnsType } from "antd/es/table";
-import { Spin, Table, Tag } from "antd";
+import { Spin, Table, Button, Tag, Typography, Card, Descriptions } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  IconArrowLeft,
-  IconAdjustments,
-  IconCheck,
-  IconX,
-} from "@tabler/icons-react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { IconArrowLeft } from "@tabler/icons-react";
+
+const { Text, Title } = Typography;
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
 import {
   ADJUSTMENT_STATUS_COLORS,
-  ADJUSTMENT_STATUS_LABELS,
   AdjustmentStatus,
 } from "@/model/InventoryAdjustment";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
@@ -44,6 +40,7 @@ interface Adjustment {
   reason: string;
   notes?: string;
   adjustedBy?: string;
+  adjustedByName?: string;
   status: AdjustmentStatus;
   createdAt: string;
 }
@@ -131,9 +128,7 @@ const ViewAdjustmentPage = () => {
     return (
       <PageContainer title="Adjustment">
         <div className="flex justify-center py-20">
-          <div className="flex justify-center py-12">
-            <Spin size="large" />
-          </div>
+          <Spin size="large" />
         </div>
       </PageContainer>
     );
@@ -201,158 +196,248 @@ const ViewAdjustmentPage = () => {
 
   return (
     <PageContainer title={adjustment.adjustmentNumber}>
-      <div className="w-full space-y-6">
+      <div className="space-y-8">
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-2 text-gray-500 text-sm">
+          <Link
+            to="/inventory/adjustments"
+            className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
+          >
+            Adjustments
+          </Link>
+          <span className="text-gray-300">/</span>
+          <Text strong className="text-gray-700">
+            Adjustment #{adjustment.adjustmentNumber}
+          </Text>
+        </div>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 text-green-600 hover:bg-gray-100 transition-colors"
+        <div className="flex flex-col sm:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
+          <div>
+            <Text className="block text-[10px] uppercase font-bold tracking-widest text-green-600 mb-2">
+              Inventory Adjustment Overview
+            </Text>
+            <Title
+              level={2}
+              className="!m-0 !text-3xl font-black tracking-tight text-gray-900"
             >
-              <IconArrowLeft size={20} />
-            </button>
-            <div>
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl sm:text-2xl font-bold  tracking-tight text-gray-900">
-                  {adjustment.adjustmentNumber}
-                </h2>
-                <span
-                  className={`px-3 py-1 text-xs font-bold  rounded-full ${
-                    ADJUSTMENT_STATUS_COLORS[adjustment.status] || "bg-gray-100"
-                  }`}
-                >
-                  {ADJUSTMENT_STATUS_LABELS[adjustment.status] ||
-                    adjustment.status}
-                </span>
-              </div>
-              <p className="text-sm text-gray-500 mt-1">{adjustment.reason}</p>
-            </div>
+              #{adjustment.adjustmentNumber}
+            </Title>
           </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`px-4 py-2 text-xs font-bold  ${
-                TYPE_COLORS[adjustment.type] || "bg-gray-100"
-              }`}
+          <div className="flex items-center gap-3">
+            <Tag
+              color={ADJUSTMENT_STATUS_COLORS[adjustment.status]}
+              className="px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider"
             >
-              {TYPE_LABELS[adjustment.type] || adjustment.type}
-            </span>
+              {adjustment.status}
+            </Tag>
+            <Tag
+              className={`px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider ${TYPE_COLORS[adjustment.type]}`}
+            >
+              {TYPE_LABELS[adjustment.type]}
+            </Tag>
 
             {adjustment.status === "SUBMITTED" && (
-              <>
-                <button
+              <div className="flex items-center gap-2">
+                <Button
+                  danger
+                  className="rounded-full px-6 font-bold text-xs uppercase tracking-wider"
                   onClick={() => handleUpdateStatus("REJECTED")}
-                  className="px-4 py-2 bg-red-600 text-white text-xs font-bold  hover:bg-red-700 flex items-center gap-2"
                 >
-                  <IconX size={14} />
                   Reject
-                </button>
-                <button
+                </Button>
+                <Button
+                  type="primary"
+                  className="rounded-full px-6 font-bold text-xs uppercase tracking-wider bg-green-600 hover:bg-green-700 border-none h-auto py-2.5 shadow-none"
                   onClick={() => handleUpdateStatus("APPROVED")}
-                  className="px-4 py-2 bg-green-600 text-white text-xs font-bold  hover:bg-green-700 flex items-center gap-2"
                 >
-                  <IconCheck size={14} />
                   Approve
-                </button>
-              </>
+                </Button>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Details */}
-        <div className="bg-white border border-gray-200 p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div>
-              <p className="text-xs font-bold  text-gray-500">Type</p>
-              <p className="font-medium text-gray-900">
-                {TYPE_LABELS[adjustment.type]}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-bold  text-gray-500">Reason</p>
-              <p className="font-medium text-gray-900">{adjustment.reason}</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold  text-gray-500">Total Items</p>
-              <p className="font-bold text-gray-900 text-lg">
-                {adjustment.items?.length || 0}
-              </p>
-            </div>
-          </div>
-          {adjustment.notes && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-xs font-bold  text-gray-500">Notes</p>
-              <p className="text-gray-600">{adjustment.notes}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Items */}
-        <div className="bg-white border border-gray-200 overflow-hidden">
-          <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="text-xs md:text-sm font-bold   text-gray-900">
-              Adjusted Items
-            </h3>
-          </div>
-
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
-            <Table
-              columns={columns}
-              dataSource={adjustment.items}
-              rowKey={(r: any) =>
-                r.id || r.date || r.month || Math.random().toString()
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Items */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            <Card
+              title={
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                  Inventory Items ({adjustment.items?.length || 0})
+                </span>
               }
-              pagination={{ pageSize: 15 }}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-              scroll={{ x: "max-content" }}
-            />
+              className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none"
+              styles={{
+                header: {
+                  borderBottom: "1px solid #f1f5f9",
+                  background: "#f8fafc",
+                },
+              }}
+            >
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table
+                  columns={columns}
+                  dataSource={adjustment.items}
+                  rowKey={(r: any) =>
+                    r.productId +
+                    (r.variantId || "") +
+                    r.size +
+                    Math.random().toString()
+                  }
+                  pagination={false}
+                  size="small"
+                  className="rounded-xl overflow-hidden ant-table-fluid"
+                />
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden divide-y divide-gray-100">
+                {adjustment.items?.map((item, idx) => (
+                  <div key={idx} className="p-5 flex flex-col gap-3">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <Text
+                          strong
+                          className="text-sm text-gray-900 block truncate"
+                        >
+                          {item.productName}
+                        </Text>
+                        {item.variantName && (
+                          <Text
+                            type="secondary"
+                            className="text-[10px] block uppercase tracking-wide"
+                          >
+                            {item.variantName}
+                          </Text>
+                        )}
+                        <div className="mt-2 flex items-center gap-2">
+                          <Tag className="m-0 px-2 py-0 text-[10px] font-bold rounded-md bg-gray-50 border-gray-200">
+                            SIZE: {item.size}
+                          </Tag>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span
+                          className={`text-lg font-black ${
+                            adjustment.type === "add" ||
+                            adjustment.type === "return"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {adjustment.type === "add" ||
+                          adjustment.type === "return"
+                            ? "+"
+                            : "-"}
+                          {item.quantity}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                      <div className="flex flex-col gap-1 flex-1">
+                        <span className="uppercase tracking-widest text-[9px]">
+                          Source
+                        </span>
+                        <span className="text-gray-600 truncate">
+                          {item.stockName || item.stockId}
+                        </span>
+                      </div>
+                      {adjustment.type === "transfer" && (
+                        <>
+                          <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm">
+                            →
+                          </div>
+                          <div className="flex flex-col gap-1 flex-1 text-right">
+                            <span className="uppercase tracking-widest text-[9px]">
+                              Destination
+                            </span>
+                            <span className="text-gray-600 truncate">
+                              {item.destinationStockName ||
+                                item.destinationStockId}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
 
-          {/* Mobile Cards */}
-          <div className="md:hidden divide-y divide-gray-100">
-            {adjustment.items?.map((item, idx) => (
-              <div key={idx} className="p-4 flex flex-col gap-2">
-                <div className="flex justify-between items-start gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900">
-                      {item.productName}
-                    </p>
-                    {item.variantName && (
-                      <p className="text-xs text-gray-500">
-                        {item.variantName}
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-500 mt-1">
-                      Size: {item.size}
-                    </p>
-                  </div>
-                  <span
-                    className={`font-bold text-sm ${
-                      adjustment.type === "add" || adjustment.type === "return"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
+          {/* Right Column: Insight */}
+          <div className="lg:col-span-1 flex flex-col gap-8">
+            <Card
+              title={
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                  Adjustment Insight
+                </span>
+              }
+              className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none border-t-4 border-t-green-500"
+              styles={{
+                header: {
+                  borderBottom: "1px solid #f1f5f9",
+                  background: "#f8fafc",
+                },
+              }}
+            >
+              <Descriptions
+                bordered
+                column={1}
+                size="small"
+                labelStyle={{
+                  fontWeight: 600,
+                  background: "#f8fafc",
+                  width: "140px",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color: "#64748b",
+                }}
+              >
+                <Descriptions.Item label="Adjustment Type">
+                  <Tag
+                    className={`border-none font-bold uppercase text-[10px] ${TYPE_COLORS[adjustment.type]}`}
                   >
-                    {adjustment.type === "add" || adjustment.type === "return"
-                      ? "+"
-                      : "-"}
-                    {item.quantity}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                  <span>{item.stockName || item.stockId}</span>
-                  {adjustment.type === "transfer" && (
-                    <>
-                      <span>→</span>
-                      <span>
-                        {item.destinationStockName || item.destinationStockId}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
+                    {TYPE_LABELS[adjustment.type]}
+                  </Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label="Adjustment Reason">
+                  <Text
+                    strong
+                    className="text-gray-900 uppercase text-xs tracking-tight"
+                  >
+                    {adjustment.reason}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Adjusted By">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-green-50 flex items-center justify-center text-[10px] font-bold text-green-600 border border-green-100">
+                      {adjustment.adjustedByName?.charAt(0) || "S"}
+                    </div>
+                    <Text className="text-xs font-bold text-gray-700">
+                      {adjustment.adjustedByName || "System Process"}
+                    </Text>
+                  </div>
+                </Descriptions.Item>
+                <Descriptions.Item label="Impacted Items">
+                  <Text className="text-xl font-black text-green-700">
+                    {adjustment.items?.length || 0}
+                  </Text>
+                </Descriptions.Item>
+                {adjustment.notes && (
+                  <Descriptions.Item label="Auditor Notes">
+                    <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 border-dashed">
+                      <Text className="text-sm text-gray-600 leading-relaxed italic">
+                        "{adjustment.notes}"
+                      </Text>
+                    </div>
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+            </Card>
           </div>
         </div>
       </div>

@@ -101,7 +101,7 @@ const VariantList: React.FC<VariantListProps> = ({
         </Button>
       </div>
 
-      <Table
+      <Table scroll={{ x: 'max-content' }}
         dataSource={variants}
         columns={columns}
         rowKey={(record) => record.variantId || Math.random().toString()}

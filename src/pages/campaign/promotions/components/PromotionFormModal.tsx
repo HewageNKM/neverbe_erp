@@ -3,14 +3,16 @@ import React, { useState, useEffect } from "react";
 import {
   Promotion,
   PromotionCondition,
-  PromotionAction} from "@/model/Promotion";
+  PromotionAction,
+} from "@/model/Promotion";
 
 import {
   IconTag,
   IconSettings,
   IconUpload,
   IconBolt,
-  IconCalendarEvent} from "@tabler/icons-react";
+  IconCalendarEvent,
+} from "@tabler/icons-react";
 import toast from "react-hot-toast";
 import { DropdownOption } from "../../../master/products/page";
 import {
@@ -29,7 +31,8 @@ import {
   Typography,
   Divider,
   Space,
-  Slider} from "antd";
+  Slider,
+} from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 
@@ -55,13 +58,15 @@ const emptyPromotion: Partial<Promotion> = {
   usageCount: 0,
   perUserLimit: 0,
   stackable: false,
-  priority: 1};
+  priority: 1,
+};
 
 const PromotionFormModal: React.FC<Props> = ({
   open,
   onClose,
   onSave,
-  promotion}) => {
+  promotion,
+}) => {
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
   const [products, setProducts] = useState<DropdownOption[]>([]);
@@ -90,7 +95,8 @@ const PromotionFormModal: React.FC<Props> = ({
       const product = res.data;
       const variants = (product?.variants || []).map((v: any) => ({
         variantId: v.variantId,
-        variantName: v.variantName || v.variantId}));
+        variantName: v.variantName || v.variantId,
+      }));
       setProductVariants((prev) => ({ ...prev, [productId]: variants }));
     } catch (e) {
       // Silently fail or log
@@ -121,7 +127,8 @@ const PromotionFormModal: React.FC<Props> = ({
         form.setFieldsValue({
           ...promotion,
           startDate: parseDate(promotion.startDate),
-          endDate: parseDate(promotion.endDate)});
+          endDate: parseDate(promotion.endDate),
+        });
 
         if (promotion.bannerUrl) {
           setBannerPreview(promotion.bannerUrl);
@@ -137,7 +144,8 @@ const PromotionFormModal: React.FC<Props> = ({
         form.setFieldsValue({
           ...emptyPromotion,
           startDate: dayjs(),
-          endDate: null});
+          endDate: null,
+        });
         setBannerPreview("");
       }
     } else {
@@ -147,6 +155,18 @@ const PromotionFormModal: React.FC<Props> = ({
 
   // -- Handlers --
   const handleBannerUpload = (file: File) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const isHeic =
+      file.name.toLowerCase().endsWith(".heic") ||
+      file.name.toLowerCase().endsWith(".heif");
+    if (!allowedTypes.includes(file.type) && !isHeic) {
+      toast.error(`${file.name}: Invalid Type (JPG/PNG/WEBP/HEIC only)`);
+      return Upload.LIST_IGNORE;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error(`${file.name}: Too Large (>3MB)`);
+      return Upload.LIST_IGNORE;
+    }
     setBannerFile(file);
     setBannerPreview(URL.createObjectURL(file));
     return false; // Prevent auto upload
@@ -170,7 +190,6 @@ const PromotionFormModal: React.FC<Props> = ({
 
     setSaving(true);
     try {
-
       const payloadObj = {
         ...values,
         startDate: values.startDate ? values.startDate.toISOString() : null,
@@ -181,11 +200,14 @@ const PromotionFormModal: React.FC<Props> = ({
         actions: values.actions?.map((a: any) => ({
           ...a,
           value: Number(a.value),
-          maxDiscount: a.maxDiscount ? Number(a.maxDiscount) : undefined})),
+          maxDiscount: a.maxDiscount ? Number(a.maxDiscount) : undefined,
+        })),
         conditions: values.conditions?.map((c: any) => ({
           ...c,
           // Ensure array type for variantIds
-          variantIds: c.variantIds || []}))};
+          variantIds: c.variantIds || [],
+        })),
+      };
 
       const formDataToSend = new FormData();
       if (bannerFile) {
@@ -218,7 +240,8 @@ const PromotionFormModal: React.FC<Props> = ({
       if (isEditing && promotion) {
         await api.put(
           `/api/v1/erp/catalog/promotions/${promotion.id}`,
-          formDataToSend);
+          formDataToSend,
+        );
         toast.success("PROMOTION UPDATED");
       } else {
         await api.post("/api/v1/erp/catalog/promotions", formDataToSend);
@@ -265,7 +288,7 @@ const PromotionFormModal: React.FC<Props> = ({
                   <Upload
                     beforeUpload={handleBannerUpload}
                     showUploadList={false}
-                    accept="image/png, image/jpeg, image/webp"
+                    accept="image/png, image/jpeg, image/webp, image/heic, image/heif"
                   >
                     <Button icon={<IconUpload size={16} />}>
                       Select Image
@@ -470,7 +493,8 @@ const PromotionFormModal: React.FC<Props> = ({
                       conditions: [
                         ...current,
                         { type: "MIN_AMOUNT", value: 0 },
-                      ]});
+                      ],
+                    });
                   }}
                 >
                   Add Rule

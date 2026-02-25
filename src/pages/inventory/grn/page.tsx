@@ -1,7 +1,7 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Card, Form, Input, Button, Space, Spin, Table, Tag } from "antd";
+import { Card, Form, Input, Button, Space, Table } from "antd";
 import {
   IconEye,
   IconSearch,
@@ -14,6 +14,7 @@ import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+import NewGRNModal from "./components/NewGRNModal";
 
 interface GRN {
   id: string;
@@ -29,9 +30,10 @@ const GRNListPage = () => {
   const [loading, setLoading] = useState(true);
   const [grns, setGRNs] = useState<GRN[]>([]);
   const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const handleFilterSubmit = (values: any) => {
+  const handleFilterSubmit = (values: { search: string }) => {
     setSearch(values.search || "");
   };
 
@@ -64,22 +66,57 @@ const GRNListPage = () => {
       g.poNumber.toLowerCase().includes(search.toLowerCase()) ||
       g.supplierName.toLowerCase().includes(search.toLowerCase()),
   );
-  const columns: ColumnsType<any> = [
-    {title: 'GRN Number', key: 'gRNNumber', render: (_, grn) => (<><span className="font-mono font-bold text-gray-900">
-                          {grn.grnNumber}
-                        </span></>) },
-    {title: 'PO Number', key: 'pONumber', render: (_, grn) => (<><span className="font-mono text-gray-600">
-                          {grn.poNumber}
-                        </span></>) },
-    {title: 'Supplier', key: 'supplier', render: (_, grn) => (<>{grn.supplierName}</>) },
-    {title: 'Amount', key: 'amount', render: (_, grn) => (<>Rs {grn.totalAmount.toLocaleString()}</>) },
-    {title: 'Received Date', key: 'receivedDate', align: 'right', render: (_, grn) => (<>{grn.receivedDate}</>) },
-    {title: 'Actions', key: 'actions', render: (_, grn) => (<><Link
-                          to={`/inventory/grn/${grn.id}`}
-                          className="p-2 hover:bg-gray-100 inline-flex transition-colors"
-                        >
-                          <IconEye size={16} />
-                        </Link></>) },
+  const columns: ColumnsType<GRN> = [
+    {
+      title: "GRN Number",
+      key: "gRNNumber",
+      render: (_, grn) => (
+        <>
+          <span className="font-mono font-bold text-gray-900">
+            {grn.grnNumber}
+          </span>
+        </>
+      ),
+    },
+    {
+      title: "PO Number",
+      key: "pONumber",
+      render: (_, grn) => (
+        <>
+          <span className="font-mono text-gray-600">{grn.poNumber}</span>
+        </>
+      ),
+    },
+    {
+      title: "Supplier",
+      key: "supplier",
+      render: (_, grn) => <>{grn.supplierName}</>,
+    },
+    {
+      title: "Amount",
+      key: "amount",
+      render: (_, grn) => <>Rs {grn.totalAmount.toLocaleString()}</>,
+    },
+    {
+      title: "Received Date",
+      key: "receivedDate",
+      align: "right",
+      render: (_, grn) => <>{grn.receivedDate}</>,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, grn) => (
+        <>
+          <Link
+            to={`/inventory/grn/${grn.id}`}
+            className="p-2 hover:bg-gray-100 inline-flex rounded-lg transition-colors"
+          >
+            <IconEye size={16} />
+          </Link>
+        </>
+      ),
+    },
   ];
 
   return (
@@ -95,14 +132,24 @@ const GRNListPage = () => {
               Track received goods from suppliers
             </p>
           </div>
-          <Link
-            to="/inventory/grn/new"
-            className="w-full sm:w-auto px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPlus size={16} />}
+            onClick={() => setIsModalOpen(true)}
           >
-            <IconPlus size={16} />
             New GRN
-          </Link>
+          </Button>
         </div>
+
+        <NewGRNModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => {
+            setIsModalOpen(false);
+            fetchGRNs();
+          }}
+        />
 
         {/* Filters */}
         <Card size="small" className="shadow-sm">
@@ -137,27 +184,18 @@ const GRNListPage = () => {
           </Form>
         </Card>
 
-        {/* Loading */}
-        {loading && (
-          <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
-          </div>
-        )}
-
         {/* Table */}
-        {!loading && (
-          <div className="bg-white border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table 
+        <div className="mt-6">
+          <Table
+            scroll={{ x: "max-content" }}
             columns={columns}
             dataSource={filteredGRNs}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
+            loading={loading}
+            rowKey={(r: GRN) => r.id}
             pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm"
           />
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </PageContainer>
   );

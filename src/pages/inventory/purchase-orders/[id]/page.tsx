@@ -255,7 +255,7 @@ const ViewPurchaseOrderPage = () => {
             </span>
           </div>
           <div className="overflow-x-auto">
-            <Table
+            <Table scroll={{ x: 'max-content' }}
               columns={columns}
               dataSource={po.items}
               rowKey={(r: any) =>

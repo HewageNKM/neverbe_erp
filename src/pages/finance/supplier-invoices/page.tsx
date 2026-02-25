@@ -231,14 +231,19 @@ const SupplierInvoicesPage = () => {
             </h2>
             <p className="text-sm text-gray-500">Manage accounts payable</p>
           </div>
-          <Button type="primary" size="large" onClick={handleCreate}>
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPlus size={16} />}
+            onClick={handleCreate}
+          >
             New Invoice
           </Button>
         </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-green-600 text-white p-6">
+          <div className="bg-green-600 text-white p-6 rounded-2xl shadow-sm">
             <div className="flex items-center gap-2 mb-2 text-gray-400">
               <IconAlertCircle size={16} />
               <span className="text-xs font-bold  ">Overdue</span>
@@ -250,7 +255,7 @@ const SupplierInvoicesPage = () => {
               Requires Immediate Attention
             </p>
           </div>
-          <div className="bg-white border border-gray-200 p-6">
+          <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg">
             <div className="flex items-center gap-2 mb-2 text-gray-500">
               <IconClock size={16} />
               <span className="text-xs font-bold  ">Due in 7 Days</span>
@@ -259,7 +264,7 @@ const SupplierInvoicesPage = () => {
               {formatCurrency(summary.due7Days)}
             </p>
           </div>
-          <div className="bg-white border border-gray-200 p-6">
+          <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg">
             <div className="flex items-center gap-2 mb-2 text-gray-500">
               <IconFileInvoice size={16} />
               <span className="text-xs font-bold  ">Total Payable</span>
@@ -307,21 +312,17 @@ const SupplierInvoicesPage = () => {
         </Card>
 
         {/* Table */}
-        {loading ? (
-          <div className="py-20 flex justify-center">
-            <div className="flex justify-center py-12">
-              <Spin size="large" />
-            </div>
-          </div>
-        ) : (
+        <div className="mt-6">
           <Table
+            scroll={{ x: "max-content" }}
             columns={columns}
             dataSource={filteredInvoices}
+            loading={loading}
             rowKey="id"
             pagination={{ pageSize: 10 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white"
+            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm"
           />
-        )}
+        </div>
 
         <SupplierInvoiceFormModal
           open={showModal}

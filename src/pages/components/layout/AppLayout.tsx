@@ -23,6 +23,7 @@ export default function AppLayout() {
 
       {/* Main Content Area */}
       <Layout
+        hasSider={false}
         className={`bg-[#f9fafb] transition-all duration-300 min-h-screen flex-1 ${collapsed ? "lg:ml-[80px]" : "lg:ml-[260px]"}`}
       >
         {/* Global Brand Accent */}
@@ -35,8 +36,12 @@ export default function AppLayout() {
             icon={<IconMenu2 size={24} />}
             onClick={() => setMobileMenuOpen(true)}
           />
-          <div className="w-24">
-            <img src="/logo.png" alt="Logo" className="w-full h-auto" />
+          <div className="w-12">
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="w-full h-auto object-contain"
+            />
           </div>
           <div className="w-8"></div> {/* Spacer for centering */}
         </header>

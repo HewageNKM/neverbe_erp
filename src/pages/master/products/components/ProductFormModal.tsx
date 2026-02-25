@@ -50,8 +50,14 @@ const emptyProduct: Omit<Product, "itemId"> & {
   gender: [],
 };
 
-const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
-const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+const ALLOWED_FILE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+];
 
 interface ProductFormModalProps {
   open: boolean;
@@ -130,12 +136,16 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   };
 
   const handleFileChange = (file: File) => {
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      toast.error("Invalid file type (JPG/PNG/WEBP only)");
+    if (
+      !ALLOWED_FILE_TYPES.includes(file.type) &&
+      !file.name.toLowerCase().endsWith(".heic") &&
+      !file.name.toLowerCase().endsWith(".heif")
+    ) {
+      toast.error("Invalid file type (JPG/PNG/WEBP/HEIC only)");
       return false;
     }
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("File too large (>1MB)");
+      toast.error("File too large (>3MB)");
       return false;
     }
     setThumbnailFile(file);

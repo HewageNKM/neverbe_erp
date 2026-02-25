@@ -15,7 +15,6 @@ import type { FinanceDashboardData } from "@/model/FinanceDashboard";
 import {
   Row,
   Col,
-  Card,
   Statistic,
   Table,
   Button,
@@ -25,6 +24,7 @@ import {
   Tag,
   Spin,
 } from "antd";
+import DashboardCard from "@/pages/components/shared/DashboardCard";
 
 const { Option } = Select;
 
@@ -181,7 +181,7 @@ const FinanceDashboard = () => {
         {/* Stats Grid */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} lg={6}>
-            <Card bordered={false}>
+            <DashboardCard>
               <Statistic
                 title="Total Bank Balance"
                 value={cards.totalBankBalance}
@@ -199,10 +199,10 @@ const FinanceDashboard = () => {
                   Across all accounts
                 </span>
               </div>
-            </Card>
+            </DashboardCard>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card bordered={false}>
+            <DashboardCard>
               <Statistic
                 title="Accounts Payable"
                 value={cards.totalPayable}
@@ -216,10 +216,10 @@ const FinanceDashboard = () => {
                 </Tag>
                 <span className="text-xs text-gray-400">Total Outstanding</span>
               </div>
-            </Card>
+            </DashboardCard>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card bordered={false}>
+            <DashboardCard>
               <Statistic
                 title="Monthly Expenses"
                 value={cards.monthlyExpenses}
@@ -229,10 +229,10 @@ const FinanceDashboard = () => {
               <div className="mt-2">
                 <Tag color="blue">This Month</Tag>
               </div>
-            </Card>
+            </DashboardCard>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <Card bordered={false}>
+            <DashboardCard>
               <Statistic
                 title="Monthly Income"
                 value={cards.monthlyIncome}
@@ -244,7 +244,7 @@ const FinanceDashboard = () => {
               <div className="mt-2">
                 <Tag color="green">This Month</Tag>
               </div>
-            </Card>
+            </DashboardCard>
           </Col>
         </Row>
 
@@ -252,9 +252,9 @@ const FinanceDashboard = () => {
         <Row gutter={[16, 16]}>
           {/* Cash Flow */}
           <Col xs={24} lg={16}>
-            <Card
+            <DashboardCard
               title="Cash Flow"
-              extra={
+              action={
                 <Select defaultValue="This Month" size="small" bordered={false}>
                   <Option value="This Month">This Month</Option>
                 </Select>
@@ -266,12 +266,12 @@ const FinanceDashboard = () => {
                 type="bar"
                 height={300}
               />
-            </Card>
+            </DashboardCard>
           </Col>
 
           {/* Expense Breakdown */}
           <Col xs={24} lg={8}>
-            <Card title="Expense Breakdown">
+            <DashboardCard title="Expense Breakdown">
               <div className="relative h-[200px] mb-6 flex items-center justify-center">
                 <Chart
                   options={pieOptions as any}
@@ -311,23 +311,30 @@ const FinanceDashboard = () => {
                   </div>
                 ))}
               </div>
-            </Card>
+            </DashboardCard>
           </Col>
         </Row>
 
         {/* Recent Transactions */}
-        <Card
+        <DashboardCard
           title="Recent Transactions"
-          extra={<a href="/finance/petty-cash">View All</a>}
-          bodyStyle={{ padding: 0 }}
+          action={
+            <a
+              href="/finance/petty-cash"
+              className="text-green-600 font-bold hover:underline"
+            >
+              View All
+            </a>
+          }
         >
           <Table
+            scroll={{ x: "max-content" }}
             columns={transactionColumns}
             dataSource={recentTransactions}
             rowKey="id"
             pagination={false}
           />
-        </Card>
+        </DashboardCard>
       </Space>
     </PageContainer>
   );
