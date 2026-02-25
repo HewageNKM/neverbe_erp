@@ -14,10 +14,7 @@ const OrderPage = () => {
       description="Order View"
       loading={isLoading}
     >
-      {/* 
-          Removing DashboardCard wrapper here to allow OrderView to control its own layout cards
-          similar to how we did in Edit page for a cleaner, less nested look.
-       */}
+      <OrderView orderId={orderId} onLoadingChange={setIsLoading} />
     </PageContainer>
   );
 };

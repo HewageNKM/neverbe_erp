@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 import EmptyState from "@/components/EmptyState";
 import { IconTrash, IconUpload, IconCloudUpload } from "@tabler/icons-react";
+import PageContainer from "../../components/container/PageContainer";
 
 const { Title, Text } = Typography;
 
@@ -262,7 +263,7 @@ const BannerPage = () => {
   };
 
   return (
-    <PageContainer title="Banner Assets | NEVERBE ERP" loading={isLoading}>
+    <PageContainer title="Banner Assets | NEVERBE ERP">
       <div className="flex flex-col gap-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
         <Card
           title={
