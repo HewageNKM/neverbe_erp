@@ -87,6 +87,8 @@ const ProductPage = () => {
         params.category = filters.category;
       if (filters.status && filters.status !== "all")
         params.status = filters.status;
+      if (filters.listing && filters.listing !== "all")
+        params.listing = filters.listing;
 
       const response = await api.get("/api/v1/erp/catalog/products", {
         params,
@@ -227,21 +229,19 @@ const ProductPage = () => {
             <Typography.Text strong className="block">
               {record.name}
             </Typography.Text>
-            <Space size={4}>
-              {record.tags?.[0] && (
-                <Tag className="m-0 text-[10px]">{record.tags[0]}</Tag>
-              )}
-              <Tag className="m-0 text-[10px]">{record.category}</Tag>
+            <Space size={4} className="mt-1">
+              <Tag className="m-0 text-[10px] uppercase border-gray-200">
+                {record.brand}
+              </Tag>
+              <Tag className="m-0 text-[10px] uppercase border-gray-200">
+                {record.category}
+              </Tag>
             </Space>
           </div>
         </Space>
       ),
     },
-    {
-      title: "Brand",
-      dataIndex: "brand",
-      key: "brand",
-    },
+
     {
       title: "Price (LKR)",
       dataIndex: "sellingPrice",
@@ -258,6 +258,16 @@ const ProductPage = () => {
       render: (status: boolean) => (
         <Tag color={status ? "success" : "error"}>
           {status ? "ACTIVE" : "INACTIVE"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Listing",
+      dataIndex: "listing",
+      key: "listing",
+      render: (listing: boolean) => (
+        <Tag color={listing ? "processing" : "default"}>
+          {listing ? "LISTED" : "UNLISTED"}
         </Tag>
       ),
     },
@@ -314,7 +324,12 @@ const ProductPage = () => {
             form={form}
             layout="inline"
             onFinish={handleFilterSubmit}
-            initialValues={{ brand: "all", category: "all", status: "all" }}
+            initialValues={{
+              brand: "all",
+              category: "all",
+              status: "all",
+              listing: "all",
+            }}
             className="flex flex-wrap gap-2 w-full"
           >
             <Form.Item name="search" className="!mb-0 flex-1 min-w-[160px]">
@@ -349,6 +364,13 @@ const ProductPage = () => {
                 <Option value="all">All Status</Option>
                 <Option value="true">Active</Option>
                 <Option value="false">Inactive</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="listing" className="!mb-0 w-32">
+              <Select>
+                <Option value="all">All Listing</Option>
+                <Option value="true">Listed</Option>
+                <Option value="false">Unlisted</Option>
               </Select>
             </Form.Item>
             <Form.Item className="!mb-0">
