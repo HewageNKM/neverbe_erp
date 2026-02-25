@@ -15,7 +15,7 @@ import {
   Space,
 } from "antd";
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ALLOWED_FILE_TYPES = [
   "image/jpeg",
   "image/png",
@@ -80,7 +80,7 @@ const VariantFormModal: React.FC<VariantFormModalProps> = ({
       return Upload.LIST_IGNORE;
     }
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(`${file.name}: Too Large (>3MB)`);
+      toast.error(`${file.name}: Too Large (>20MB)`);
       return Upload.LIST_IGNORE;
     }
     setNewImageFiles((prev) => [...prev, file]);

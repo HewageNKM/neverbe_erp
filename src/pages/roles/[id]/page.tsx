@@ -139,7 +139,7 @@ const EditRolePage = () => {
 
         <div className="flex justify-between items-end mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Access Control

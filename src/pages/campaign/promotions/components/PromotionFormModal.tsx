@@ -1,10 +1,6 @@
 import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
-import {
-  Promotion,
-  PromotionCondition,
-  PromotionAction,
-} from "@/model/Promotion";
+import { Promotion } from "@/model/Promotion";
 
 import {
   IconTag,
@@ -29,14 +25,12 @@ import {
   Button,
   Upload,
   Typography,
-  Divider,
-  Space,
   Slider,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -163,8 +157,8 @@ const PromotionFormModal: React.FC<Props> = ({
       toast.error(`${file.name}: Invalid Type (JPG/PNG/WEBP/HEIC only)`);
       return Upload.LIST_IGNORE;
     }
-    if (file.size > 3 * 1024 * 1024) {
-      toast.error(`${file.name}: Too Large (>3MB)`);
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error(`${file.name}: Too Large (>20MB)`);
       return Upload.LIST_IGNORE;
     }
     setBannerFile(file);

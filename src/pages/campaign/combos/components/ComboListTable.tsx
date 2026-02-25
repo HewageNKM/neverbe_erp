@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ComboProduct } from "@/model/ComboProduct";
 import { Table, Button, Tag, Space, Typography, Tooltip, Avatar } from "antd";
@@ -7,7 +6,6 @@ import {
   DeleteOutlined,
   PictureOutlined,
 } from "@ant-design/icons";
-
 
 const { Text } = Typography;
 
@@ -129,12 +127,14 @@ const ComboListTable: React.FC<Props> = ({
   ];
 
   return (
-    <Table scroll={{ x: 'max-content' }}
+    <Table
+      scroll={{ x: "max-content" }}
+      bordered
       columns={columns}
       dataSource={items}
       loading={loading}
       rowKey="id"
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: 10, position: ["bottomRight"] }}
     />
   );
 };

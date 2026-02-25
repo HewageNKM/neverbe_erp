@@ -77,8 +77,8 @@ const BannerForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
   const validateImage = (file: File): Promise<void> => {
     return new Promise((resolve, reject) => {
-      if (file.size > 4 * 1024 * 1024) {
-        return reject("SIZE EXCEEDED: MAX 4MB");
+      if (file.size > 20 * 1024 * 1024) {
+        return reject("SIZE EXCEEDED: MAX 20MB");
       }
 
       const img = new window.Image();
@@ -186,7 +186,7 @@ const BannerForm = ({ onSuccess }: { onSuccess: () => void }) => {
                       {isLoading ? "Validating..." : "Click or Drag & Drop"}
                     </Title>
                     <Text type="secondary" className="block text-xs font-mono">
-                      REQ: 1200x628px | MAX: 4MB
+                      REQ: 1200x628px | MAX: 20MB
                     </Text>
                   </div>
                 </div>

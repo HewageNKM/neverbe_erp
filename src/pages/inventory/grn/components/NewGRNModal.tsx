@@ -398,7 +398,8 @@ const NewGRNModal: React.FC<NewGRNModalProps> = ({
                     </span>
                   </div>
                   <Table
-                    scroll={{ y: 350 }}
+                    bordered
+                    scroll={{ y: 350, x: 800 }}
                     columns={columns}
                     dataSource={items}
                     size="small"

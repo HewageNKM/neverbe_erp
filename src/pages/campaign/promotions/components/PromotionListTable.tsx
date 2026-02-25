@@ -127,12 +127,14 @@ const PromotionListTable: React.FC<Props> = ({
   ];
 
   return (
-    <Table scroll={{ x: 'max-content' }}
+    <Table
+      scroll={{ x: "max-content" }}
+      bordered
       columns={columns}
       dataSource={items}
       loading={loading}
       rowKey="id"
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: 10, position: ["bottomRight"] }}
     />
   );
 };

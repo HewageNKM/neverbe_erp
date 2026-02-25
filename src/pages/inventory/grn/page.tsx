@@ -1,7 +1,7 @@
 import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Card, Form, Input, Button, Space, Table } from "antd";
+import { Card, Form, Input, Button, Space, Table, Select } from "antd";
 import {
   IconEye,
   IconSearch,
@@ -14,6 +14,11 @@ import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+import {
+  GRN as GRNModel,
+  GRN_STATUS_LABELS,
+  GRN_STATUS_COLORS,
+} from "@/model/GRN";
 import NewGRNModal from "./components/NewGRNModal";
 
 interface GRN {
@@ -24,22 +29,26 @@ interface GRN {
   totalAmount: number;
   receivedDate: string;
   receivedBy?: string;
+  status: string;
 }
 
 const GRNListPage = () => {
   const [loading, setLoading] = useState(true);
   const [grns, setGRNs] = useState<GRN[]>([]);
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const handleFilterSubmit = (values: { search: string }) => {
+  const handleFilterSubmit = (values: { search: string; status: string }) => {
     setSearch(values.search || "");
+    setStatus(values.status || "");
   };
 
   const handleClearFilters = () => {
     form.resetFields();
     setSearch("");
+    setStatus("");
   };
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
@@ -47,7 +56,13 @@ const GRNListPage = () => {
   const fetchGRNs = async () => {
     setLoading(true);
     try {
-      const res = await api.get<GRN[]>("/api/v1/erp/inventory/grn");
+      const params = new URLSearchParams();
+      if (search) params.append("search", search);
+      if (status) params.append("status", status);
+
+      const res = await api.get<GRN[]>(
+        `/api/v1/erp/inventory/grn?${params.toString()}`,
+      );
       setGRNs(res.data);
     } catch {
       toast.error("Failed to fetch GRNs");
@@ -104,6 +119,17 @@ const GRNListPage = () => {
       render: (_, grn) => <>{grn.receivedDate}</>,
     },
     {
+      title: "Status",
+      key: "status",
+      render: (_, grn) => (
+        <span
+          className={`px-3 py-1 text-xs font-bold rounded-lg border ${GRN_STATUS_COLORS[grn.status] || "bg-gray-100 border-gray-200"}`}
+        >
+          {GRN_STATUS_LABELS[grn.status] || grn.status}
+        </span>
+      ),
+    },
+    {
       title: "Actions",
       key: "actions",
       render: (_, grn) => (
@@ -124,7 +150,7 @@ const GRNListPage = () => {
       <div className="w-full space-y-6">
         <div className="flex justify-between items-end mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Inventory Control
@@ -138,7 +164,7 @@ const GRNListPage = () => {
             type="primary"
             icon={<IconPlus size={18} />}
             onClick={() => setIsModalOpen(true)}
-            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             New GRN
           </Button>
@@ -169,6 +195,16 @@ const GRNListPage = () => {
                 allowClear
               />
             </Form.Item>
+            <Form.Item name="status" className="!mb-0 w-44">
+              <Select placeholder="Select Status" allowClear>
+                <Select.Option value="">All Status</Select.Option>
+                {Object.entries(GRN_STATUS_LABELS).map(([value, label]) => (
+                  <Select.Option key={value} value={value}>
+                    {label}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
             <Form.Item className="!mb-0">
               <Space>
                 <Button
@@ -189,12 +225,13 @@ const GRNListPage = () => {
         {/* Table */}
         <div className="mt-6">
           <Table
-            scroll={{ x: "max-content" }}
+            scroll={{ x: 1000 }}
+            bordered
             columns={columns}
             dataSource={filteredGRNs}
             loading={loading}
             rowKey={(r: GRN) => r.id}
-            pagination={{ pageSize: 15 }}
+            pagination={{ pageSize: 15, position: ["bottomRight"] }}
             className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm"
           />
         </div>

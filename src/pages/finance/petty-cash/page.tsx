@@ -267,7 +267,7 @@ export default function PettyCashList() {
       <div className="w-full space-y-8">
         <div className="flex justify-between items-end mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Finance
@@ -281,7 +281,7 @@ export default function PettyCashList() {
             type="primary"
             icon={<IconPlus size={18} />}
             onClick={handleOpenCreate}
-            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             Create Entry
           </Button>
@@ -368,13 +368,14 @@ export default function PettyCashList() {
         ) : (
           <div className="w-full overflow-x-auto bg-white border border-gray-100 rounded-2xl shadow-sm">
             <Table
-              scroll={{ x: "max-content" }}
+              scroll={{ x: 1000 }}
+              bordered
               columns={columns}
               dataSource={pettyCashList}
               rowKey={(r: any) =>
                 r.id || r.date || r.month || Math.random().toString()
               }
-              pagination={{ pageSize: 15 }}
+              pagination={{ pageSize: 15, position: ["bottomRight"] }}
               className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
             />
           </div>
@@ -382,7 +383,7 @@ export default function PettyCashList() {
 
         {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-end pt-4">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}

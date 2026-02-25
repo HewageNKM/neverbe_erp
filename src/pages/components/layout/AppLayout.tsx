@@ -9,14 +9,48 @@ const { Content } = Layout;
 export default function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
+  const [hoverTimeout, setHoverTimeout] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  const handleMouseEnter = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!collapsed) {
+      const timeout = setTimeout(() => {
+        setCollapsed(true);
+      }, 500); // 500ms delay
+      setHoverTimeout(timeout);
+    }
+  };
+
+  const handleSidebarClick = (e: React.MouseEvent) => {
+    // Check if the click was directly on the sider container or background,
+    // but not on an actual link/menu item if we want to be strict.
+    // However, user said "expand menu only user click on menu outside menu items".
+    // We can check the event target.
+    const target = e.target as HTMLElement;
+    const isMenuItem =
+      target.closest(".ant-menu-item") || target.closest(".ant-menu-submenu");
+
+    if (collapsed && !isMenuItem) {
+      setCollapsed(false);
+    }
+  };
 
   return (
     <Layout className="min-h-screen bg-[#f9fafb] text-black font-sans selection:bg-black selection:text-white flex-row overflow-x-hidden">
       {/* Desktop Fixed Sidebar */}
       <div
         className="hidden lg:block h-screen fixed top-0 left-0 z-50 transition-all duration-300"
-        onMouseEnter={() => setCollapsed(false)}
-        onMouseLeave={() => setCollapsed(true)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleSidebarClick}
       >
         <Sidebar collapsed={collapsed} onCollapse={setCollapsed} />
       </div>

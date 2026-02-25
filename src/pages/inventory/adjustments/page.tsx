@@ -198,7 +198,7 @@ const AdjustmentsPage = () => {
         {/* Header */}
         <div className="flex justify-between items-end mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Inventory Control
@@ -212,7 +212,7 @@ const AdjustmentsPage = () => {
             type="primary"
             icon={<IconPlus size={18} />}
             onClick={() => setIsModalOpen(true)}
-            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             New Adjustment
           </Button>
@@ -260,10 +260,13 @@ const AdjustmentsPage = () => {
             <Form.Item name="status" className="!mb-0 w-44">
               <Select className="h-10 rounded-xl" placeholder="Select Status">
                 <Select.Option value="">All Status</Select.Option>
-                <Select.Option value="DRAFT">Draft</Select.Option>
-                <Select.Option value="SUBMITTED">Submitted</Select.Option>
-                <Select.Option value="APPROVED">Approved</Select.Option>
-                <Select.Option value="REJECTED">Rejected</Select.Option>
+                {Object.entries(ADJUSTMENT_STATUS_LABELS).map(
+                  ([value, label]) => (
+                    <Select.Option key={value} value={value}>
+                      {label}
+                    </Select.Option>
+                  ),
+                )}
               </Select>
             </Form.Item>
             <Form.Item className="!mb-0">
@@ -291,12 +294,13 @@ const AdjustmentsPage = () => {
         {/* Table Container */}
         <div className="mt-8 bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-none">
           <Table
-            scroll={{ x: "max-content" }}
+            scroll={{ x: 1000 }}
+            bordered
             columns={columns}
             dataSource={adjustments}
             loading={loading}
             rowKey={(r: Adjustment) => r.id}
-            pagination={pagination}
+            pagination={{ ...pagination, position: ["bottomRight"] }}
             onChange={handleTableChange}
             size="middle"
             className="rounded-2xl overflow-hidden ant-table-fluid"

@@ -55,13 +55,13 @@ const ViewPurchaseOrderPage = () => {
   }, [currentUser, poId, fetchPO]);
 
   const handleUpdateStatus = (status: PurchaseOrderStatus) => {
-    const action = status === "sent" ? "Send to Supplier" : "Cancel Order";
-    const isDestructive = status === "cancelled";
+    const action = status === "SUBMITTED" ? "Send to Supplier" : "Cancel Order";
+    const isDestructive = status === "REJECTED";
 
     showConfirmation({
       title: `${action.toUpperCase()}?`,
       message: `Are you sure you want to ${action.toLowerCase()}? ${
-        status === "sent"
+        status === "SUBMITTED"
           ? "This will mark the order as sent."
           : "This action cannot be undone."
       }`,
@@ -72,7 +72,7 @@ const ViewPurchaseOrderPage = () => {
           await api.put(`/api/v1/erp/procurement/purchase-orders/${poId}`, {
             status,
           });
-          toast.error(`Order ${status === "sent" ? "Sent" : "Cancelled"}`);
+          toast.error(`Order ${status === "SUBMITTED" ? "Sent" : "Cancelled"}`);
           fetchPO();
         } catch (error) {
           console.error(error);
@@ -241,11 +241,11 @@ const ViewPurchaseOrderPage = () => {
 
             {/* Actions Footer */}
             <div className="flex flex-col sm:flex-row justify-end gap-4 p-6 bg-gray-50/50 rounded-2xl border border-gray-100 border-dashed">
-              {po.status === "draft" && (
+              {po.status === "DRAFT" && (
                 <>
                   <Button
                     type="primary"
-                    onClick={() => handleUpdateStatus("sent")}
+                    onClick={() => handleUpdateStatus("SUBMITTED")}
                     disabled={updating}
                     icon={!updating && <IconSend size={16} />}
                     className="bg-green-600 hover:bg-green-700 border-none rounded-full h-auto py-2.5 px-8 font-bold text-xs uppercase tracking-widest shadow-none"
@@ -254,7 +254,7 @@ const ViewPurchaseOrderPage = () => {
                   </Button>
                   <Button
                     danger
-                    onClick={() => handleUpdateStatus("cancelled")}
+                    onClick={() => handleUpdateStatus("REJECTED")}
                     disabled={updating}
                     icon={<IconX size={16} />}
                     className="rounded-full h-auto py-2.5 px-8 font-bold text-xs uppercase tracking-widest"
@@ -263,7 +263,7 @@ const ViewPurchaseOrderPage = () => {
                   </Button>
                 </>
               )}
-              {(po.status === "sent" || po.status === "partial") && (
+              {(po.status === "SUBMITTED" || po.status === "APPROVED") && (
                 <Link to={`/inventory/grn/new?poId=${po.id}`}>
                   <Button
                     type="primary"
@@ -274,13 +274,13 @@ const ViewPurchaseOrderPage = () => {
                   </Button>
                 </Link>
               )}
-              {po.status === "received" && (
+              {po.status === "COMPLETED" && (
                 <div className="flex items-center text-green-700 font-bold text-[10px] uppercase tracking-widest bg-green-50 px-6 py-3 rounded-full border border-green-100">
                   <IconPackage size={16} className="mr-2" />
                   Order Fully Received
                 </div>
               )}
-              {po.status === "cancelled" && (
+              {po.status === "REJECTED" && (
                 <div className="flex items-center text-red-700 font-bold text-[10px] uppercase tracking-widest bg-red-50 px-6 py-3 rounded-full border border-red-100">
                   <IconX size={16} className="mr-2" />
                   Order Cancelled

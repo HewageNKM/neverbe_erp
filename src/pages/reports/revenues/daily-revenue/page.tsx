@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 
 import { Card, Form, Spin, Table, Tag } from "antd";
@@ -55,7 +55,7 @@ const DailyRevenuePage = () => {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<DailyRevenue[]>([]);
   const [summary, setSummary] = useState<RevenueReport["summary"] | null>(null);
-  
+
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
   const [page, setPage] = useState(0);
@@ -72,8 +72,7 @@ const DailyRevenuePage = () => {
     const diffDays = diffTime / (1000 * 60 * 60 * 24) + 1;
 
     if (diffDays > MAX_RANGE_DAYS) {
-      toast.error(
-        `Date range cannot exceed ${MAX_RANGE_DAYS} days.`);
+      toast.error(`Date range cannot exceed ${MAX_RANGE_DAYS} days.`);
       return;
     }
 
@@ -83,7 +82,7 @@ const DailyRevenuePage = () => {
         "/api/v1/erp/reports/revenues/daily-revenue",
         {
           params: { from, to },
-        }
+        },
       );
       setReport(res.data.daily || []);
       setSummary(res.data.summary || null);
@@ -141,9 +140,7 @@ const DailyRevenuePage = () => {
     isPercent?: boolean;
   }) => (
     <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">
-        {label}
-      </p>
+      <p className="text-xs font-bold   text-gray-500 mb-2">{label}</p>
       <p className="text-xl font-bold text-gray-900 tracking-tight">
         {/* @ts-ignore */}
         {isPercent ? value : `Rs ${Number(value || 0).toFixed(2)}`}
@@ -151,15 +148,48 @@ const DailyRevenuePage = () => {
     </div>
   );
   const columns: ColumnsType<any> = [
-    {title: 'Date', key: 'date', render: (_, day) => (<>{day.date}</>) },
-    {title: 'Orders', key: 'orders', align: 'right', render: (_, day) => (<>{day.totalOrders}</>) },
-    {title: 'Total Sales', key: 'totalSales', render: (_, day) => (<>Rs {day.totalSales.toFixed(2)}</>) },
-    {title: 'Net Sales', key: 'netSales', render: (_, day) => (<>Rs {day.totalNetSales.toFixed(2)}</>) },
-    {title: 'COGS', key: 'cOGS', render: (_, day) => (<>Rs {day.totalCOGS.toFixed(2)}</>) },
-    {title: 'Gro. Profit', key: 'groProfit', render: (_, day) => (<>Rs {day.grossProfit.toFixed(2)}</>) },
-    {title: 'Gro. Margin', key: 'groMargin', render: (_, day) => (<>{day.grossProfitMargin.toFixed(2)}%</>) },
-    {title: 'Net Profit', key: 'netProfit', render: (_, day) => (<>Rs {day.netProfit.toFixed(2)}</>) },
-    {title: 'Net Margin', key: 'netMargin', render: (_, day) => (<>{day.netProfitMargin.toFixed(2)}%</>) },
+    { title: "Date", key: "date", render: (_, day) => <>{day.date}</> },
+    {
+      title: "Orders",
+      key: "orders",
+      align: "right",
+      render: (_, day) => <>{day.totalOrders}</>,
+    },
+    {
+      title: "Total Sales",
+      key: "totalSales",
+      render: (_, day) => <>Rs {day.totalSales.toFixed(2)}</>,
+    },
+    {
+      title: "Net Sales",
+      key: "netSales",
+      render: (_, day) => <>Rs {day.totalNetSales.toFixed(2)}</>,
+    },
+    {
+      title: "COGS",
+      key: "cOGS",
+      render: (_, day) => <>Rs {day.totalCOGS.toFixed(2)}</>,
+    },
+    {
+      title: "Gro. Profit",
+      key: "groProfit",
+      render: (_, day) => <>Rs {day.grossProfit.toFixed(2)}</>,
+    },
+    {
+      title: "Gro. Margin",
+      key: "groMargin",
+      render: (_, day) => <>{day.grossProfitMargin.toFixed(2)}%</>,
+    },
+    {
+      title: "Net Profit",
+      key: "netProfit",
+      render: (_, day) => <>Rs {day.netProfit.toFixed(2)}</>,
+    },
+    {
+      title: "Net Margin",
+      key: "netMargin",
+      render: (_, day) => <>{day.netProfitMargin.toFixed(2)}%</>,
+    },
   ];
 
   return (
@@ -179,41 +209,41 @@ const DailyRevenuePage = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                layout="inline"
+                onFinish={() => fetchReport()}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item className="!mb-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                    <span className="text-gray-400 font-medium">-</span>
+                    <input
+                      type="date"
+                      required
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                  </div>
+                </Form.Item>
+                <Form.Item className="!mb-0">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <IconFilter size={15} />
+                    Filter
+                  </button>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={handleExportExcel}
@@ -229,7 +259,9 @@ const DailyRevenuePage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
@@ -423,17 +455,18 @@ const DailyRevenuePage = () => {
             {report.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <Table 
-            columns={columns}
-            dataSource={report}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-            scroll={{ x: 'max-content' }}
-          />
+                  <Table
+                    bordered
+                    columns={columns}
+                    dataSource={report}
+                    rowKey={(r: any) =>
+                      r.id || r.date || r.month || Math.random().toString()
+                    }
+                    pagination={{ pageSize: 15, position: ["bottomRight"] }}
+                    className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+                    scroll={{ x: "max-content" }}
+                  />
                 </div>
-
-                
               </div>
             )}
           </div>

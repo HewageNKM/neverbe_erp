@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 import { Card, Form, Spin, Table, Tag } from "antd";
 import React, { useState, useEffect } from "react";
@@ -68,12 +68,9 @@ const ExpenseReportPage = () => {
     if (evt) evt.preventDefault();
     setLoading(true);
     try {
-      const res = await api.get<ExpenseReport>(
-        "/api/v1/erp/reports/expenses",
-        {
-          params: { from, to },
-        },
-      );
+      const res = await api.get<ExpenseReport>("/api/v1/erp/reports/expenses", {
+        params: { from, to },
+      });
       setReport(res.data);
       setPage(0);
     } catch (error) {
@@ -113,19 +110,39 @@ const ExpenseReportPage = () => {
     ? Math.ceil(report.expenses.length / rowsPerPage)
     : 0;
   const columns: ColumnsType<any> = [
-    {title: 'Date', key: 'date', render: (_, exp) => (<>{exp.date}</>) },
-    {title: 'Category', key: 'category', render: (_, exp) => (<>{exp.category}</>) },
-    {title: 'Description', key: 'description', render: (_, exp) => (<>{exp.description}</>) },
-    {title: 'Amount', key: 'amount', render: (_, exp) => (<>Rs {exp.amount.toLocaleString()}</>) },
-    {title: 'Status', key: 'status', render: (_, exp) => (<><span
-                                className={`px-2 py-1 text-xs font-bold  ${
-                                  exp.status === "APPROVED"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                                }`}
-                              >
-                                {exp.status}
-                              </span></>) },
+    { title: "Date", key: "date", render: (_, exp) => <>{exp.date}</> },
+    {
+      title: "Category",
+      key: "category",
+      render: (_, exp) => <>{exp.category}</>,
+    },
+    {
+      title: "Description",
+      key: "description",
+      render: (_, exp) => <>{exp.description}</>,
+    },
+    {
+      title: "Amount",
+      key: "amount",
+      render: (_, exp) => <>Rs {exp.amount.toLocaleString()}</>,
+    },
+    {
+      title: "Status",
+      key: "status",
+      render: (_, exp) => (
+        <>
+          <span
+            className={`px-2 py-1 text-xs font-bold  ${
+              exp.status === "APPROVED"
+                ? "bg-green-100 text-green-800"
+                : "bg-yellow-100 text-yellow-800"
+            }`}
+          >
+            {exp.status}
+          </span>
+        </>
+      ),
+    },
   ];
 
   return (
@@ -144,41 +161,41 @@ const ExpenseReportPage = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                layout="inline"
+                onFinish={() => fetchReport()}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item className="!mb-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                    <span className="text-gray-400 font-medium">-</span>
+                    <input
+                      type="date"
+                      required
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                  </div>
+                </Form.Item>
+                <Form.Item className="!mb-0">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <IconFilter size={15} />
+                    Filter
+                  </button>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={handleExportExcel}
@@ -194,7 +211,9 @@ const ExpenseReportPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
@@ -320,14 +339,17 @@ const ExpenseReportPage = () => {
             {report.expenses.length > 0 && (
               <div className="bg-white border border-gray-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                  <Table 
-            columns={columns}
-            dataSource={report.expenses}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-            scroll={{ x: 'max-content' }}
-          />
+                  <Table
+                    bordered
+                    columns={columns}
+                    dataSource={report.expenses}
+                    rowKey={(r: any) =>
+                      r.id || r.date || r.month || Math.random().toString()
+                    }
+                    pagination={{ pageSize: 15, position: ["bottomRight"] }}
+                    className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+                    scroll={{ x: "max-content" }}
+                  />
                 </div>
 
                 {/* Pagination */}

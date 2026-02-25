@@ -487,7 +487,8 @@ const ProductViewPage = () => {
               </div>
               <div className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none">
                 <Table
-                  scroll={{ x: "max-content" }}
+                  scroll={{ x: 1000 }}
+                            bordered
                   columns={variantColumns}
                   dataSource={product.variants || []}
                   rowKey="variantId"

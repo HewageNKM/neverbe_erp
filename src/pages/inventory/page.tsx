@@ -268,7 +268,7 @@ const InventoryPage = () => {
       <Space direction="vertical" size="large" className="w-full">
         <div className="flex justify-between items-end mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Inventory Control
@@ -290,7 +290,7 @@ const InventoryPage = () => {
               type="primary"
               icon={<IconPlus size={18} />}
               onClick={handleOpenCreateModal}
-              className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
+              className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
             >
               New Entry
             </Button>
@@ -372,14 +372,14 @@ const InventoryPage = () => {
 
         <div className="mt-6">
           <Table
-            scroll={{ x: "max-content" }}
+            scroll={{ x: 1000 }}
+                      bordered
             columns={columns}
             dataSource={inventoryItems}
             rowKey="id"
-            pagination={pagination}
+            pagination={{ ...pagination, position: ["bottomRight"] }}
             loading={loading}
             onChange={handleTableChange}
-            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm"
           />
         </div>
       </Space>

@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 
 import { Card, Form, Spin, Table, Tag } from "antd";
@@ -51,7 +51,6 @@ const CashFlowPage = () => {
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<DailyCashFlow[]>([]);
   const [summary, setSummary] = useState<CashFlowSummary | null>(null);
-  
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -67,8 +66,7 @@ const CashFlowPage = () => {
     const diffDays = diffTime / (1000 * 60 * 60 * 24) + 1;
 
     if (diffDays > MAX_RANGE_DAYS) {
-      toast.error(
-        `Date range cannot exceed ${MAX_RANGE_DAYS} days.`);
+      toast.error(`Date range cannot exceed ${MAX_RANGE_DAYS} days.`);
       return;
     }
 
@@ -119,19 +117,38 @@ const CashFlowPage = () => {
     value: string | number;
   }) => (
     <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">
-        {title}
-      </p>
+      <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
       <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
     </div>
   );
   const columns: ColumnsType<any> = [
-    {title: 'Date', key: 'date', render: (_, day) => (<>{day.date}</>) },
-    {title: 'Orders', key: 'orders', align: 'right', render: (_, day) => (<>{day.orders}</>) },
-    {title: 'Cash In', key: 'cashIn', render: (_, day) => (<>Rs {day.cashIn.toFixed(2)}</>) },
-    {title: 'Trans. Fee', key: 'transFee', render: (_, day) => (<>Rs {day.transactionFees.toFixed(2)}</>) },
-    {title: 'Expenses', key: 'expenses', render: (_, day) => (<>Rs {day.expenses.toFixed(2)}</>) },
-    {title: 'Net Cash Flow', key: 'netCashFlow', render: (_, day) => (<>Rs {day.netCashFlow.toFixed(2)}</>) },
+    { title: "Date", key: "date", render: (_, day) => <>{day.date}</> },
+    {
+      title: "Orders",
+      key: "orders",
+      align: "right",
+      render: (_, day) => <>{day.orders}</>,
+    },
+    {
+      title: "Cash In",
+      key: "cashIn",
+      render: (_, day) => <>Rs {day.cashIn.toFixed(2)}</>,
+    },
+    {
+      title: "Trans. Fee",
+      key: "transFee",
+      render: (_, day) => <>Rs {day.transactionFees.toFixed(2)}</>,
+    },
+    {
+      title: "Expenses",
+      key: "expenses",
+      render: (_, day) => <>Rs {day.expenses.toFixed(2)}</>,
+    },
+    {
+      title: "Net Cash Flow",
+      key: "netCashFlow",
+      render: (_, day) => <>Rs {day.netCashFlow.toFixed(2)}</>,
+    },
   ];
 
   return (
@@ -151,41 +168,41 @@ const CashFlowPage = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                layout="inline"
+                onFinish={() => fetchReport()}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item className="!mb-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                    <span className="text-gray-400 font-medium">-</span>
+                    <input
+                      type="date"
+                      required
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                  </div>
+                </Form.Item>
+                <Form.Item className="!mb-0">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <IconFilter size={15} />
+                    Filter
+                  </button>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={handleExportExcel}
@@ -201,7 +218,9 @@ const CashFlowPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
@@ -351,17 +370,18 @@ const CashFlowPage = () => {
             {report.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <Table 
-            columns={columns}
-            dataSource={report}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-            scroll={{ x: 'max-content' }}
-          />
+                  <Table
+                    bordered
+                    columns={columns}
+                    dataSource={report}
+                    rowKey={(r: any) =>
+                      r.id || r.date || r.month || Math.random().toString()
+                    }
+                    pagination={{ pageSize: 15, position: ["bottomRight"] }}
+                    className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+                    scroll={{ x: "max-content" }}
+                  />
                 </div>
-
-                
               </div>
             )}
           </div>

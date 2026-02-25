@@ -235,7 +235,7 @@ const NewPOModal: React.FC<NewPOModalProps> = ({
 
   const totalAmount = items.reduce((sum, item) => sum + item.totalCost, 0);
 
-  const handleSave = async (status: "draft" | "sent") => {
+  const handleSave = async (status: "DRAFT" | "SUBMITTED") => {
     if (!supplierId) {
       toast("Please select a supplier");
       return;
@@ -245,12 +245,12 @@ const NewPOModal: React.FC<NewPOModalProps> = ({
       return;
     }
 
-    const action = status === "draft" ? "Save Draft" : "Create & Send";
+    const action = status === "DRAFT" ? "Save Draft" : "Submit";
 
     showConfirmation({
       title: `${action.toUpperCase()} PURCHASE ORDER?`,
       message: `Are you sure you want to ${
-        status === "draft" ? "save this draft" : "create and send this order"
+        status === "DRAFT" ? "save this draft" : "submit this order"
       }? Total amount: Rs ${totalAmount.toLocaleString()}`,
       variant: "default",
       onSuccess: async () => {
@@ -266,7 +266,7 @@ const NewPOModal: React.FC<NewPOModalProps> = ({
             status,
           });
           toast.success(
-            status === "draft" ? "PO SAVED AS DRAFT" : "PO CREATED AND SENT",
+            status === "DRAFT" ? "PO SAVED AS DRAFT" : "PO SUBMITTED",
           );
           onSuccess();
         } catch (error) {
@@ -495,8 +495,9 @@ const NewPOModal: React.FC<NewPOModalProps> = ({
 
               <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden min-h-[200px]">
                 <Table
+                  bordered
                   size="small"
-                  scroll={{ y: 300 }}
+                  scroll={{ y: 300, x: 800 }}
                   columns={columns}
                   dataSource={items}
                   rowKey={(_, idx) => idx as number}
@@ -520,16 +521,16 @@ const NewPOModal: React.FC<NewPOModalProps> = ({
                   type="primary"
                   size="large"
                   block
-                  onClick={() => handleSave("sent")}
+                  onClick={() => handleSave("SUBMITTED")}
                   loading={saving}
                   className="h-12 rounded-xl font-bold"
                 >
-                  Create & Send
+                  Submit
                 </Button>
                 <Button
                   size="large"
                   block
-                  onClick={() => handleSave("draft")}
+                  onClick={() => handleSave("DRAFT")}
                   disabled={saving}
                   className="h-12 rounded-xl font-bold border-gray-100 bg-gray-50"
                 >

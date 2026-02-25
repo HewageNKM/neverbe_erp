@@ -132,7 +132,7 @@ const CouponListTable: React.FC<Props> = ({
       dataSource={items}
       loading={loading}
       rowKey="id"
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: 10, position: ["bottomRight"] }}
     />
   );
 };

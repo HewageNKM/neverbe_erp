@@ -458,8 +458,8 @@ const Page = () => {
               columns={columns}
               dataSource={dataSource}
               pagination={false}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
-              scroll={{ x: "max-content" }}
+              scroll={{ x: 1000 }}
+                        bordered
               expandable={{
                 defaultExpandAllRows: true, // You may choose false for better initial UX if there's a lot of data
               }}

@@ -350,13 +350,15 @@ const CustomerAnalyticsPage = () => {
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <Table scroll={{ x: 'max-content' }}
+                  <Table
+                    scroll={{ x: "max-content" }}
+                    bordered
                     columns={columns}
                     dataSource={report.topCustomers}
                     rowKey={(r: any) =>
                       r.id || r.date || r.month || Math.random().toString()
                     }
-                    pagination={{ pageSize: 15 }}
+                    pagination={{ pageSize: 15, position: ["bottomRight"] }}
                     className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
                   />
                 </div>

@@ -194,7 +194,7 @@ const SizePage: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-10 bg-amber-600 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Product Attributes
@@ -256,7 +256,8 @@ const SizePage: React.FC = () => {
 
         {/* Table */}
         <Table
-          scroll={{ x: "max-content" }}
+          scroll={{ x: 1000 }}
+          bordered
           columns={columns}
           dataSource={sizes}
           loading={loading}
@@ -268,6 +269,7 @@ const SizePage: React.FC = () => {
             onChange: (page, size) =>
               setPagination((prev) => ({ ...prev, page, size })),
             showSizeChanger: true,
+            position: ["bottomRight"],
           }}
           className="border border-gray-200 rounded-md overflow-hidden bg-white"
         />

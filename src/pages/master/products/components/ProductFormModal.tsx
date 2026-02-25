@@ -50,7 +50,7 @@ const emptyProduct: Omit<Product, "itemId"> & {
   gender: [],
 };
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ALLOWED_FILE_TYPES = [
   "image/jpeg",
   "image/png",
@@ -145,7 +145,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
       return false;
     }
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("File too large (>3MB)");
+      toast.error("File too large (>20MB)");
       return false;
     }
     setThumbnailFile(file);

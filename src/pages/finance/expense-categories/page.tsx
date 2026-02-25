@@ -198,7 +198,7 @@ const ExpenseCategoriesPage = () => {
         {/* PREMIUM HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-10 bg-amber-600 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Financial Classifications
@@ -247,14 +247,15 @@ const ExpenseCategoriesPage = () => {
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
               <Table
-                scroll={{ x: "max-content" }}
+                scroll={{ x: 1000 }}
+                          bordered
                 columns={columns}
                 dataSource={categories}
                 loading={loading}
                 rowKey={(r: any) =>
                   r.id || r.date || r.month || Math.random().toString()
                 }
-                pagination={{ pageSize: 15 }}
+                pagination={{ pageSize: 15, position: ["bottomRight"] }}
                 className="overflow-hidden bg-white"
               />
             </div>

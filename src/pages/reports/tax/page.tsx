@@ -1,4 +1,4 @@
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 import { Card, Form, Spin, Table, Tag } from "antd";
 import React, { useState, useEffect } from "react";
@@ -103,11 +103,23 @@ const TaxReportPage = () => {
     ? Math.ceil(report.transactions.length / rowsPerPage)
     : 0;
   const columns: ColumnsType<any> = [
-    {title: 'Date', key: 'date', render: (_, t) => (<>{t.date}</>) },
-    {title: 'Order ID', key: 'orderID', render: (_, t) => (<>{t.orderId}</>) },
-    {title: 'Order Total', key: 'orderTotal', render: (_, t) => (<>Rs {t.orderTotal.toLocaleString()}</>) },
-    {title: 'Taxable Amount', key: 'taxableAmount', render: (_, t) => (<>Rs {t.taxableAmount.toLocaleString()}</>) },
-    {title: 'Tax Collected', key: 'taxCollected', render: (_, t) => (<>Rs {t.taxCollected.toLocaleString()}</>) },
+    { title: "Date", key: "date", render: (_, t) => <>{t.date}</> },
+    { title: "Order ID", key: "orderID", render: (_, t) => <>{t.orderId}</> },
+    {
+      title: "Order Total",
+      key: "orderTotal",
+      render: (_, t) => <>Rs {t.orderTotal.toLocaleString()}</>,
+    },
+    {
+      title: "Taxable Amount",
+      key: "taxableAmount",
+      render: (_, t) => <>Rs {t.taxableAmount.toLocaleString()}</>,
+    },
+    {
+      title: "Tax Collected",
+      key: "taxCollected",
+      render: (_, t) => <>Rs {t.taxCollected.toLocaleString()}</>,
+    },
   ];
 
   return (
@@ -126,41 +138,41 @@ const TaxReportPage = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                layout="inline"
+                onFinish={() => fetchReport()}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item className="!mb-0">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      required
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                    <span className="text-gray-400 font-medium">-</span>
+                    <input
+                      type="date"
+                      required
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
+                    />
+                  </div>
+                </Form.Item>
+                <Form.Item className="!mb-0">
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  >
+                    <IconFilter size={15} />
+                    Filter
+                  </button>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={handleExportExcel}
@@ -176,7 +188,9 @@ const TaxReportPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 
@@ -287,14 +301,17 @@ const TaxReportPage = () => {
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <Table 
-            columns={columns}
-            dataSource={report.transactions}
-            rowKey={(r: any) => r.id || r.date || r.month || Math.random().toString()}
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-            scroll={{ x: 'max-content' }}
-          />
+                  <Table
+                    bordered
+                    columns={columns}
+                    dataSource={report.transactions}
+                    rowKey={(r: any) =>
+                      r.id || r.date || r.month || Math.random().toString()
+                    }
+                    pagination={{ pageSize: 15, position: ["bottomRight"] }}
+                    className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
+                    scroll={{ x: "max-content" }}
+                  />
                 </div>
 
                 {/* Pagination */}

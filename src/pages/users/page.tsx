@@ -39,6 +39,7 @@ import {
   Typography,
   Statistic,
   Switch,
+  Card,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 
@@ -469,7 +470,7 @@ const UsersPage = () => {
         {/* PREMIUM HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-10 bg-blue-600 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 System Administration
@@ -505,44 +506,106 @@ const UsersPage = () => {
           </div>
         </div>
 
+        {/* STAT CARDS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="shadow-sm border-0 bg-gray-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <IconUsers size={20} className="text-gray-600" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Total
+                </p>
+                <p className="text-2xl font-black text-gray-900">
+                  {pagination.total}
+                </p>
+              </div>
+            </div>
+          </Card>
+          <Card className="shadow-sm border-0 bg-green-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <IconUsers size={20} className="text-green-600" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Active
+                </p>
+                <p className="text-2xl font-black text-green-600">
+                  {stats.active}
+                </p>
+              </div>
+            </div>
+          </Card>
+          <Card className="shadow-sm border-0 bg-red-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <IconUsers size={20} className="text-red-400" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Inactive
+                </p>
+                <p className="text-2xl font-black text-red-400">
+                  {stats.inactive}
+                </p>
+              </div>
+            </div>
+          </Card>
+          <Card className="shadow-sm border-0 bg-blue-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <IconUsers size={20} className="text-blue-600" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Admins
+                </p>
+                <p className="text-2xl font-black text-blue-600">
+                  {stats.admins}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
         {/* Filters */}
-        <div className="bg-transparent space-y-8">
+        <Card size="small" className="shadow-sm">
           <Form
             form={form}
             layout="inline"
             onFinish={handleFilterSubmit}
             initialValues={{ role: "all", status: "all" }}
-            className="flex flex-wrap items-center gap-3 w-full"
+            className="flex flex-wrap gap-2 w-full"
           >
             <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
               <Input
-                prefix={<IconSearch size={18} className="text-gray-400" />}
+                prefix={<IconSearch size={15} className="text-gray-400" />}
                 placeholder="Search by name or email..."
-                className="rounded-xl h-11"
                 allowClear
               />
             </Form.Item>
             <Form.Item name="status" className="!mb-0 w-36">
-              <Select className="h-11 rounded-xl" placeholder="Status">
+              <Select>
                 <Option value="all">All Status</Option>
                 <Option value="Active">Active</Option>
                 <Option value="Inactive">Inactive</Option>
               </Select>
             </Form.Item>
             <Form.Item name="role" className="!mb-0 w-36">
-              <Select className="h-11 rounded-xl" placeholder="Role">
+              <Select>
                 <Option value="all">All Roles</Option>
                 <Option value="ADMIN">ADMIN</Option>
                 <Option value="USER">USER</Option>
               </Select>
             </Form.Item>
             <Form.Item className="!mb-0">
-              <div className="flex items-center h-11 px-4 bg-white rounded-xl border border-gray-100">
+              <div className="flex items-center h-8 px-3 bg-gray-50 rounded border border-gray-200 gap-2">
                 <Switch
                   checked={showAnonymous}
                   onChange={setShowAnonymous}
                   size="small"
-                  className="mr-3"
                 />
                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">
                   {showAnonymous ? "Anonymous" : "Registered"}
@@ -550,49 +613,33 @@ const UsersPage = () => {
               </div>
             </Form.Item>
             <Form.Item className="!mb-0">
-              <div className="flex gap-2">
+              <Space>
                 <Button
                   type="primary"
                   htmlType="submit"
-                  icon={<IconFilter size={18} />}
-                  className="rounded-xl h-11 px-6 font-bold"
+                  icon={<IconFilter size={15} />}
                 >
-                  Apply
+                  Filter
                 </Button>
-                <Button
-                  icon={<IconX size={18} />}
-                  onClick={handleReset}
-                  className="rounded-xl h-11 px-4 flex items-center gap-2"
-                >
+                <Button icon={<IconX size={15} />} onClick={handleReset}>
                   Clear
                 </Button>
-              </div>
+              </Space>
             </Form.Item>
           </Form>
+        </Card>
 
-          {/* Table */}
-          <div className="flex justify-between items-center mb-4 px-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Directory
-              </span>
-              <Tag className="rounded-full px-3 font-bold bg-gray-100 border-none text-gray-600">
-                {displayedUsers.length} / {pagination.total} Users
-              </Tag>
-            </div>
-          </div>
-
-          <Table
-            scroll={{ x: "max-content" }}
-            columns={columns}
-            dataSource={displayedUsers}
-            rowKey="userId"
-            pagination={{ ...pagination, position: ["bottomCenter"] }}
-            loading={loading}
-            onChange={handleTableChange}
-            className="border border-gray-100 rounded-xl overflow-hidden shadow-none"
-          />
-        </div>
+        {/* Table */}
+        <Table
+          scroll={{ x: 1000 }}
+          columns={columns}
+          dataSource={displayedUsers}
+          rowKey="userId"
+          pagination={{ ...pagination, position: ["bottomRight"] }}
+          loading={loading}
+          onChange={handleTableChange}
+          bordered
+        />
       </div>
 
       <UserForm

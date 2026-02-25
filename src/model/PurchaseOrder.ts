@@ -1,11 +1,11 @@
 import { Timestamp } from "firebase/firestore";
 
 export type PurchaseOrderStatus =
-  | "draft"
-  | "sent"
-  | "partial"
-  | "received"
-  | "cancelled";
+  | "DRAFT"
+  | "SUBMITTED"
+  | "APPROVED"
+  | "REJECTED"
+  | "COMPLETED";
 
 export interface PurchaseOrderItem {
   productId: string;
@@ -36,17 +36,17 @@ export interface PurchaseOrder {
 }
 
 export const PO_STATUS_LABELS: Record<PurchaseOrderStatus, string> = {
-  draft: "Draft",
-  sent: "Sent to Supplier",
-  partial: "Partially Received",
-  received: "Fully Received",
-  cancelled: "Cancelled",
+  DRAFT: "Draft",
+  SUBMITTED: "Sent",
+  APPROVED: "Partial",
+  COMPLETED: "Completed",
+  REJECTED: "Cancelled",
 };
 
 export const PO_STATUS_COLORS: Record<PurchaseOrderStatus, string> = {
-  draft: "bg-gray-100 text-gray-800",
-  sent: "bg-blue-100 text-blue-800",
-  partial: "bg-yellow-100 text-yellow-800",
-  received: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
+  DRAFT: "bg-gray-100 text-gray-800",
+  SUBMITTED: "bg-blue-100 text-blue-800",
+  APPROVED: "bg-yellow-100 text-yellow-800",
+  COMPLETED: "bg-green-100 text-green-800",
+  REJECTED: "bg-red-100 text-red-800",
 };

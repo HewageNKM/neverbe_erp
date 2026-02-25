@@ -161,10 +161,10 @@ const BankAccountsPage = () => {
   return (
     <PageContainer title="Bank Accounts">
       <div className="w-full space-y-4 md:space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-end mb-8">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Finance
@@ -176,9 +176,10 @@ const BankAccountsPage = () => {
           </div>
           <Button
             type="primary"
+            size="large"
             icon={<IconPlus size={18} />}
             onClick={openAddModal}
-            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             Add Account
           </Button>

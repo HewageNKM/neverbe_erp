@@ -59,7 +59,7 @@ const emptyCombo: Partial<ComboProduct> = {
   thumbnail: undefined,
 };
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ALLOWED_FILE_TYPES = [
   "image/jpeg",
   "image/png",
@@ -156,9 +156,9 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
       toast.error("Invalid file type. Use JPEG, PNG, WEBP, or HEIC.");
       return Upload.LIST_IGNORE;
     }
-    const isLt3M = file.size / 1024 / 1024 < 3;
-    if (!isLt3M) {
-      toast.error("Image must be smaller than 3MB!");
+    const isLt20M = file.size / 1024 / 1024 < 20;
+    if (!isLt20M) {
+      toast.error("Image must be smaller than 20MB!");
       return Upload.LIST_IGNORE;
     }
 
@@ -356,7 +356,7 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
               }
             >
               <Form.List name="items">
-                {(fields, { add, remove }) => (
+                {(fields, { remove }) => (
                   <div className="space-y-4">
                     {fields.map(({ key, name, ...restField }) => (
                       <div

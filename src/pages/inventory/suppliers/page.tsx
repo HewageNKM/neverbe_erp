@@ -1,25 +1,32 @@
 import type { ColumnsType } from "antd/es/table";
-import { Button, Table, Input, Select, Modal } from "antd";
+import {
+  Button,
+  Table,
+  Input,
+  Select,
+  Modal,
+  Form,
+  Card,
+  Tag,
+  Space,
+  Typography,
+} from "antd";
 import React, { useState, useEffect } from "react";
-import { IconPlus, IconEdit, IconTrash, IconSearch } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconEdit,
+  IconTrash,
+  IconSearch,
+  IconFilter,
+  IconX,
+} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
 
-interface Supplier {
-  id?: string;
-  name: string;
-  contactPerson?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  paymentTerms?: string;
-  notes?: string;
-  status: "active" | "inactive";
-}
+import { Supplier } from "@/model/Supplier";
 
 const DEFAULT_SUPPLIER: Supplier = {
   name: "",
@@ -30,48 +37,69 @@ const DEFAULT_SUPPLIER: Supplier = {
   city: "",
   paymentTerms: "COD",
   notes: "",
-  status: "active",
+  status: true,
 };
 
 const SuppliersPage = () => {
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [search, setSearch] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [formData, setFormData] = useState<Supplier>(DEFAULT_SUPPLIER);
   const [saving, setSaving] = useState(false);
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
-  const fetchSuppliers = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get<Supplier[]>(
-        "/api/v1/erp/procurement/suppliers",
-      );
-      setSuppliers(res.data);
-    } catch {
-      toast.error("Failed to fetch suppliers");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchSuppliers = React.useCallback(
+    async (values?: any) => {
+      setLoading(true);
+      try {
+        const filters = values || form.getFieldsValue();
+        const params: Record<string, string | boolean> = {};
+
+        if (filters.search) params.search = filters.search;
+        if (filters.status && filters.status !== "all") {
+          params.status = filters.status;
+        }
+
+        const res = await api.get<Supplier[]>(
+          "/api/v1/erp/procurement/suppliers",
+          { params },
+        );
+        setSuppliers(res.data);
+      } catch {
+        toast.error("Failed to fetch suppliers");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [form],
+  );
 
   useEffect(() => {
     if (currentUser) fetchSuppliers();
-  }, [currentUser]);
+  }, [currentUser, fetchSuppliers]);
+
+  const handleFilterSubmit = (values: any) => {
+    fetchSuppliers(values);
+  };
+
+  const handleClearFilters = () => {
+    form.resetFields();
+    fetchSuppliers({});
+  };
 
   const handleAdd = () => {
     setEditingSupplier(null);
     setFormData(DEFAULT_SUPPLIER);
-    setShowModal(true);
+    setIsModalOpen(true);
   };
 
   const handleEdit = (supplier: Supplier) => {
     setEditingSupplier(supplier);
     setFormData(supplier);
-    setShowModal(true);
+    setIsModalOpen(true);
   };
 
   const handleSave = async () => {
@@ -91,7 +119,7 @@ const SuppliersPage = () => {
         await api.post("/api/v1/erp/procurement/suppliers", formData);
         toast.success("Supplier created");
       }
-      setShowModal(false);
+      setIsModalOpen(false);
       fetchSuppliers();
     } catch {
       toast.error("Failed to save supplier");
@@ -111,13 +139,7 @@ const SuppliersPage = () => {
     }
   };
 
-  const filteredSuppliers = suppliers.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.contactPerson?.toLowerCase().includes(search.toLowerCase()) ||
-      s.phone?.includes(search),
-  );
-  const columns: ColumnsType<any> = [
+  const columns: ColumnsType<Supplier> = [
     {
       title: "Name",
       key: "name",
@@ -149,39 +171,29 @@ const SuppliersPage = () => {
       title: "Status",
       key: "status",
       render: (_, supplier) => (
-        <>
-          <span
-            className={`px-2 py-1 text-xs font-bold  ${
-              supplier.status === "active"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-600"
-            }`}
-          >
-            {supplier.status}
-          </span>
-        </>
+        <Tag color={supplier.status ? "success" : "error"}>
+          {supplier.status ? "ACTIVE" : "INACTIVE"}
+        </Tag>
       ),
     },
     {
       title: "Actions",
       key: "actions",
       render: (_, supplier) => (
-        <>
-          <div className="flex items-center justify-end gap-2">
-            <button
-              onClick={() => handleEdit(supplier)}
-              className="p-2 hover:bg-gray-100 transition-colors"
-            >
-              <IconEdit size={16} />
-            </button>
-            <button
-              onClick={() => handleDelete(supplier.id!)}
-              className="p-2 hover:bg-red-50 text-red-600 transition-colors"
-            >
-              <IconTrash size={16} />
-            </button>
-          </div>
-        </>
+        <Space>
+          <button
+            onClick={() => handleEdit(supplier)}
+            className="p-2 hover:bg-gray-100 transition-colors"
+          >
+            <IconEdit size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(supplier.id!)}
+            className="p-2 hover:bg-red-50 text-red-600 transition-colors"
+          >
+            <IconTrash size={16} />
+          </button>
+        </Space>
       ),
     },
   ];
@@ -191,7 +203,7 @@ const SuppliersPage = () => {
       title="Suppliers"
       description="Procurement & Vendor Directory"
     >
-      <div className="space-y-6">
+      <Space direction="vertical" size="large" className="w-full">
         {/* PREMIUM HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
@@ -216,39 +228,66 @@ const SuppliersPage = () => {
           </Button>
         </div>
 
-        {/* Search & Table */}
-        <div className="bg-transparent space-y-8">
-          <div className="flex gap-3">
-            <Input
-              prefix={<IconSearch size={18} className="text-gray-400" />}
-              placeholder="Search suppliers by name, contact or phone..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="rounded-xl h-11 flex-1"
-              allowClear
-            />
-          </div>
+        {/* Filter bar */}
+        <Card size="small" className="shadow-sm mb-4!">
+          <Form
+            form={form}
+            layout="inline"
+            onFinish={handleFilterSubmit}
+            initialValues={{ status: "all" }}
+            className="flex flex-wrap gap-2 w-full"
+          >
+            <Form.Item name="search" className="mb-0! flex-1 min-w-[200px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search by name, contact or phone..."
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item name="status" className="mb-0! w-48">
+              <Select>
+                <Select.Option value="all">All Status</Select.Option>
+                <Select.Option value="active">Active</Select.Option>
+                <Select.Option value="inactive">Inactive</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item className="mb-0!">
+              <Space>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<IconFilter size={15} />}
+                >
+                  Filter
+                </Button>
+                <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
 
-          <div className="mt-0">
-            <Table
-              scroll={{ x: "max-content" }}
-              columns={columns}
-              dataSource={filteredSuppliers}
-              loading={loading}
-              rowKey={(r: any) => r.id || Math.random().toString()}
-              pagination={{ pageSize: 15 }}
-              className="border border-gray-100 rounded-xl overflow-hidden shadow-none"
-            />
-          </div>
-        </div>
+        {/* Table */}
+        <Table
+          scroll={{ x: 1000 }}
+          bordered
+          columns={columns}
+          dataSource={suppliers}
+          loading={loading}
+          rowKey={(r) => r.id || Math.random().toString()}
+          pagination={{ pageSize: 15, position: ["bottomRight"] }}
+          size="small"
+          className="border border-gray-100 rounded-xl overflow-hidden shadow-none"
+        />
 
         <Modal
-          open={showModal}
+          open={isModalOpen}
           title={editingSupplier ? "Edit Supplier" : "Add Supplier"}
-          onCancel={() => setShowModal(false)}
+          onCancel={() => setIsModalOpen(false)}
           footer={
             <div className="flex justify-end gap-3">
-              <Button onClick={() => setShowModal(false)}>Cancel</Button>
+              <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
               <Button type="primary" onClick={handleSave} loading={saving}>
                 {editingSupplier ? "Update" : "Create"}
               </Button>
@@ -347,21 +386,39 @@ const SuppliersPage = () => {
                 rows={2}
               />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-2">
-                Notes
-              </label>
-              <Input.TextArea
-                value={formData.notes || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                rows={2}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2">
+                  Status
+                </label>
+                <Select
+                  className="w-full"
+                  value={formData.status ? "active" : "inactive"}
+                  onChange={(val) =>
+                    setFormData({ ...formData, status: val === "active" })
+                  }
+                  options={[
+                    { value: "active", label: "Active" },
+                    { value: "inactive", label: "Inactive" },
+                  ]}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2">
+                  Notes
+                </label>
+                <Input.TextArea
+                  value={formData.notes || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, notes: e.target.value })
+                  }
+                  rows={2}
+                />
+              </div>
             </div>
           </div>
         </Modal>
-      </div>
+      </Space>
     </PageContainer>
   );
 };

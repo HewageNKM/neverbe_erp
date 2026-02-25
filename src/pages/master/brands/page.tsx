@@ -105,8 +105,8 @@ const BrandPage: React.FC = () => {
   };
 
   const beforeUpload = (file: File) => {
-    if (file.size > 3 * 1024 * 1024) {
-      toast.error("Logo must be less than 3MB");
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Logo must be less than 20MB");
       return Upload.LIST_IGNORE;
     }
     setLogoFile(file);
@@ -309,7 +309,8 @@ const BrandPage: React.FC = () => {
 
         {/* Table */}
         <Table
-          scroll={{ x: "max-content" }}
+          scroll={{ x: 1000 }}
+          bordered
           columns={columns}
           dataSource={brands}
           loading={loading}
@@ -321,6 +322,7 @@ const BrandPage: React.FC = () => {
             onChange: (page, size) =>
               setPagination((prev) => ({ ...prev, page, size })),
             showSizeChanger: true,
+            position: ["bottomRight"],
           }}
           className="border border-gray-200 rounded-md overflow-hidden bg-white"
         />

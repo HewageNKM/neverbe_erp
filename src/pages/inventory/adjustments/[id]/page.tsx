@@ -12,6 +12,7 @@ import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
 import {
   ADJUSTMENT_STATUS_COLORS,
+  ADJUSTMENT_STATUS_LABELS,
   AdjustmentStatus,
 } from "@/model/InventoryAdjustment";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
@@ -93,7 +94,7 @@ const ViewAdjustmentPage = () => {
   }, [currentUser, adjustmentId, fetchAdjustment]);
 
   const handleUpdateStatus = (status: AdjustmentStatus) => {
-    const isApproved = status === "APPROVED";
+    const isApproved = status === "COMPLETED";
 
     showConfirmation({
       title: `Confirm ${status.toLowerCase()}`,
@@ -103,7 +104,7 @@ const ViewAdjustmentPage = () => {
       variant:
         status === "REJECTED" ? "danger" : isApproved ? "default" : "warning",
       confirmText:
-        status === "APPROVED"
+        status === "COMPLETED"
           ? "Approve"
           : status === "REJECTED"
             ? "Reject"
@@ -229,10 +230,12 @@ const ViewAdjustmentPage = () => {
           </div>
           <div className="flex items-center gap-3">
             <Tag
-              color={ADJUSTMENT_STATUS_COLORS[adjustment.status]}
-              className="px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider"
+              className={`px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider ${
+                ADJUSTMENT_STATUS_COLORS[adjustment.status] ||
+                "bg-gray-100 text-gray-800"
+              }`}
             >
-              {adjustment.status}
+              {ADJUSTMENT_STATUS_LABELS[adjustment.status] || adjustment.status}
             </Tag>
             <Tag
               className={`px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider ${TYPE_COLORS[adjustment.type]}`}
@@ -252,7 +255,7 @@ const ViewAdjustmentPage = () => {
                 <Button
                   type="primary"
                   className="rounded-full px-6 font-bold text-xs uppercase tracking-wider bg-green-600 hover:bg-green-700 border-none h-auto py-2.5 shadow-none"
-                  onClick={() => handleUpdateStatus("APPROVED")}
+                  onClick={() => handleUpdateStatus("COMPLETED")}
                 >
                   Approve
                 </Button>

@@ -1,23 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  Card,
-  Form,
-  Input,
-  Select,
-  Button,
-  Space,
-  Spin,
-  Table,
-  Tag,
-} from "antd";
+import { Card, Form, Input, Select, Button, Space, Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
   IconPlus,
   IconEye,
   IconSearch,
   IconFilter,
-  IconShoppingCart,
   IconX,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
@@ -173,7 +162,7 @@ const PurchaseOrdersPage = () => {
       <div className="w-full space-y-8">
         <div className="flex justify-between items-end mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Procurement
@@ -187,7 +176,7 @@ const PurchaseOrdersPage = () => {
             type="primary"
             icon={<IconPlus size={18} />}
             onClick={() => setIsModalOpen(true)}
-            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             New Order
           </Button>
@@ -219,13 +208,13 @@ const PurchaseOrdersPage = () => {
               />
             </Form.Item>
             <Form.Item name="status" className="!mb-0 w-40">
-              <Select>
+              <Select placeholder="All Status" allowClear>
                 <Select.Option value="">All Status</Select.Option>
-                <Select.Option value="draft">Draft</Select.Option>
-                <Select.Option value="sent">Sent</Select.Option>
-                <Select.Option value="partial">Partial</Select.Option>
-                <Select.Option value="received">Received</Select.Option>
-                <Select.Option value="cancelled">Cancelled</Select.Option>
+                {Object.entries(PO_STATUS_LABELS).map(([value, label]) => (
+                  <Select.Option key={value} value={value}>
+                    {label}
+                  </Select.Option>
+                ))}
               </Select>
             </Form.Item>
             <Form.Item className="!mb-0">
@@ -248,13 +237,13 @@ const PurchaseOrdersPage = () => {
         {/* Table */}
         <div className="mt-6">
           <Table
-            scroll={{ x: "max-content" }}
+            scroll={{ x: 1000 }}
+            bordered
             columns={columns}
             dataSource={filteredOrders}
             loading={loading}
             rowKey="id"
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm"
+            pagination={{ pageSize: 15, position: ["bottomRight"] }}
           />
         </div>
       </div>

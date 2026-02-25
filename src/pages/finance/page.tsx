@@ -166,7 +166,7 @@ const FinanceDashboard = () => {
         {/* Header */}
         <div className="flex justify-between items-end mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Finance
@@ -179,7 +179,7 @@ const FinanceDashboard = () => {
           <Button
             type="primary"
             icon={<IconTrendingUp size={16} />}
-            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             Generate Report
           </Button>
@@ -335,7 +335,8 @@ const FinanceDashboard = () => {
           }
         >
           <Table
-            scroll={{ x: "max-content" }}
+            scroll={{ x: 1000 }}
+                      bordered
             columns={transactionColumns}
             dataSource={recentTransactions}
             rowKey="id"

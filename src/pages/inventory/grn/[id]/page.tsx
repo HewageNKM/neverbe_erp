@@ -1,5 +1,5 @@
 import type { ColumnsType } from "antd/es/table";
-import { Spin, Table, Button, Card, Descriptions, Tag, Typography } from "antd";
+import { Spin, Table, Card, Descriptions, Tag, Typography } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -9,6 +9,8 @@ import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+
+import { GRN_STATUS_COLORS, GRN_STATUS_LABELS } from "@/model/GRN";
 
 const { Text, Title } = Typography;
 
@@ -38,6 +40,7 @@ interface GRN {
   receivedBy?: string;
   receivedDate: string;
   inventoryUpdated: boolean;
+  status: string;
 }
 
 const ViewGRNPage = () => {
@@ -157,10 +160,12 @@ const ViewGRNPage = () => {
               </Tag>
             )}
             <Tag
-              color="processing"
-              className="px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider"
+              className={`px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider ${
+                GRN_STATUS_COLORS[grn.status as any] ||
+                "bg-blue-100 text-blue-800"
+              }`}
             >
-              Received
+              {GRN_STATUS_LABELS[grn.status as any] || grn.status}
             </Tag>
           </div>
         </div>

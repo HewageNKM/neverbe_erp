@@ -299,20 +299,25 @@ const ProductPage = () => {
   return (
     <PageContainer title="Products" description="Products Management">
       <Space direction="vertical" size="large" className="w-full">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <Typography.Title level={2} className="!m-0">
-              Products
-            </Typography.Title>
-            <Typography.Text type="secondary">
-              Catalog Management
-            </Typography.Text>
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Catalog Management
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Products
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
+            size="large"
             icon={<IconPlus size={18} />}
             onClick={handleOpenCreateModal}
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             New Product
           </Button>
@@ -392,11 +397,12 @@ const ProductPage = () => {
 
         {/* Table */}
         <Table
-          scroll={{ x: "max-content" }}
+          scroll={{ x: 1000 }}
+                    bordered
           columns={columns}
           dataSource={products}
           rowKey="productId"
-          pagination={pagination}
+          pagination={{ ...pagination, position: ["bottomRight"] }}
           loading={loading}
           onChange={handleTableChange}
           size="small"

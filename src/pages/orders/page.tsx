@@ -282,12 +282,10 @@ const OrdersPage = () => {
       description="Manage Customer Orders"
     >
       <Space direction="vertical" size="large" className="w-full">
-        {/* Header - Kept simpler or matched layout? Let's use standard AntD layout logic if possible, 
-            but kept the header visual style consistently with other refactored pages if any. 
-            The legacy header had a refresh button. */}
-        <div className="flex justify-between items-end mb-8">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
                 Management
@@ -389,7 +387,7 @@ const OrdersPage = () => {
           columns={columns}
           dataSource={orders}
           rowKey="orderId"
-          pagination={pagination}
+          pagination={{ ...pagination, position: ["bottomRight"] }}
           loading={isLoading}
           onChange={handleTableChange}
           scroll={{ x: 1000 }}

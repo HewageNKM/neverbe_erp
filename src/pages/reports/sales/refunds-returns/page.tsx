@@ -217,9 +217,10 @@ const RefundsReturnsReport = () => {
               columns={columns}
               dataSource={report.items || []}
               rowKey={(record, index) => index as number}
-              pagination={{ pageSize: 15 }}
+              pagination={{ pageSize: 15, position: ["bottomRight"] }}
               className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
-              scroll={{ x: "max-content" }}
+              scroll={{ x: 1000 }}
+                      bordered
             />
           </div>
         )}

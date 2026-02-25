@@ -471,7 +471,8 @@ const NewAdjustmentModal: React.FC<NewAdjustmentModalProps> = ({
               {/* Items Table */}
               <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden min-h-[200px]">
                 <Table
-                  scroll={{ y: 300 }}
+                  bordered
+                  scroll={{ y: 300, x: 800 }}
                   columns={columns}
                   dataSource={items}
                   size="small"
