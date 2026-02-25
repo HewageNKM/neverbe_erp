@@ -3,16 +3,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
   Tag,
-  Statistic,
   Table,
   Image,
-  Breadcrumb,
   Skeleton,
   Badge,
   Button,
   Empty,
   Tooltip,
+  Descriptions,
+  Statistic,
+  Typography,
 } from "antd";
+
+const { Text } = Typography;
 import {
   IconChevronLeft,
   IconEdit,
@@ -169,281 +172,356 @@ const ProductViewPage = () => {
       title={product.name}
       description={`Details for ${product.name}`}
     >
-      <div className="space-y-6 max-w-7xl mx-auto">
-        {/* Breadcrumb + Actions */}
-        <div className="flex items-center justify-between">
-          <Breadcrumb
-            items={[
-              {
-                title: (
-                  <Link
-                    to="/master/products"
-                    className="flex items-center gap-1 !text-green-600 hover:!text-green-700 font-medium transition-colors"
-                  >
-                    <IconChevronLeft size={14} />
-                    Products
-                  </Link>
-                ),
-              },
-              { title: <span className="font-semibold">{product.name}</span> },
-            ]}
-          />
-          <Tooltip title="Edit product">
-            <Button
-              icon={<IconEdit size={16} />}
-              onClick={() => navigate(`/master/products`)}
-            >
-              Edit
-            </Button>
-          </Tooltip>
+      <div className="space-y-8">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-gray-500 text-sm">
+          <Link
+            to="/master/products"
+            className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
+          >
+            Catalog
+          </Link>
+          <span className="text-gray-300">/</span>
+          <Link
+            to="/master/products"
+            className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
+          >
+            Products
+          </Link>
+          <span className="text-gray-300">/</span>
+          <Text strong className="text-gray-700">
+            {product.name}
+          </Text>
         </div>
 
-        {/* Main content: image + details */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* ── Left: Image gallery ── */}
-          <div className="lg:col-span-5 space-y-3">
-            {/* Main image */}
-            <Card
-              className="overflow-hidden p-0"
-              styles={{ body: { padding: 0 } }}
-            >
-              <div className="aspect-square bg-gray-50 flex items-center justify-center rounded-lg overflow-hidden">
-                {activeImage ? (
-                  <Image
-                    src={activeImage}
-                    alt={product.name}
-                    className="w-full h-full object-contain"
-                    style={{ maxHeight: "400px" }}
-                    preview={{ mask: <IconPhoto size={20} /> }}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center text-gray-300 gap-2">
-                    <IconPhoto size={48} />
-                    <span className="text-sm">No image</span>
-                  </div>
+        {/* Header & Main Actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 shrink-0">
+              <IconTag size={32} stroke={1.5} />
+            </div>
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <Text className="text-xs font-bold text-green-600 uppercase tracking-wider">
+                  {product.brand} · {product.category}
+                </Text>
+                <Tag
+                  color={product.status ? "success" : "default"}
+                  className="rounded-full px-3 text-[10px] font-bold uppercase border-none"
+                >
+                  {product.status ? "Active" : "Inactive"}
+                </Tag>
+                {product.listing && (
+                  <Tag
+                    color="blue"
+                    className="rounded-full px-3 text-[10px] font-bold uppercase border-none"
+                  >
+                    Listed
+                  </Tag>
                 )}
               </div>
-            </Card>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight m-0">
+                {product.name}
+              </h1>
+              <Text className="text-gray-400 font-mono text-xs">
+                SKU: {product.productId}
+              </Text>
+            </div>
+          </div>
+          <div className="flex gap-3 w-full sm:w-auto">
+            <Button
+              size="large"
+              className="flex-1 sm:flex-none rounded-xl font-semibold inline-flex items-center justify-center gap-2"
+              icon={<IconEdit size={18} />}
+              onClick={() => navigate(`/master/products`)}
+            >
+              Edit Product
+            </Button>
+          </div>
+        </div>
 
-            {/* Thumbnails */}
-            {allImages.length > 1 && (
-              <Image.PreviewGroup>
-                <div className="grid grid-cols-5 gap-2">
-                  {allImages.map((img, i) => (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column: Media & Primary Info (Lg: 5/12) */}
+          <div className="lg:col-span-5 space-y-8">
+            {/* Image Gallery Container */}
+            <div className="space-y-4">
+              <Card
+                className="border-none rounded-3xl overflow-hidden bg-gray-50 shadow-none ring-1 ring-gray-100"
+                styles={{ body: { padding: 0 } }}
+              >
+                <div className="aspect-square flex items-center justify-center rounded-2xl overflow-hidden relative group">
+                  {activeImage ? (
+                    <Image
+                      src={activeImage}
+                      alt={product.name}
+                      className="w-full h-full object-contain mix-blend-multiply"
+                      style={{ maxHeight: "450px" }}
+                      preview={{
+                        mask: (
+                          <div className="flex items-center gap-2 font-bold text-white uppercase tracking-widest text-[10px]">
+                            <IconPhoto size={20} /> Preview
+                          </div>
+                        ),
+                      }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center text-gray-300 gap-2">
+                      <IconPhoto size={64} stroke={1} />
+                      <span className="text-xs font-bold uppercase tracking-wider">
+                        No image available
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Thumbnails Swiper-like grid */}
+              {allImages.length > 1 && (
+                <div className="grid grid-cols-5 gap-3 px-1">
+                  {allImages.slice(0, 5).map((img, i) => (
                     <div
                       key={i}
                       onClick={() => setActiveImage(img.url)}
-                      className={`aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                      className={`aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-300 ${
                         activeImage === img.url
-                          ? "border-gray-200 ring-2 ring-green-200"
-                          : "border-transparent hover:border-gray-300"
+                          ? "border-green-500 shadow-md transform scale-105"
+                          : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                     >
-                      <Image
+                      <img
                         src={img.url}
                         className="w-full h-full object-cover"
                         alt=""
-                        preview={false}
                       />
                     </div>
                   ))}
                 </div>
-              </Image.PreviewGroup>
-            )}
-          </div>
-
-          {/* ── Right: Product details ── */}
-          <div className="lg:col-span-7 space-y-4">
-            {/* Header card */}
-            <Card>
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div>
-                  <p className="text-xs text-gray-400 font-medium mb-1 uppercase tracking-wider">
-                    {product.brand} · {product.category}
-                  </p>
-                  <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-                    {product.name}
-                  </h1>
-                  <p className="text-xs font-mono text-gray-400 mt-1">
-                    SKU: {product.productId}
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 items-end shrink-0">
-                  <Tag
-                    color={product.status ? "success" : "default"}
-                    className="!text-xs"
-                  >
-                    {product.status ? "Active" : "Inactive"}
-                  </Tag>
-                  <Tag
-                    color={product.listing ? "blue" : "default"}
-                    className="!text-xs"
-                  >
-                    {product.listing ? "Listed" : "Unlisted"}
-                  </Tag>
-                </div>
-              </div>
-
-              {product.description && (
-                <p className="text-sm text-gray-600 leading-relaxed border-t border-gray-100 pt-3 mt-3">
-                  {product.description}
-                </p>
               )}
-            </Card>
-
-            {/* Pricing cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <Card size="small" className="bg-green-50 border-gray-200">
-                <Statistic
-                  title={
-                    <span className="text-xs text-green-700">
-                      Selling Price
-                    </span>
-                  }
-                  value={product.sellingPrice}
-                  prefix={<IconCurrencyRupee size={14} />}
-                  valueStyle={{
-                    color: "#16a34a",
-                    fontSize: 18,
-                    fontWeight: 700,
-                  }}
-                  formatter={(v) => Number(v).toLocaleString()}
-                />
-              </Card>
-              <Card size="small">
-                <Statistic
-                  title={
-                    <span className="text-xs text-gray-500">Market Price</span>
-                  }
-                  value={product.marketPrice}
-                  prefix={<IconCurrencyRupee size={14} />}
-                  valueStyle={{ fontSize: 16, fontWeight: 600 }}
-                  formatter={(v) => Number(v).toLocaleString()}
-                />
-              </Card>
-              <Card size="small">
-                <Statistic
-                  title={
-                    <span className="text-xs text-gray-500">Cost Price</span>
-                  }
-                  value={product.buyingPrice}
-                  prefix={<IconCurrencyRupee size={14} />}
-                  valueStyle={{ fontSize: 16, fontWeight: 600 }}
-                  formatter={(v) => Number(v).toLocaleString()}
-                />
-              </Card>
-              <Card size="small" className="bg-red-50 border-red-100">
-                <Statistic
-                  title={<span className="text-xs text-red-600">Discount</span>}
-                  value={product.discount}
-                  suffix="%"
-                  valueStyle={{
-                    color: "#dc2626",
-                    fontSize: 16,
-                    fontWeight: 700,
-                  }}
-                />
-              </Card>
             </div>
 
-            {/* Specs row */}
-            <Card size="small">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Stock</p>
-                  <span
-                    className={`font-bold ${product.inStock ? "text-green-600" : "text-red-500"}`}
-                  >
-                    {product.inStock
-                      ? `${product.totalStock} units`
-                      : "Out of stock"}
+            {/* Product Overview / Description */}
+            <Card
+              title={
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 bg-green-500 rounded-full" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-gray-500">
+                    Product Narrative
                   </span>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Weight</p>
-                  <span className="font-semibold">
-                    {product.weight ?? "—"} g
+              }
+              className="border border-gray-100 rounded-2xl bg-white shadow-none"
+            >
+              <div className="text-sm text-gray-600 leading-relaxed font-medium">
+                {product.description || (
+                  <span className="italic text-gray-400">
+                    No description provided for this catalog item.
                   </span>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Gender</p>
-                  <div className="flex flex-wrap gap-1">
-                    {(product as unknown as Record<string, unknown[]>).gender &&
-                    (
-                      (product as unknown as Record<string, unknown[]>)
-                        .gender as string[]
-                    ).length > 0 ? (
-                      (
-                        (product as unknown as Record<string, unknown[]>)
-                          .gender as string[]
-                      ).map((g: string) => (
-                        <Tag key={g} color="green" className="!text-xs">
-                          {g}
-                        </Tag>
-                      ))
-                    ) : (
-                      <span className="text-gray-300 text-xs">—</span>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Sizes</p>
-                  <div className="flex flex-wrap gap-1">
-                    {(product as unknown as Record<string, unknown[]>)
-                      .availableSizes &&
-                    (
-                      (product as unknown as Record<string, unknown[]>)
-                        .availableSizes as string[]
-                    ).length > 0 ? (
-                      (
-                        (product as unknown as Record<string, unknown[]>)
-                          .availableSizes as string[]
-                      ).map((s: string) => (
-                        <Tag key={s} className="!text-xs">
-                          {s}
-                        </Tag>
-                      ))
-                    ) : (
-                      <span className="text-gray-300 text-xs">—</span>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
             </Card>
 
-            {/* Tags */}
+            {/* Tags Box */}
             {product.tags && product.tags.length > 0 && (
-              <Card size="small">
-                <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
-                  <IconTag size={12} /> Tags
-                </p>
-                <div className="flex flex-wrap gap-1">
+              <Card
+                className="border border-gray-100 rounded-2xl bg-white shadow-none p-2"
+                styles={{ body: { padding: "12px" } }}
+              >
+                <div className="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3 px-1">
+                  <IconTag size={12} /> Keywords
+                </div>
+                <div className="flex flex-wrap gap-2">
                   {product.tags.map((tag) => (
-                    <Tag key={tag}>{tag}</Tag>
+                    <Tag
+                      key={tag}
+                      className="m-0 px-3 py-1 rounded-full border-gray-100 bg-gray-50 text-gray-600 font-bold"
+                    >
+                      {tag}
+                    </Tag>
                   ))}
                 </div>
               </Card>
             )}
           </div>
-        </div>
 
-        {/* Variants table */}
-        <div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-gray-600 mb-3 pb-2 border-b border-gray-200">
-            <IconRuler size={16} />
-            Product Variants ({product.variants?.length || 0})
+          {/* Right Column: Specs, Pricing & Variants (Lg: 7/12) */}
+          <div className="lg:col-span-7 space-y-8">
+            {/* Financial Performance Section */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="border border-gray-100 rounded-2xl bg-green-50/30 shadow-none hover:bg-green-50 transition-colors">
+                <Statistic
+                  title={
+                    <span className="text-[10px] uppercase font-bold text-green-700 tracking-widest">
+                      Primary Retail
+                    </span>
+                  }
+                  value={product.sellingPrice}
+                  prefix={<IconCurrencyRupee size={16} className="mb-1" />}
+                  valueStyle={{
+                    color: "#059669",
+                    fontSize: 24,
+                    fontWeight: 900,
+                  }}
+                  formatter={(v) => Number(v).toLocaleString()}
+                />
+                <div className="mt-1">
+                  <span className="text-[10px] font-bold text-green-600 uppercase">
+                    Active MSRP
+                  </span>
+                </div>
+              </Card>
+              <Card className="border border-gray-100 rounded-2xl bg-white shadow-none hover:border-gray-200 transition-colors">
+                <Statistic
+                  title={
+                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-widest">
+                      Market Value
+                    </span>
+                  }
+                  value={product.marketPrice}
+                  prefix={<IconCurrencyRupee size={14} className="mb-0.5" />}
+                  valueStyle={{
+                    color: "#1f2937",
+                    fontSize: 20,
+                    fontWeight: 700,
+                    textDecoration: "line-through",
+                    opacity: 0.3,
+                  }}
+                  formatter={(v) => Number(v).toLocaleString()}
+                />
+                <div className="mt-1">
+                  <Tag className="rounded-full bg-red-50 text-red-600 border-none font-bold text-[10px]">
+                    SAVE {product.discount}%
+                  </Tag>
+                </div>
+              </Card>
+            </div>
+
+            {/* Product Specifications Grid */}
+            <Card
+              title={
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 bg-gray-300 rounded-full" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-gray-500">
+                    Technical Specifications
+                  </span>
+                </div>
+              }
+              className="border border-gray-100 rounded-2xl bg-white shadow-none"
+            >
+              <Descriptions
+                bordered={false}
+                column={{ xxl: 2, xl: 2, lg: 1, md: 2, sm: 1, xs: 1 }}
+                size="middle"
+                labelStyle={{
+                  color: "#9ca3af",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  paddingBottom: 4,
+                }}
+                contentStyle={{
+                  color: "#111827",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  paddingBottom: 20,
+                }}
+              >
+                <Descriptions.Item label="Inventory Status">
+                  <span
+                    className={
+                      product.inStock ? "text-green-600" : "text-red-500"
+                    }
+                  >
+                    {product.inStock
+                      ? `${product.totalStock} units available`
+                      : "Stock Exhausted"}
+                  </span>
+                </Descriptions.Item>
+                <Descriptions.Item label="Unit Weight">
+                  {product.weight ? `${product.weight} g` : "Not specified"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Target Audience">
+                  <div className="flex flex-wrap gap-1">
+                    {(product as any).gender?.length > 0 ? (
+                      (product as any).gender.map((g: string) => (
+                        <Tag
+                          key={g}
+                          className="m-0 rounded-full border-gray-100 bg-gray-50 text-gray-600 text-xs font-bold"
+                        >
+                          {g}
+                        </Tag>
+                      ))
+                    ) : (
+                      <span className="text-gray-400 font-medium">Generic</span>
+                    )}
+                  </div>
+                </Descriptions.Item>
+                <Descriptions.Item label="Size Range">
+                  <div className="flex flex-wrap gap-1">
+                    {(product as any).availableSizes?.length > 0 ? (
+                      (product as any).availableSizes.map((s: string) => (
+                        <Tag
+                          key={s}
+                          className="m-0 rounded-md border-gray-200 bg-white text-gray-900 text-xs font-bold"
+                        >
+                          {s}
+                        </Tag>
+                      ))
+                    ) : (
+                      <span className="text-gray-400 font-medium">—</span>
+                    )}
+                  </div>
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+
+            {/* Variants Table Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <IconRuler size={18} className="text-gray-400" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-gray-500">
+                    Geometric Variants ({product.variants?.length || 0})
+                  </span>
+                </div>
+              </div>
+              <div className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none">
+                <Table
+                  scroll={{ x: "max-content" }}
+                  columns={variantColumns}
+                  dataSource={product.variants || []}
+                  rowKey="variantId"
+                  pagination={false}
+                  size="middle"
+                  locale={{ emptyText: "No variants configured" }}
+                  className="variant-table"
+                />
+              </div>
+            </div>
+
+            {/* Bottom Actions or Notes could go here */}
           </div>
-          <Table scroll={{ x: 'max-content' }}
-            columns={variantColumns}
-            dataSource={product.variants || []}
-            rowKey="variantId"
-            pagination={false}
-            size="small"
-            locale={{ emptyText: "No variants configured" }}
-            className="rounded-lg overflow-hidden border border-gray-100"
-          />
         </div>
       </div>
+
+      <style>{`
+        .variant-table .ant-table-thead > tr > th {
+          background: #fcfcfc !important;
+          color: #9ca3af !important;
+          font-size: 11px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.05em !important;
+          font-weight: 800 !important;
+          border-bottom: 1px solid #f3f4f6 !important;
+        }
+        .variant-table .ant-table-tbody > tr > td {
+          border-bottom: 1px solid #f9fafb !important;
+          padding: 16px !important;
+        }
+        .variant-table .ant-table {
+          background: transparent !important;
+        }
+      `}</style>
     </PageContainer>
   );
 };

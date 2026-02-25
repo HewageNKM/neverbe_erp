@@ -2,9 +2,8 @@ import type { ColumnsType } from "antd/es/table";
 import { Spin, Table, Button, Tag, Typography, Card, Descriptions } from "antd";
 import api from "@/lib/api";
 
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import { IconArrowLeft } from "@tabler/icons-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, Link } from "react-router-dom";
 
 const { Text, Title } = Typography;
 import PageContainer from "@/pages/components/container/PageContainer";
@@ -43,6 +42,7 @@ interface Adjustment {
   adjustedByName?: string;
   status: AdjustmentStatus;
   createdAt: string;
+  updatedAt?: string;
 }
 
 const TYPE_LABELS: Record<AdjustmentType, string> = {
@@ -62,9 +62,7 @@ const TYPE_COLORS: Record<AdjustmentType, string> = {
 };
 
 const ViewAdjustmentPage = () => {
-  const navigate = useNavigate();
-  const params = useParams();
-  const adjustmentId = params.id as string;
+  const { id: adjustmentId } = useParams<{ id: string }>();
 
   const [loading, setLoading] = useState(true);
   const [adjustment, setAdjustment] = useState<Adjustment | null>(null);
@@ -73,7 +71,7 @@ const ViewAdjustmentPage = () => {
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
-  const fetchAdjustment = async () => {
+  const fetchAdjustment = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get<Adjustment>(
@@ -86,7 +84,13 @@ const ViewAdjustmentPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [adjustmentId]);
+
+  useEffect(() => {
+    if (currentUser && adjustmentId) {
+      fetchAdjustment();
+    }
+  }, [currentUser, adjustmentId, fetchAdjustment]);
 
   const handleUpdateStatus = (status: AdjustmentStatus) => {
     const isApproved = status === "APPROVED";
@@ -425,6 +429,20 @@ const ViewAdjustmentPage = () => {
                 <Descriptions.Item label="Impacted Items">
                   <Text className="text-xl font-black text-green-700">
                     {adjustment.items?.length || 0}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Created At">
+                  <Text className="text-xs text-gray-600">
+                    {adjustment.createdAt
+                      ? String(adjustment.createdAt)
+                      : "N/A"}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Last Update">
+                  <Text className="text-xs text-gray-600">
+                    {adjustment.updatedAt
+                      ? String(adjustment.updatedAt)
+                      : "N/A"}
                   </Text>
                 </Descriptions.Item>
                 {adjustment.notes && (

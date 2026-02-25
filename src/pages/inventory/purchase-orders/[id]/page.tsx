@@ -1,13 +1,10 @@
 import type { ColumnsType } from "antd/es/table";
-import { Spin, Table, Tag } from "antd";
+import { Spin, Table, Tag, Card, Descriptions, Typography, Button } from "antd";
 import api from "@/lib/api";
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import {
-  IconArrowLeft,
   IconPackage,
-  IconLoader2,
   IconSend,
   IconX,
   IconFileInvoice,
@@ -16,7 +13,6 @@ import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
-import { useParams } from "react-router-dom";
 import {
   PurchaseOrder,
   PO_STATUS_COLORS,
@@ -25,15 +21,7 @@ import {
 } from "@/model/PurchaseOrder";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 
-// --- NIKE AESTHETIC STYLES ---
-const styles = {
-  primaryBtn:
-    "flex items-center justify-center px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-900 transition-all rounded-lg shadow-sm hover:shadow-md disabled:opacity-50",
-  secondaryBtn:
-    "flex items-center justify-center px-6 py-3 border border-gray-200 rounded-lg shadow-sm text-green-700 bg-green-50 hover:bg-green-100 text-xs font-bold   hover:bg-gray-50 transition-all rounded-lg disabled:opacity-50",
-  dangerBtn:
-    "flex items-center justify-center px-6 py-3 border border-transparent bg-red-600 text-white text-xs font-bold   hover:bg-red-700 transition-all rounded-lg disabled:opacity-50",
-};
+const { Text, Title } = Typography;
 
 const ViewPurchaseOrderPage = () => {
   const navigate = useNavigate();
@@ -47,7 +35,7 @@ const ViewPurchaseOrderPage = () => {
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
-  const fetchPO = async () => {
+  const fetchPO = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get<PurchaseOrder>(
@@ -60,11 +48,11 @@ const ViewPurchaseOrderPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [poId]);
 
   useEffect(() => {
     if (currentUser && poId) fetchPO();
-  }, [currentUser, poId]);
+  }, [currentUser, poId, fetchPO]);
 
   const handleUpdateStatus = (status: PurchaseOrderStatus) => {
     const action = status === "sent" ? "Send to Supplier" : "Cancel Order";
@@ -181,139 +169,193 @@ const ViewPurchaseOrderPage = () => {
 
   return (
     <PageContainer title={po.poNumber}>
-      <div className="w-full space-y-8 max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b-2 border-gray-200 pb-6">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-10 h-10 flex items-center justify-center border border-gray-200 text-green-600 hover:bg-green-600 hover:text-white transition-colors"
-            >
-              <IconArrowLeft size={20} stroke={2} />
-            </button>
-            <div>
-              <span className="text-xs font-bold  text-gray-500  mb-1 flex items-center gap-2">
-                <IconFileInvoice size={14} /> Purchase Order
-              </span>
-              <h2 className="text-3xl font-bold  tracking-tighter text-black leading-none">
-                {po.poNumber}
-              </h2>
-              <p className="text-sm font-bold text-gray-500 mt-1  tracking-wide">
-                {po.supplierName}
-              </p>
-            </div>
-          </div>
-          <span
-            className={`px-4 py-2 text-xs font-bold   border ${
-              PO_STATUS_COLORS[po.status] || "bg-gray-100 border-gray-200"
-            }`}
+      <div className="space-y-8">
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-2 text-gray-500 text-sm">
+          <Link
+            to="/inventory/purchase-orders"
+            className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
           >
-            {PO_STATUS_LABELS[po.status] || po.status}
-          </span>
+            Procurement
+          </Link>
+          <span className="text-gray-300">/</span>
+          <Text strong className="text-gray-700">
+            PO #{po.poNumber}
+          </Text>
         </div>
 
-        {/* Details Grid */}
-        <div className="bg-white border border-gray-200 p-8 shadow-sm">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <p className="text-xs font-bold   text-gray-400 mb-1">Supplier</p>
-              <p className="font-bold text-black  tracking-wide text-sm">
-                {po.supplierName}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-bold   text-gray-400 mb-1">
-                Expected Date
-              </p>
-              <p className="font-bold text-black  tracking-wide text-sm">
-                {po.expectedDate || "N/A"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-bold   text-gray-400 mb-1">
-                Total Amount
-              </p>
-              <p className="font-bold text-black text-lg tracking-tight">
-                Rs {po.totalAmount.toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-bold   text-gray-400 mb-1">Notes</p>
-              <p className="font-medium text-gray-600 text-sm truncate">
-                {po.notes || "-"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Items Table */}
-        <div className="bg-white border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-            <h3 className="text-xs font-bold   text-gray-400">Order Items</h3>
-            <span className="text-xs font-bold text-black  tracking-wide">
-              {po.items.length} Items
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <Table scroll={{ x: 'max-content' }}
-              columns={columns}
-              dataSource={po.items}
-              rowKey={(r: any) =>
-                r.id || r.date || r.month || Math.random().toString()
-              }
-              pagination={{ pageSize: 15 }}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-            />
-          </div>
-        </div>
-
-        {/* Actions Footer */}
-        <div className="flex flex-col sm:flex-row justify-end gap-4 p-6 bg-gray-50 border border-gray-200">
-          {po.status === "draft" && (
-            <>
-              <button
-                onClick={() => handleUpdateStatus("sent")}
-                disabled={updating}
-                className={styles.primaryBtn}
-              >
-                {updating ? (
-                  <Spin size="small" />
-                ) : (
-                  <IconSend size={16} className="mr-2" />
-                )}
-                Send to Supplier
-              </button>
-              <button
-                onClick={() => handleUpdateStatus("cancelled")}
-                disabled={updating}
-                className={`${styles.dangerBtn} bg-red-600 border-red-600 hover:bg-red-700`}
-              >
-                <IconX size={16} className="mr-2" />
-                Cancel Order
-              </button>
-            </>
-          )}
-          {(po.status === "sent" || po.status === "partial") && (
-            <Link
-              to={`/inventory/grn/new?poId=${po.id}`}
-              className={styles.primaryBtn}
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
+          <div>
+            <Text className="block text-[10px] uppercase font-bold tracking-widest text-green-600 mb-2">
+              Purchase Order Overview
+            </Text>
+            <Title
+              level={2}
+              className="!m-0 !text-3xl font-black tracking-tight text-gray-900"
             >
-              <IconPackage size={16} className="mr-2" />
-              Receive Goods (GRN)
-            </Link>
-          )}
-          {po.status === "received" && (
-            <div className="flex items-center text-green-700 font-bold   text-xs bg-green-50 px-4 py-2 border border-gray-200">
-              <IconPackage size={16} className="mr-2" />
-              Order Fully Received
+              #{po.poNumber}
+            </Title>
+          </div>
+          <div className="flex items-center gap-3">
+            <Tag
+              className={`px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider ${
+                PO_STATUS_COLORS[po.status] || "bg-gray-100 text-gray-800"
+              }`}
+            >
+              {PO_STATUS_LABELS[po.status] || po.status}
+            </Tag>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Items */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            <Card
+              title={
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                  Order Items ({po.items?.length || 0})
+                </span>
+              }
+              className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none"
+              styles={{
+                header: {
+                  borderBottom: "1px solid #f1f5f9",
+                  background: "#f8fafc",
+                },
+              }}
+            >
+              <div className="overflow-x-auto">
+                <Table
+                  columns={columns}
+                  dataSource={po.items}
+                  rowKey={(r: any) =>
+                    r.productId + (r.variantId || "") + r.size
+                  }
+                  pagination={false}
+                  size="small"
+                  className="rounded-xl overflow-hidden ant-table-fluid"
+                />
+              </div>
+            </Card>
+
+            {/* Actions Footer */}
+            <div className="flex flex-col sm:flex-row justify-end gap-4 p-6 bg-gray-50/50 rounded-2xl border border-gray-100 border-dashed">
+              {po.status === "draft" && (
+                <>
+                  <Button
+                    type="primary"
+                    onClick={() => handleUpdateStatus("sent")}
+                    disabled={updating}
+                    icon={!updating && <IconSend size={16} />}
+                    className="bg-green-600 hover:bg-green-700 border-none rounded-full h-auto py-2.5 px-8 font-bold text-xs uppercase tracking-widest shadow-none"
+                  >
+                    {updating ? <Spin size="small" /> : "Send to Supplier"}
+                  </Button>
+                  <Button
+                    danger
+                    onClick={() => handleUpdateStatus("cancelled")}
+                    disabled={updating}
+                    icon={<IconX size={16} />}
+                    className="rounded-full h-auto py-2.5 px-8 font-bold text-xs uppercase tracking-widest"
+                  >
+                    Cancel Order
+                  </Button>
+                </>
+              )}
+              {(po.status === "sent" || po.status === "partial") && (
+                <Link to={`/inventory/grn/new?poId=${po.id}`}>
+                  <Button
+                    type="primary"
+                    icon={<IconPackage size={16} />}
+                    className="bg-green-600 hover:bg-green-700 border-none rounded-full h-auto py-2.5 px-8 font-bold text-xs uppercase tracking-widest shadow-none"
+                  >
+                    Receive Goods (GRN)
+                  </Button>
+                </Link>
+              )}
+              {po.status === "received" && (
+                <div className="flex items-center text-green-700 font-bold text-[10px] uppercase tracking-widest bg-green-50 px-6 py-3 rounded-full border border-green-100">
+                  <IconPackage size={16} className="mr-2" />
+                  Order Fully Received
+                </div>
+              )}
+              {po.status === "cancelled" && (
+                <div className="flex items-center text-red-700 font-bold text-[10px] uppercase tracking-widest bg-red-50 px-6 py-3 rounded-full border border-red-100">
+                  <IconX size={16} className="mr-2" />
+                  Order Cancelled
+                </div>
+              )}
             </div>
-          )}
-          {po.status === "cancelled" && (
-            <div className="flex items-center text-red-700 font-bold   text-xs bg-red-50 px-4 py-2 border border-red-200">
-              <IconX size={16} className="mr-2" />
-              Order Cancelled
-            </div>
-          )}
+          </div>
+
+          {/* Right Column: Insight */}
+          <div className="lg:col-span-1 flex flex-col gap-8">
+            <Card
+              title={
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                  PO Insight
+                </span>
+              }
+              className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none border-t-4 border-t-green-500"
+              styles={{
+                header: {
+                  borderBottom: "1px solid #f1f5f9",
+                  background: "#f8fafc",
+                },
+              }}
+            >
+              <Descriptions
+                bordered
+                column={1}
+                size="small"
+                labelStyle={{
+                  fontWeight: 600,
+                  background: "#f8fafc",
+                  width: "140px",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color: "#64748b",
+                }}
+              >
+                <Descriptions.Item label="Supplier">
+                  <Text strong className="text-gray-900 uppercase text-[10px]">
+                    {po.supplierName}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Expected Date">
+                  <Text className="text-xs font-bold text-gray-700">
+                    {po.expectedDate || "N/A"}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Total Amount">
+                  <Text className="text-xl font-black text-green-700">
+                    Rs {po.totalAmount.toLocaleString()}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Created At">
+                  <Text className="text-xs text-gray-600">
+                    {po.createdAt ? String(po.createdAt) : "N/A"}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Last Update">
+                  <Text className="text-xs text-gray-600">
+                    {po.updatedAt ? String(po.updatedAt) : "N/A"}
+                  </Text>
+                </Descriptions.Item>
+                {po.notes && (
+                  <Descriptions.Item label="PO Notes">
+                    <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 border-dashed">
+                      <Text className="text-sm text-gray-600 leading-relaxed italic">
+                        "{po.notes}"
+                      </Text>
+                    </div>
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+            </Card>
+          </div>
         </div>
       </div>
     </PageContainer>

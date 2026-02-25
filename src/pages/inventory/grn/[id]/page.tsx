@@ -1,14 +1,16 @@
 import type { ColumnsType } from "antd/es/table";
-import { Spin, Table, Button } from "antd";
+import { Spin, Table, Button, Card, Descriptions, Tag, Typography } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
+import { useParams, Link } from "react-router-dom";
+import { IconCheck } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+
+const { Text, Title } = Typography;
 
 interface GRNItem {
   productId: string;
@@ -39,7 +41,6 @@ interface GRN {
 }
 
 const ViewGRNPage = () => {
-  const navigate = useNavigate();
   const params = useParams();
   const grnId = params.id as string;
 
@@ -117,80 +118,159 @@ const ViewGRNPage = () => {
 
   return (
     <PageContainer title={grn.grnNumber}>
-      <div className="w-full space-y-6 max-w-4xl">
+      <div className="space-y-8">
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-2 text-gray-500 text-sm">
+          <Link
+            to="/inventory/grn"
+            className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
+          >
+            Goods Received
+          </Link>
+          <span className="text-gray-300">/</span>
+          <Text strong className="text-gray-700">
+            GRN #{grn.grnNumber}
+          </Text>
+        </div>
+
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div className="flex items-center gap-4">
-            <Button
-              icon={<IconArrowLeft size={20} />}
-              onClick={() => navigate(-1)}
-              shape="circle"
-            />
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold  tracking-tight text-gray-900">
-                {grn.grnNumber}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                PO: {grn.poNumber} | {grn.supplierName}
-              </p>
-            </div>
+        <div className="flex flex-col sm:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
+          <div>
+            <Text className="block text-[10px] uppercase font-bold tracking-widest text-green-600 mb-2">
+              Goods Received Note Overview
+            </Text>
+            <Title
+              level={2}
+              className="!m-0 !text-3xl font-black tracking-tight text-gray-900"
+            >
+              #{grn.grnNumber}
+            </Title>
           </div>
-          {grn.inventoryUpdated && (
-            <span className="px-4 py-2 bg-green-50 text-green-700 text-xs font-bold rounded-lg border border-green-100 flex items-center gap-2">
-              <IconCheck size={14} />
-              Inventory Updated
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {grn.inventoryUpdated && (
+              <Tag
+                color="success"
+                className="px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider flex items-center gap-2"
+              >
+                <IconCheck size={14} />
+                Inventory Updated
+              </Tag>
+            )}
+            <Tag
+              color="processing"
+              className="px-4 py-1.5 text-xs font-bold rounded-full border-none uppercase tracking-wider"
+            >
+              Received
+            </Tag>
+          </div>
         </div>
 
-        {/* Details */}
-        <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div>
-              <p className="text-xs font-bold  text-gray-500">Supplier</p>
-              <p className="font-medium text-gray-900">{grn.supplierName}</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold  text-gray-500">PO Number</p>
-              <p className="font-mono font-medium text-gray-900">
-                {grn.poNumber}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-bold  text-gray-500">Received Date</p>
-              <p className="font-medium text-gray-900">{grn.receivedDate}</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold  text-gray-500">Total Value</p>
-              <p className="font-bold text-gray-900 text-lg">
-                Rs {grn.totalAmount.toLocaleString()}
-              </p>
-            </div>
-          </div>
-          {grn.notes && (
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-xs font-bold  text-gray-500">Notes</p>
-              <p className="text-gray-600">{grn.notes}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Items */}
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
-            <h3 className="text-sm font-bold text-gray-900">Received Items</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <Table
-              scroll={{ x: "max-content" }}
-              columns={columns}
-              dataSource={grn.items}
-              rowKey={(r: GRNItem) =>
-                r.productId + (r.variantId || "") + r.size
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Items */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            <Card
+              title={
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                  Received Items ({grn.items?.length || 0})
+                </span>
               }
-              pagination={false}
-              className="border border-gray-100 rounded-2xl overflow-hidden bg-white mt-4"
-            />
+              className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none"
+              styles={{
+                header: {
+                  borderBottom: "1px solid #f1f5f9",
+                  background: "#f8fafc",
+                },
+              }}
+            >
+              <div className="overflow-x-auto">
+                <Table
+                  columns={columns}
+                  dataSource={grn.items}
+                  rowKey={(r: GRNItem) =>
+                    r.productId + (r.variantId || "") + r.size
+                  }
+                  pagination={false}
+                  size="small"
+                  className="rounded-xl overflow-hidden ant-table-fluid"
+                />
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column: Insight */}
+          <div className="lg:col-span-1 flex flex-col gap-8">
+            <Card
+              title={
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
+                  GRN Insight
+                </span>
+              }
+              className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none border-t-4 border-t-green-500"
+              styles={{
+                header: {
+                  borderBottom: "1px solid #f1f5f9",
+                  background: "#f8fafc",
+                },
+              }}
+            >
+              <Descriptions
+                bordered
+                column={1}
+                size="small"
+                labelStyle={{
+                  fontWeight: 600,
+                  background: "#f8fafc",
+                  width: "140px",
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color: "#64748b",
+                }}
+              >
+                <Descriptions.Item label="Supplier">
+                  <Text strong className="text-gray-900 uppercase text-[10px]">
+                    {grn.supplierName}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="PO Number">
+                  <Link
+                    to={`/inventory/purchase-orders/${grn.purchaseOrderId}`}
+                    className="!text-green-600 font-bold text-xs"
+                  >
+                    #{grn.poNumber}
+                  </Link>
+                </Descriptions.Item>
+                <Descriptions.Item label="Received By">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-green-50 flex items-center justify-center text-[10px] font-bold text-green-600 border border-green-100">
+                      {(grn.receivedBy || "S").charAt(0)}
+                    </div>
+                    <Text className="text-xs font-bold text-gray-700">
+                      {grn.receivedBy || "System Admin"}
+                    </Text>
+                  </div>
+                </Descriptions.Item>
+                <Descriptions.Item label="Received Date">
+                  <Text className="text-xs font-medium text-gray-600">
+                    {grn.receivedDate}
+                  </Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Total Value">
+                  <Text className="text-xl font-black text-green-700">
+                    Rs {grn.totalAmount.toLocaleString()}
+                  </Text>
+                </Descriptions.Item>
+                {grn.notes && (
+                  <Descriptions.Item label="Reception Notes">
+                    <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 border-dashed">
+                      <Text className="text-sm text-gray-600 leading-relaxed italic">
+                        "{grn.notes}"
+                      </Text>
+                    </div>
+                  </Descriptions.Item>
+                )}
+              </Descriptions>
+            </Card>
           </div>
         </div>
       </div>
