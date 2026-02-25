@@ -319,7 +319,7 @@ const ProductPage = () => {
         </div>
 
         {/* Filter bar */}
-        <Card size="small" className="shadow-sm">
+        <Card size="small" className="shadow-sm !mb-4">
           <Form
             form={form}
             layout="inline"

@@ -168,13 +168,13 @@ const StockPage: React.FC = () => {
 
   const columns: ColumnsType<Stock> = [
     {
-      title: "ID",
+      title: "Stock ID",
       dataIndex: "id",
       key: "id",
-      width: 100,
+      width: 150,
       render: (text) => (
         <Text type="secondary" code>
-          {text.substring(0, 8)}...
+          {text}
         </Text>
       ),
     },
@@ -258,7 +258,7 @@ const StockPage: React.FC = () => {
         </div>
 
         {/* Filters */}
-        <Card size="small" className="shadow-sm">
+        <Card size="small" className="shadow-sm !mb-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
