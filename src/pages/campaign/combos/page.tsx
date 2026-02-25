@@ -3,9 +3,9 @@ import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import {
-  IconPlus,
   IconChevronLeft,
   IconChevronRight,
+  IconPlus,
 } from "@tabler/icons-react";
 import { ComboProduct } from "@/model/ComboProduct";
 import ComboListTable from "./components/ComboListTable";
@@ -24,12 +24,7 @@ const CombosPage = () => {
   const [editingItem, setEditingItem] = useState<ComboProduct | null>(null);
   const { showConfirmation } = useConfirmationDialog();
 
-  useEffect(() => {
-    if (!currentUser) return;
-    fetchCombos();
-  }, [pagination.page, currentUser]);
-
-  const fetchCombos = async () => {
+  const fetchCombos = React.useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get("/api/v1/erp/catalog/combos", {
@@ -47,7 +42,12 @@ const CombosPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pagination.size]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    fetchCombos();
+  }, [currentUser, fetchCombos]);
 
   const handleOpenCreateModal = () => {
     setEditingItem(null);
@@ -93,20 +93,32 @@ const CombosPage = () => {
       title="Combo Products"
       description="Manage product bundles and deals"
     >
-      <div className="w-full">
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
-          <div className="flex flex-col">
-            <span className="text-xs font-bold  text-gray-500  mb-1">
-              Campaign Management
-            </span>
-            <h2 className="text-4xl font-bold text-black  tracking-tighter leading-none">
-              Combo Products
-            </h2>
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-green-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Campaign Management
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Combo Products
+              </h2>
+            </div>
           </div>
-          <Button type="primary" size="large" onClick={handleOpenCreateModal}>Create Combo</Button>
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPlus size={18} />}
+            onClick={handleOpenCreateModal}
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
+          >
+            New Combo
+          </Button>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-transparent space-y-6">
           <ComboListTable
             items={combos}
             loading={loading}

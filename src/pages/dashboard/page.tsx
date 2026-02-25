@@ -12,8 +12,22 @@ import RevenueByCategory from "../components/dashboard/RevenueByCategory";
 
 const Dashboard = () => {
   return (
-    <PageContainer title="Dashboard" description="This is the Dashboard">
-      <div className="flex flex-col gap-6">
+    <PageContainer title="Dashboard" description="System Overview & Analytics">
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-indigo-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                System Overview
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Dashboard
+              </h2>
+            </div>
+          </div>
+        </div>
         {/* Row 1: Daily Earnings (wide) + Monthly Comparison */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2">

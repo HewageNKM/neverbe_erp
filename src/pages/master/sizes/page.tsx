@@ -192,21 +192,24 @@ const SizePage: React.FC = () => {
     <PageContainer title="Sizes" description="Size Management">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <Title level={2} style={{ margin: 0 }}>
-              Size Chart
-            </Title>
-            <Text type="secondary" className="flex items-center gap-1">
-              <IconRuler size={16} /> Product Attributes
-            </Text>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-amber-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Product Attributes
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Size Chart
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
             size="large"
             icon={<IconPlus size={18} />}
             onClick={() => handleOpenDialog()}
-            className="bg-green-600 hover:bg-green-500"
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             New Size
           </Button>
@@ -252,7 +255,8 @@ const SizePage: React.FC = () => {
         </Card>
 
         {/* Table */}
-        <Table scroll={{ x: 'max-content' }}
+        <Table
+          scroll={{ x: "max-content" }}
           columns={columns}
           dataSource={sizes}
           loading={loading}

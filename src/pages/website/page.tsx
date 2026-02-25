@@ -9,16 +9,21 @@ const Page = () => {
   const [formType, setFormType] = useState("banner");
 
   return (
-    <PageContainer title="Website" description="Manage Website Content">
-      <div className="w-full space-y-8">
-        {/* Header Section */}
-        <div className="flex flex-col gap-2 border-b-2 border-gray-200 pb-6">
-          <span className="text-xs font-bold  text-gray-500  flex items-center gap-2">
-            <IconWorldWww size={14} /> Front-End Controller
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold  tracking-tighter text-black leading-none">
-            Website Management
-          </h2>
+    <PageContainer title="Website" description="CMS & Content Control">
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-blue-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Front-End Controller
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Website Management
+              </h2>
+            </div>
+          </div>
         </div>
 
         {/* Content Control Panel */}

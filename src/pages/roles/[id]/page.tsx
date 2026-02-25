@@ -4,26 +4,22 @@ import {
   Input,
   Button,
   Card,
-  Space,
   Typography,
   Checkbox,
   Row,
   Col,
+  Breadcrumb,
 } from "antd";
 import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
 import { Permission, Role } from "@/model/Role";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { auth } from "@/firebase/firebaseClient";
-import {
-  IconDeviceFloppy,
-  IconArrowLeft,
-  IconShield,
-} from "@tabler/icons-react";
+import { IconDeviceFloppy } from "@tabler/icons-react";
 import PageContainer from "../../components/container/PageContainer";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const EditRolePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -104,29 +100,64 @@ const EditRolePage = () => {
 
   return (
     <PageContainer title="Edit Role" description={`Editing role: ${roleId}`}>
-      <div className="w-full max-w-5xl mx-auto space-y-6">
-        <div className="flex justify-between items-end">
-          <div>
-            <Button
-              type="link"
-              onClick={() => navigate(-1)}
-              icon={<IconArrowLeft size={16} />}
-              className="px-0 text-green-600 hover:text-green-700 mb-2 font-medium"
-            >
-              Back to Roles
-            </Button>
-            <Space align="center" size="small">
-              <IconShield size={24} className="text-gray-500" />
-              <div>
-                <Title level={4} className="!m-0 text-gray-400">
-                  ROLE EDIT
-                </Title>
-                <Title level={2} className="!m-0">
-                  {roleId.toUpperCase()}
-                </Title>
-              </div>
-            </Space>
+      <div className="w-full max-w-5xl mx-auto space-y-8 py-4">
+        {/* Breadcrumbs */}
+        <div className="mb-4">
+          <Breadcrumb
+            separator={<span className="text-gray-300 mx-1">/</span>}
+            items={[
+              {
+                title: (
+                  <Link
+                    to="/settings"
+                    className="text-gray-400 hover:text-green-600 transition-colors font-bold text-[10px] uppercase tracking-widest"
+                  >
+                    Settings
+                  </Link>
+                ),
+              },
+              {
+                title: (
+                  <Link
+                    to="/roles"
+                    className="text-gray-400 hover:text-green-600 transition-colors font-bold text-[10px] uppercase tracking-widest"
+                  >
+                    Roles
+                  </Link>
+                ),
+              },
+              {
+                title: (
+                  <span className="text-gray-900 font-bold text-[10px] uppercase tracking-widest">
+                    {roleId}
+                  </span>
+                ),
+              },
+            ]}
+          />
+        </div>
+
+        <div className="flex justify-between items-end mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Access Control
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                {roleId.toUpperCase()}
+              </h2>
+            </div>
           </div>
+          <Button
+            type="primary"
+            size="large"
+            className="rounded-xl px-12 font-bold"
+            loading={saving}
+            onClick={() => form.submit()}
+          >
+            Save Changes
+          </Button>
         </div>
 
         <Form
@@ -135,21 +166,42 @@ const EditRolePage = () => {
           onFinish={onFinish}
           initialValues={{ permissions: [] }}
         >
-          <Card className="mb-6 shadow-sm">
+          <Card
+            className="border-gray-100 rounded-2xl bg-white shadow-none"
+            styles={{ body: { padding: "24px" } }}
+          >
             <Row gutter={24}>
               <Col xs={24} md={12}>
                 <Form.Item
-                  label="Role Name"
+                  label={
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                      Role Name
+                    </span>
+                  }
                   name="name"
                   rules={[{ required: true, message: "Role Name is required" }]}
                 >
-                  <Input placeholder="e.g. Inventory Manager" size="large" />
+                  <Input
+                    placeholder="e.g. Inventory Manager"
+                    size="large"
+                    className="rounded-xl border-gray-100 font-medium"
+                  />
                 </Form.Item>
               </Col>
             </Row>
           </Card>
 
-          <Card title="Permissions" className="mb-6 shadow-sm">
+          <Card
+            title={
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-4 bg-gray-300 rounded-full" />
+                <span className="text-xs font-bold uppercase tracking-widest text-gray-500">
+                  Permission Matrix
+                </span>
+              </div>
+            }
+            className="mt-8 border-gray-100 rounded-2xl bg-white shadow-none"
+          >
             <Form.Item name="permissions">
               <Checkbox.Group className="w-full">
                 <div className="space-y-6 w-full">

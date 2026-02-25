@@ -237,21 +237,24 @@ const StockPage: React.FC = () => {
     >
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <Title level={2} style={{ margin: 0 }}>
-              Stock Locations
-            </Title>
-            <Text type="secondary" className="flex items-center gap-1">
-              <IconBuildingWarehouse size={16} /> Warehouse Management
-            </Text>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-purple-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Warehouse Management
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Stock Locations
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
             size="large"
             icon={<IconPlus size={18} />}
             onClick={handleOpenCreateModal}
-            className="bg-green-600 hover:bg-green-500"
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             New Location
           </Button>
@@ -297,7 +300,8 @@ const StockPage: React.FC = () => {
         </Card>
 
         {/* Table */}
-        <Table scroll={{ x: 'max-content' }}
+        <Table
+          scroll={{ x: "max-content" }}
           columns={columns}
           dataSource={locations}
           loading={loading}

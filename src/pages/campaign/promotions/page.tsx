@@ -7,6 +7,8 @@ import {
   IconPlus,
   IconChevronLeft,
   IconChevronRight,
+  IconX,
+  IconFilter,
 } from "@tabler/icons-react";
 import { Promotion } from "@/model/Promotion";
 import PromotionListTable from "./components/PromotionListTable";
@@ -26,12 +28,7 @@ const PromotionsPage = () => {
   const [editingItem, setEditingItem] = useState<Promotion | null>(null);
   const { showConfirmation } = useConfirmationDialog();
 
-  useEffect(() => {
-    if (!currentUser) return;
-    fetchPromotions();
-  }, [pagination.page, filterStatus, currentUser]);
-
-  const fetchPromotions = async () => {
+  const fetchPromotions = React.useCallback(async () => {
     setLoading(true);
     try {
       const params: any = {
@@ -55,7 +52,12 @@ const PromotionsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pagination.size, filterStatus]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    fetchPromotions();
+  }, [currentUser, fetchPromotions]);
 
   const handleOpenCreateModal = () => {
     setEditingItem(null);
@@ -97,35 +99,51 @@ const PromotionsPage = () => {
   };
 
   return (
-    <PageContainer
-      title="Promotions"
-      description="Manage promotional campaigns"
-    >
-      <div className="w-full">
+    <PageContainer title="Promotions" description="Catalog Sales & Discounts">
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
-          <div className="flex flex-col">
-            <span className="text-xs font-bold  text-gray-500  mb-1">
-              Campaign Management
-            </span>
-            <h2 className="text-4xl font-bold text-black  tracking-tighter leading-none">
-              Promotions
-            </h2>
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-rose-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Campaign Management
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Promotions
+              </h2>
+            </div>
           </div>
-          <Button type="primary" size="large" onClick={handleOpenCreateModal}>Create Promotion</Button>
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPlus size={18} />}
+            onClick={handleOpenCreateModal}
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
+          >
+            New Promotion
+          </Button>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-transparent space-y-6">
           {/* Filters */}
-          <div className="flex gap-4 mb-6">
+          <div className="flex items-center gap-3">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className="px-4 h-11 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 bg-white min-w-[150px]"
             >
               <option value="">All Statuses</option>
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
             </select>
+            <Button
+              icon={<IconX size={18} />}
+              onClick={() => setFilterStatus("")}
+              className="rounded-xl h-11 px-4 flex items-center gap-2"
+            >
+              Clear
+            </Button>
           </div>
 
           <PromotionListTable

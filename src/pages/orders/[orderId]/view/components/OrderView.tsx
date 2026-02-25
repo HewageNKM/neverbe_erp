@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { Card, Descriptions, Table, Tag, Typography, Space, Alert } from "antd";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const OrderView = ({
   orderId,
@@ -45,7 +45,6 @@ const OrderView = ({
     (order?.shippingFee || 0) -
     (order?.fee || 0);
 
-  const discount = order?.discount || 0;
   const fee = order?.fee || 0;
   const shippingFee = order?.shippingFee || 0;
 
@@ -178,7 +177,7 @@ const OrderView = ({
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-gray-500 text-sm">
         <Link
@@ -204,21 +203,17 @@ const OrderView = ({
         />
       )}
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
-        <div>
-          <Text
-            type="secondary"
-            className="block text-[10px] uppercase font-bold tracking-widest text-green-600 mb-2"
-          >
-            Order Overview
-          </Text>
-          <Title
-            level={2}
-            className="!m-0 !text-3xl font-black tracking-tight text-gray-900"
-          >
-            #{order?.orderId}
-          </Title>
+      <div className="flex justify-between items-end mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+              Order Details
+            </span>
+            <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+              Order #{order?.orderId}
+            </h2>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Tag
@@ -305,11 +300,9 @@ const OrderView = ({
                 </Text>
               </Descriptions.Item>
               <Descriptions.Item label="Placement Date">
-                <Space size={4}>
-                  <Text>
-                    {order?.createdAt ? String(order.createdAt) : "N/A"}
-                  </Text>
-                </Space>
+                <Text>
+                  {order?.createdAt ? String(order.createdAt) : "N/A"}
+                </Text>
               </Descriptions.Item>
               <Descriptions.Item label="Last Update">
                 <Text>

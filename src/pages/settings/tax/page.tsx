@@ -2,12 +2,7 @@ import { Spin, Button } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
-import {
-  IconReceipt2,
-  IconDeviceFloppy,
-  IconLoader2,
-  IconInfoCircle,
-} from "@tabler/icons-react";
+import { IconReceipt2, IconInfoCircle } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
@@ -135,30 +130,36 @@ const TaxSettingsPage = () => {
     return (
       <PageContainer title="Tax Settings">
         <div className="flex justify-center py-20">
-          <div className="flex justify-center py-12"><Spin size="large" /></div>
+          <div className="flex justify-center py-12">
+            <Spin size="large" />
+          </div>
         </div>
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer title="Tax Settings">
-      <div className="w-full space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold  tracking-tight text-gray-900">
-              Tax Settings
-            </h2>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              Configure tax rates and calculation rules.
-            </p>
+    <PageContainer title="Tax Settings" description="Taxation & Compliance">
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-emerald-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Taxation & Compliance
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Tax Settings
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
             size="large"
             onClick={handleSave}
             disabled={saving}
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             {saving ? <Spin size="small" /> : null}
             Save Settings

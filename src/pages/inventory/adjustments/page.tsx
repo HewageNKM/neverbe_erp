@@ -196,24 +196,23 @@ const AdjustmentsPage = () => {
     <PageContainer title="Inventory Adjustments">
       <div className="w-full space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-gray-100 pb-8">
-          <div>
-            <span className="block text-[10px] uppercase font-bold tracking-widest text-green-600 mb-2">
-              Inventory Control
-            </span>
-            <h2 className="text-xl sm:text-3xl font-black tracking-tight text-gray-900 m-0">
-              Inventory Adjustments
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Manage stock additions, removals, and transfers
-            </p>
+        <div className="flex justify-between items-end mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Inventory Control
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Inventory Adjustments
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
-            size="large"
-            icon={<IconPlus size={16} />}
+            icon={<IconPlus size={18} />}
             onClick={() => setIsModalOpen(true)}
-            className="rounded-full px-6 font-bold text-xs uppercase tracking-wider bg-green-600 hover:bg-green-700 border-none h-auto py-3"
+            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
           >
             New Adjustment
           </Button>

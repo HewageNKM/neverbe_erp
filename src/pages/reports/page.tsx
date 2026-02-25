@@ -95,14 +95,18 @@ const Reports = () => {
   return (
     <PageContainer title="Reports">
       <div className="w-full space-y-12">
-        {/* Header */}
-        <div className="flex flex-col gap-2 border-b-4 border-gray-200 pb-8">
-          <span className="text-xs font-bold  text-gray-500  flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-600"></div> Data Intelligence
-          </span>
-          <h1 className="text-5xl md:text-7xl font-bold  tracking-tighter text-black leading-none">
-            Reports Center
-          </h1>
+        <div className="flex justify-between items-end mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Data Intelligence
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Reports Center
+              </h2>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-16">

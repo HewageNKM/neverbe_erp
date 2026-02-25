@@ -285,14 +285,17 @@ const OrdersPage = () => {
         {/* Header - Kept simpler or matched layout? Let's use standard AntD layout logic if possible, 
             but kept the header visual style consistently with other refactored pages if any. 
             The legacy header had a refresh button. */}
-        <div className="flex justify-between items-center">
-          <div>
-            <Typography.Title level={2} className="!m-0">
-              Orders
-            </Typography.Title>
-            <Typography.Text type="secondary">
-              {pagination.total} Total Orders
-            </Typography.Text>
+        <div className="flex justify-between items-end mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Management
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Order Management
+              </h2>
+            </div>
           </div>
         </div>
 

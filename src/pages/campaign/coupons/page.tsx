@@ -90,17 +90,29 @@ const CouponsPage = () => {
 
   return (
     <PageContainer title="Coupons" description="Manage discount codes">
-      <div className="w-full">
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
-          <div className="flex flex-col">
-            <span className="text-xs font-bold  text-gray-500  mb-1">
-              Campaign Management
-            </span>
-            <h2 className="text-4xl font-bold text-black  tracking-tighter leading-none">
-              Coupons
-            </h2>
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-orange-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Campaign Management
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Coupons
+              </h2>
+            </div>
           </div>
-          <Button type="primary" size="large" onClick={handleOpenCreateModal}>Create Coupon</Button>
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPlus size={18} />}
+            onClick={handleOpenCreateModal}
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
+          >
+            New Coupon
+          </Button>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">

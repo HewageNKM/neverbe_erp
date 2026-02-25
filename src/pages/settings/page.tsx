@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import PageContainer from "../components/container/PageContainer";
 import {
   IconDeviceFloppy,
-  IconSettings,
   IconServer,
   IconWorld,
   IconDeviceDesktop,
@@ -26,7 +25,7 @@ import {
 } from "antd";
 
 const { Option } = Select;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface Stock {
   id: string;
@@ -125,25 +124,24 @@ const SettingPage = () => {
         size="large"
         className="w-full max-w-5xl mx-auto"
       >
-        {/* Header */}
-        <div className="flex justify-between items-end">
-          <div>
-            <Space align="center" size="small">
-              <IconSettings size={20} className="text-gray-500" />
-              <Title level={2} className="!m-0">
+        <div className="flex justify-between items-end mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                System Configuration
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
                 ERP Settings
-              </Title>
-            </Space>
-            <Text type="secondary" className="block mt-1">
-              System Configuration
-            </Text>
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
-            size="large"
             icon={<IconDeviceFloppy size={18} />}
             loading={saving}
             onClick={handleSave}
+            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
           >
             Save Changes
           </Button>

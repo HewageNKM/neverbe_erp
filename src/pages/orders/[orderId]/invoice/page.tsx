@@ -3,6 +3,7 @@ import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Order } from "@/model/Order";
+import PageContainer from "@/pages/components/container/PageContainer";
 
 import { useAppSelector } from "@/lib/hooks";
 
@@ -49,7 +50,7 @@ const OrderInvoice = () => {
   if (!order) return null;
 
   return (
-    <>
+    <PageContainer title={`Invoice #${order.orderId}`} loading={loading}>
       <style key="print-style">
         {`
           @media print {
@@ -63,20 +64,39 @@ const OrderInvoice = () => {
       </style>
 
       {/* Nav - Hidden on print */}
-      <div className="max-w-4xl mx-auto mb-6 no-print pt-8 px-4 flex justify-between items-center">
-        <Link
-          to="/orders"
-          className="flex items-center gap-2 text-xs font-bold !text-green-600 hover:!text-green-700 transition-colors"
-        >
-          <IconChevronLeft size={16} /> Back to Orders
-        </Link>
-        <Button type="primary" size="large" onClick={handlePrint}>
-          Print Document
-        </Button>
+      <div className="flex justify-between items-end mb-8 no-print">
+        <div className="flex items-center gap-3">
+          <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+              Official Document
+            </span>
+            <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+              Invoice #{order.orderId}
+            </h2>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <Link
+            to="/orders"
+            className="flex items-center gap-2 text-xs font-bold !text-gray-400 hover:!text-green-600 transition-colors uppercase tracking-widest px-4"
+          >
+            <IconChevronLeft size={16} /> Back to Orders
+          </Link>
+          <Button
+            type="primary"
+            size="large"
+            icon={<IconPrinter size={18} />}
+            className="rounded-xl px-6 font-bold"
+            onClick={handlePrint}
+          >
+            Print Document
+          </Button>
+        </div>
       </div>
 
-      <div className="min-h-screen bg-gray-100 pb-20 pt-8 print:bg-white print:py-0">
-        <div className="max-w-[800px] mx-auto">
+      <div className="min-h-screen bg-gray-50/50 pb-20 pt-4 print:bg-white print:py-0 rounded-3xl border border-gray-100">
+        <div className="max-w-[850px] mx-auto">
           {/* Invoice Paper */}
           <div
             id="printable-area"
@@ -433,7 +453,7 @@ const OrderInvoice = () => {
           </div>
         </div>
       </div>
-    </>
+    </PageContainer>
   );
 };
 

@@ -1,28 +1,13 @@
 import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Role } from "@/model/Role";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { auth } from "@/firebase/firebaseClient";
 import PageContainer from "../components/container/PageContainer";
-import {
-  IconPlus,
-  IconPencil,
-  IconTrash,
-  IconShield,
-} from "@tabler/icons-react";
+import { IconPlus, IconPencil, IconTrash } from "@tabler/icons-react";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
-import {
-  Table,
-  Button,
-  Tag,
-  Space,
-  Card,
-  Typography,
-  Spin,
-  Tooltip,
-} from "antd";
+import { Table, Button, Typography, Tooltip, Space, Tag } from "antd";
 
 const { Title, Text } = Typography;
 
@@ -96,7 +81,11 @@ const RolesPage = () => {
       title: "Role ID",
       dataIndex: "id",
       key: "id",
-      render: (text: string) => <Tag>{text}</Tag>,
+      render: (text: string) => (
+        <span className="text-[11px] font-black tracking-widest text-gray-400 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100 uppercase">
+          {text}
+        </span>
+      ),
     },
     {
       title: "Permissions",
@@ -141,41 +130,65 @@ const RolesPage = () => {
   ];
 
   return (
-    <PageContainer
-      title="Roles"
-      description="Manage user roles and permissions"
-    >
-      <Space direction="vertical" size="large" className="w-full">
-        {/* Header */}
-        <div className="flex justify-between items-end">
-          <div>
-            <Space align="center" size="small">
-              <IconShield size={20} className="text-gray-500" />
-              <Title level={2} className="!m-0">
-                Role Management
-              </Title>
-            </Space>
-            <Text type="secondary" className="block mt-1">
-              Access Control
-            </Text>
+    <PageContainer title="Roles" description="Permission Control">
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-rose-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Security Administration
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Roles & Permissions
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
+            size="large"
             icon={<IconPlus size={18} />}
             onClick={() => navigate("/roles/create")}
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             New Role
           </Button>
         </div>
 
-        <Table scroll={{ x: 'max-content' }}
-          columns={columns}
-          dataSource={roles}
-          rowKey="id"
-          loading={loading}
-          locale={{ emptyText: "No Roles Found" }}
-        />
-      </Space>
+        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-none">
+          <Table
+            scroll={{ x: "max-content" }}
+            columns={columns}
+            dataSource={roles}
+            rowKey="id"
+            loading={loading}
+            locale={{ emptyText: "No Roles Found" }}
+            pagination={false}
+            className="role-table"
+          />
+        </div>
+      </div>
+
+      <style>{`
+        .role-table .ant-table-thead > tr > th {
+          background: #fcfcfc !important;
+          color: #9ca3af !important;
+          font-size: 11px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.05em !important;
+          font-weight: 800 !important;
+          border-bottom: 1px solid #f3f4f6 !important;
+          padding: 16px 24px !important;
+        }
+        .role-table .ant-table-cell {
+          padding: 16px 24px !important;
+          border-bottom: 1px solid #f9f9f9 !important;
+        }
+        .role-table .ant-table-row:hover .ant-table-cell {
+          background: #fdfdfd !important;
+        }
+      `}</style>
     </PageContainer>
   );
 };

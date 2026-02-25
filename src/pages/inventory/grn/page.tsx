@@ -122,21 +122,23 @@ const GRNListPage = () => {
   return (
     <PageContainer title="Goods Received Notes">
       <div className="w-full space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold  tracking-tight text-gray-900">
-              Goods Received Notes
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Track received goods from suppliers
-            </p>
+        <div className="flex justify-between items-end mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Inventory Control
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Goods Received Notes
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
-            size="large"
-            icon={<IconPlus size={16} />}
+            icon={<IconPlus size={18} />}
             onClick={() => setIsModalOpen(true)}
+            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
           >
             New GRN
           </Button>

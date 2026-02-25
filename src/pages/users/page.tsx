@@ -1,17 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import api from "@/lib/api";
 import {
   IconPlus,
-  IconPencil,
-  IconTrash,
   IconDownload,
-  IconUsers,
-  IconUserCheck,
-  IconUserX,
-  IconShield,
   IconFilter,
   IconSearch,
   IconX,
+  IconUsers,
 } from "@tabler/icons-react";
 import { useAppSelector } from "@/lib/hooks";
 import { User } from "@/model/User";
@@ -41,7 +36,6 @@ import {
   Form,
   Row,
   Col,
-  Card,
   Typography,
   Statistic,
   Switch,
@@ -231,36 +225,46 @@ const UsersPage = () => {
   const [form] = Form.useForm();
 
   // Fetch users
-  const fetchUsers = async (params?: { page?: number; size?: number }) => {
-    if (!currentUser) return;
-    setLoading(true);
-    try {
-      const response = await getUsersV2Action({
-        page: params?.page ?? pagination.current,
-        size: params?.size ?? pagination.pageSize,
-        search: filters.search,
-        role: filters.role,
-        status: filters.status,
-      });
-      setUsers(response.users);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.total,
-        current: params?.page ?? prev.current,
-        pageSize: params?.size ?? prev.pageSize,
-      }));
-      setHasMore(response.hasMore);
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchUsers = useCallback(
+    async (params?: { page?: number; size?: number }) => {
+      if (!currentUser) return;
+      setLoading(true);
+      try {
+        const response = await getUsersV2Action({
+          page: params?.page ?? pagination.current,
+          size: params?.size ?? pagination.pageSize,
+          search: filters.search,
+          role: filters.role,
+          status: filters.status,
+        });
+        setUsers(response.users);
+        setPagination((prev) => ({
+          ...prev,
+          total: response.total,
+          current: params?.page ?? prev.current,
+          pageSize: params?.size ?? prev.pageSize,
+        }));
+        setHasMore(response.hasMore);
+      } catch (e: any) {
+        console.error(e);
+        toast.error(e.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      currentUser,
+      pagination.current,
+      pagination.pageSize,
+      filters.search,
+      filters.role,
+      filters.status,
+    ],
+  );
 
   useEffect(() => {
     fetchUsers();
-  }, [currentUser]);
+  }, [fetchUsers]);
 
   // Handlers
   const handleFilterSubmit = (values: any) => {
@@ -374,24 +378,25 @@ const UsersPage = () => {
     ).length,
   };
 
-  const handleExport = () => {
-    if (!displayedUsers.length) {
-      toast("No data to export");
-      return;
-    }
-    const exportData = displayedUsers.map((u) => ({
-      "User ID": u.userId,
-      Username: u.username,
-      Email: u.email,
-      Status: u.status ? "Active" : "Inactive",
-      Role: u.role,
-      "Created At": u.createdAt,
-      "Updated At": u.updatedAt,
-    }));
+  const handleRowExport = (user: User) => {
+    const exportData = [
+      {
+        "User ID": user.userId,
+        Username: user.username,
+        Email: user.email,
+        Status: user.status ? "Active" : "Inactive",
+        Role: user.role,
+        "Created At": user.createdAt,
+        "Updated At": user.updatedAt,
+      },
+    ];
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Users");
-    XLSX.writeFile(wb, `users_${new Date().toISOString().split("T")[0]}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "User");
+    XLSX.writeFile(
+      wb,
+      `user_${user.username.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`,
+    );
     toast.success("EXPORT COMPLETE");
   };
 
@@ -438,32 +443,18 @@ const UsersPage = () => {
       ),
     },
     {
-      title: "Actions",
-      key: "actions",
+      title: "Export",
+      key: "export",
       align: "right",
       render: (_, record) => (
-        <Space>
-          {canManageUsers && (
-            <>
-              <Tooltip title="Edit">
-                <Button
-                  size="small"
-                  icon={<IconPencil size={16} />}
-                  onClick={() => handleEdit(record)}
-                />
-              </Tooltip>
-              <Tooltip title="Delete">
-                <Button
-                  size="small"
-                  danger
-                  icon={<IconTrash size={16} />}
-                  disabled={currentUser?.userId === record.userId}
-                  onClick={() => handleDelete(record.userId)}
-                />
-              </Tooltip>
-            </>
-          )}
-        </Space>
+        <Tooltip title="Export User Data">
+          <Button
+            size="small"
+            className="rounded-lg"
+            icon={<IconDownload size={16} />}
+            onClick={() => handleRowExport(record)}
+          />
+        </Tooltip>
       ),
     },
   ];
@@ -471,164 +462,138 @@ const UsersPage = () => {
   return (
     <PageContainer
       title="Users"
-      description="Users Management"
+      description="System Access Management"
       loading={loading}
     >
-      <Space direction="vertical" size="large" className="w-full">
-        <div className="flex justify-between items-center">
-          <div>
-            <Typography.Title level={2} className="!m-0">
-              User Management
-            </Typography.Title>
-            <Typography.Text type="secondary">
-              System Administration
-            </Typography.Text>
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-blue-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                System Administration
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                User Management
+              </h2>
+            </div>
           </div>
-        </div>
 
-        {/* Stats */}
-        <Row gutter={16}>
-          <Col xs={24} sm={12} lg={6}>
-            <Card size="small">
-              <Statistic
-                title="Total Users"
-                value={stats.total}
-                prefix={<IconUsers size={20} />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card size="small">
-              <Statistic
-                title="Active"
-                value={stats.active}
-                valueStyle={{ color: "#16a34a" }}
-                prefix={<IconUserCheck size={20} />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card size="small">
-              <Statistic
-                title="Inactive"
-                value={stats.inactive}
-                valueStyle={{ color: "#ef4444" }}
-                prefix={<IconUserX size={20} />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card size="small">
-              <Statistic
-                title="Admins"
-                value={stats.admins}
-                prefix={<IconShield size={20} />}
-              />
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Filters */}
-        <Card size="small" className="shadow-sm">
-          <Form
-            form={form}
-            layout="inline"
-            onFinish={handleFilterSubmit}
-            initialValues={{ role: "all", status: "all" }}
-            className="flex flex-wrap items-center gap-2 w-full"
-          >
-            <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
-              <Input
-                prefix={<IconSearch size={15} className="text-gray-400" />}
-                placeholder="Search Name or Email..."
-                allowClear
-              />
-            </Form.Item>
-            <Form.Item name="status" className="!mb-0 w-36">
-              <Select>
-                <Option value="all">All Status</Option>
-                <Option value="Active">Active</Option>
-                <Option value="Inactive">Inactive</Option>
-              </Select>
-            </Form.Item>
-            <Form.Item name="role" className="!mb-0 w-36">
-              <Select>
-                <Option value="all">All Roles</Option>
-                <Option value="ADMIN">ADMIN</Option>
-                <Option value="USER">USER</Option>
-              </Select>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <div className="flex items-center h-[32px] px-3 bg-white rounded-md border border-gray-200">
-                <Switch
-                  checked={showAnonymous}
-                  onChange={setShowAnonymous}
-                  size="small"
-                  className="mr-2"
-                />
-                <span className="text-xs font-bold text-gray-500 whitespace-nowrap">
-                  {showAnonymous ? "Anonymous User" : "Registered User"}
-                </span>
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <Space>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  icon={<IconFilter size={15} />}
-                >
-                  Filter
-                </Button>
-                <Button icon={<IconX size={15} />} onClick={handleReset}>
-                  Clear
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </Card>
-
-        {/* Table Actions */}
-        <div className="flex justify-between items-center bg-white p-4 border border-gray-200 border-b-0 rounded-t-md">
-          <div className="flex items-center gap-2">
-            <Typography.Text strong>Directory</Typography.Text>
-            <Tag>
-              {displayedUsers.length} / {pagination.total}
-            </Tag>
-          </div>
-          <Space>
+          <div className="flex items-center gap-3">
             <Button
-              icon={<IconDownload size={16} />}
-              onClick={handleExport}
-              disabled={!displayedUsers.length}
+              icon={<IconDownload size={18} />}
+              onClick={() => toast.error("Export coming soon")}
+              className="h-12 px-6 rounded-lg text-sm font-bold border-gray-200 hover:border-gray-300 flex items-center gap-2"
             >
               Export
             </Button>
             {canManageUsers && (
               <Button
                 type="primary"
-                icon={<IconPlus size={16} />}
+                size="large"
+                icon={<IconPlus size={18} />}
                 onClick={() => {
                   setSelectedUser(null);
                   setShowUserForm(true);
                 }}
+                className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
               >
-                Add User
+                New User
               </Button>
             )}
-          </Space>
+          </div>
         </div>
 
-        <Table scroll={{ x: 'max-content' }}
-          columns={columns}
-          dataSource={displayedUsers}
-          rowKey="userId"
-          pagination={{ ...pagination, position: ["bottomCenter"] }}
-          loading={loading}
-          onChange={handleTableChange}
-          className="border border-gray-200 rounded-b-md"
-        />
-      </Space>
+        {/* Filters */}
+        <div className="bg-transparent space-y-8">
+          <Form
+            form={form}
+            layout="inline"
+            onFinish={handleFilterSubmit}
+            initialValues={{ role: "all", status: "all" }}
+            className="flex flex-wrap items-center gap-3 w-full"
+          >
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
+              <Input
+                prefix={<IconSearch size={18} className="text-gray-400" />}
+                placeholder="Search by name or email..."
+                className="rounded-xl h-11"
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item name="status" className="!mb-0 w-36">
+              <Select className="h-11 rounded-xl" placeholder="Status">
+                <Option value="all">All Status</Option>
+                <Option value="Active">Active</Option>
+                <Option value="Inactive">Inactive</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="role" className="!mb-0 w-36">
+              <Select className="h-11 rounded-xl" placeholder="Role">
+                <Option value="all">All Roles</Option>
+                <Option value="ADMIN">ADMIN</Option>
+                <Option value="USER">USER</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <div className="flex items-center h-11 px-4 bg-white rounded-xl border border-gray-100">
+                <Switch
+                  checked={showAnonymous}
+                  onChange={setShowAnonymous}
+                  size="small"
+                  className="mr-3"
+                />
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">
+                  {showAnonymous ? "Anonymous" : "Registered"}
+                </span>
+              </div>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <div className="flex gap-2">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<IconFilter size={18} />}
+                  className="rounded-xl h-11 px-6 font-bold"
+                >
+                  Apply
+                </Button>
+                <Button
+                  icon={<IconX size={18} />}
+                  onClick={handleReset}
+                  className="rounded-xl h-11 px-4 flex items-center gap-2"
+                >
+                  Clear
+                </Button>
+              </div>
+            </Form.Item>
+          </Form>
+
+          {/* Table */}
+          <div className="flex justify-between items-center mb-4 px-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                Directory
+              </span>
+              <Tag className="rounded-full px-3 font-bold bg-gray-100 border-none text-gray-600">
+                {displayedUsers.length} / {pagination.total} Users
+              </Tag>
+            </div>
+          </div>
+
+          <Table
+            scroll={{ x: "max-content" }}
+            columns={columns}
+            dataSource={displayedUsers}
+            rowKey="userId"
+            pagination={{ ...pagination, position: ["bottomCenter"] }}
+            loading={loading}
+            onChange={handleTableChange}
+            className="border border-gray-100 rounded-xl overflow-hidden shadow-none"
+          />
+        </div>
+      </div>
 
       <UserForm
         visible={showUserForm}

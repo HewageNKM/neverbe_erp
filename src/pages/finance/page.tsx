@@ -164,16 +164,23 @@ const FinanceDashboard = () => {
     <PageContainer title="Finance Overview">
       <Space direction="vertical" size="large" className="w-full">
         {/* Header */}
-        <div className="flex justify-between items-end">
-          <div>
-            <Typography.Title level={2} className="!m-0">
-              Financial Overview
-            </Typography.Title>
-            <Typography.Text type="secondary">
-              Real-time financial insights
-            </Typography.Text>
+        <div className="flex justify-between items-end mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Finance
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Financial Overview
+              </h2>
+            </div>
           </div>
-          <Button type="primary" icon={<IconTrendingUp size={16} />}>
+          <Button
+            type="primary"
+            icon={<IconTrendingUp size={16} />}
+            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
+          >
             Generate Report
           </Button>
         </div>

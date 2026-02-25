@@ -1,13 +1,7 @@
 import type { ColumnsType } from "antd/es/table";
-import { Spin, Button, Table, Input, Select, Modal } from "antd";
+import { Button, Table, Input, Select, Modal } from "antd";
 import React, { useState, useEffect } from "react";
-import {
-  IconPlus,
-  IconEdit,
-  IconTrash,
-  IconSearch,
-  IconLoader2,
-} from "@tabler/icons-react";
+import { IconPlus, IconEdit, IconTrash, IconSearch } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
@@ -193,52 +187,59 @@ const SuppliersPage = () => {
   ];
 
   return (
-    <PageContainer title="Suppliers">
-      <div className="w-full space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold  tracking-tight text-gray-900">
-              Suppliers
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Manage your suppliers and vendors
-            </p>
+    <PageContainer
+      title="Suppliers"
+      description="Procurement & Vendor Directory"
+    >
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Procurement
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Supplier Directory
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
             size="large"
-            icon={<IconPlus size={16} />}
+            icon={<IconPlus size={18} />}
             onClick={handleAdd}
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             Add Supplier
           </Button>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Input
-            prefix={<IconSearch size={18} className="text-gray-400" />}
-            placeholder="Search suppliers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            allowClear
-          />
-        </div>
+        {/* Search & Table */}
+        <div className="bg-transparent space-y-8">
+          <div className="flex gap-3">
+            <Input
+              prefix={<IconSearch size={18} className="text-gray-400" />}
+              placeholder="Search suppliers by name, contact or phone..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="rounded-xl h-11 flex-1"
+              allowClear
+            />
+          </div>
 
-        {/* Table */}
-        <div className="mt-6">
-          <Table
-            scroll={{ x: "max-content" }}
-            columns={columns}
-            dataSource={filteredSuppliers}
-            loading={loading}
-            rowKey={(r: any) =>
-              r.id || r.date || r.month || Math.random().toString()
-            }
-            pagination={{ pageSize: 15 }}
-            className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm"
-          />
+          <div className="mt-0">
+            <Table
+              scroll={{ x: "max-content" }}
+              columns={columns}
+              dataSource={filteredSuppliers}
+              loading={loading}
+              rowKey={(r: any) => r.id || Math.random().toString()}
+              pagination={{ pageSize: 15 }}
+              className="border border-gray-100 rounded-xl overflow-hidden shadow-none"
+            />
+          </div>
         </div>
 
         <Modal

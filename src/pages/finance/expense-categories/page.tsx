@@ -1,5 +1,5 @@
 import type { ColumnsType } from "antd/es/table";
-import { Spin, Button, Table, Input, Select, Switch, Modal } from "antd";
+import { Button, Table, Input, Select, Switch, Modal } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
@@ -7,9 +7,7 @@ import {
   IconPlus,
   IconEdit,
   IconTrash,
-  IconLoader2,
   IconCategory,
-  IconSearch,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
@@ -192,23 +190,30 @@ const ExpenseCategoriesPage = () => {
   ];
 
   return (
-    <PageContainer title="Expense Categories">
-      <div className="w-full space-y-4 md:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h2 className="text-lg md:text-2xl font-bold  tracking-tight text-gray-900">
-              Expense Categories
-            </h2>
-            <p className="text-xs md:text-sm text-gray-500 mt-0.5">
-              Manage expense and income categories
-            </p>
+    <PageContainer
+      title="Expense Categories"
+      description="Financial Classifications"
+    >
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-amber-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Financial Classifications
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Expense Categories
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
             size="large"
             icon={<IconPlus size={16} />}
             onClick={openAddModal}
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             Add Category
           </Button>

@@ -391,7 +391,8 @@ const ProductPage = () => {
         </Card>
 
         {/* Table */}
-        <Table scroll={{ x: 'max-content' }}
+        <Table
+          scroll={{ x: "max-content" }}
           columns={columns}
           dataSource={products}
           rowKey="productId"

@@ -1,12 +1,5 @@
-
 import React, { useEffect, useState } from "react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import {
-  IconPlus,
-  IconEdit,
-  IconTrash,
-  IconTruckDelivery,
-} from "@tabler/icons-react";
 import toast from "react-hot-toast";
 import { ShippingRule } from "@/model/ShippingRule";
 import {
@@ -15,17 +8,18 @@ import {
   Input,
   Button,
   Table,
-  Tag,
   Switch,
   InputNumber,
+  Tag,
   Space,
-  Typography,
   Tooltip,
   Checkbox,
   Card,
+  Typography,
 } from "antd";
 
-const { Title, Text } = Typography;
+const { Text, Title } = Typography;
+import { IconPlus, IconEdit, IconTrash } from "@tabler/icons-react";
 
 const ShippingSettingsPage = () => {
   const [rules, setRules] = useState<ShippingRule[]>([]);
@@ -237,128 +231,136 @@ const ShippingSettingsPage = () => {
   ];
 
   return (
-    <PageContainer title="Shipping" description="Manage Dynamic Shipping Rates">
-      <Space direction="vertical" size="large" className="w-full">
-        <div className="flex justify-between items-end">
-          <div>
-            <Space align="center" size="small">
-              <IconTruckDelivery size={20} className="text-gray-500" />
-              <Title level={2} className="!m-0">
+    <PageContainer title="Shipping" description="Logistics Configuration">
+      <div className="space-y-6">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-10 bg-orange-600 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Logistics Configuration
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
                 Shipping Rates
-              </Title>
-            </Space>
-            <Text type="secondary" className="block mt-1">
-              Logistics Configuration
-            </Text>
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
+            size="large"
             icon={<IconPlus size={18} />}
             onClick={() => handleOpenDialog()}
+            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
           >
             New Rule
           </Button>
         </div>
 
-        <Table scroll={{ x: 'max-content' }}
+        <Table
+          scroll={{ x: "max-content" }}
           columns={columns}
           dataSource={rules}
           rowKey="id"
           loading={loading}
           locale={{ emptyText: "No Active Rules" }}
         />
-      </Space>
 
-      <Modal
-        open={open}
-        title={editingRule ? "Edit Rule" : "New Rule"}
-        onCancel={() => setOpen(false)}
-        onOk={() => form.submit()}
-        confirmLoading={saving}
-        okText="Save Rule"
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSave}
-          initialValues={{
-            isActive: true,
-            minWeight: 0,
-            maxWeight: 0,
-            rate: 0,
-            isIncremental: false,
-          }}
+        <Modal
+          open={open}
+          title={editingRule ? "Edit Rule" : "New Rule"}
+          onCancel={() => setOpen(false)}
+          onOk={() => form.submit()}
+          confirmLoading={saving}
+          okText="Save Rule"
         >
-          <Form.Item name="name" label="Rule Name" rules={[{ required: true }]}>
-            <Input placeholder="e.g. STANDARD DELIVERY" />
-          </Form.Item>
-
-          <Form.Item name="isIncremental" valuePropName="checked">
-            <Checkbox>Incremental Calculation (Base + Per Kg)</Checkbox>
-          </Form.Item>
-
-          <Space className="w-full flex gap-4">
-            <Form.Item
-              name="minWeight"
-              label="Min Weight (kg)"
-              rules={[{ required: true }]}
-              className="flex-1"
-            >
-              <InputNumber min={0} step={0.01} className="w-full" />
-            </Form.Item>
-            <Form.Item
-              name="maxWeight"
-              label="Max Weight (kg)"
-              rules={[{ required: true }]}
-              className="flex-1"
-            >
-              <InputNumber min={0} step={0.01} className="w-full" />
-            </Form.Item>
-          </Space>
-
-          <Form.Item
-            name="rate"
-            label={isIncremental ? "Base Rate (LKR)" : "Flat Rate (LKR)"}
-            rules={[{ required: true }]}
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSave}
+            initialValues={{
+              isActive: true,
+              minWeight: 0,
+              maxWeight: 0,
+              rate: 0,
+              isIncremental: false,
+            }}
           >
-            <InputNumber min={0} className="w-full" />
-          </Form.Item>
-
-          {isIncremental && (
-            <Card
-              size="small"
-              className="bg-gray-50 mb-4 border-2 border-gray-200"
+            <Form.Item
+              name="name"
+              label="Rule Name"
+              rules={[{ required: true }]}
             >
-              <Space direction="vertical" className="w-full">
-                <Form.Item
-                  name="baseWeight"
-                  label="Base Weight Limit (kg)"
-                  rules={[{ required: isIncremental }]}
-                  className="mb-2"
-                >
-                  <InputNumber min={0} step={0.1} className="w-full" />
-                </Form.Item>
-                <Form.Item
-                  name="perKgRate"
-                  label="Extra Cost Per Kg (LKR)"
-                  rules={[{ required: isIncremental }]}
-                  className="mb-0"
-                >
-                  <InputNumber min={0} className="w-full" />
-                </Form.Item>
-              </Space>
-            </Card>
-          )}
+              <Input placeholder="e.g. STANDARD DELIVERY" />
+            </Form.Item>
 
-          <Form.Item
-            name="isActive"
-            label="Active Status"
-            valuePropName="checked"
-          >
-            <Switch checkedChildren="ACTIVE" unCheckedChildren="INACTIVE" />
-          </Form.Item>
-        </Form>
-      </Modal>
+            <Form.Item name="isIncremental" valuePropName="checked">
+              <Checkbox>Incremental Calculation (Base + Per Kg)</Checkbox>
+            </Form.Item>
+
+            <Space className="w-full flex gap-4">
+              <Form.Item
+                name="minWeight"
+                label="Min Weight (kg)"
+                rules={[{ required: true }]}
+                className="flex-1"
+              >
+                <InputNumber min={0} step={0.01} className="w-full" />
+              </Form.Item>
+              <Form.Item
+                name="maxWeight"
+                label="Max Weight (kg)"
+                rules={[{ required: true }]}
+                className="flex-1"
+              >
+                <InputNumber min={0} step={0.01} className="w-full" />
+              </Form.Item>
+            </Space>
+
+            <Form.Item
+              name="rate"
+              label={isIncremental ? "Base Rate (LKR)" : "Flat Rate (LKR)"}
+              rules={[{ required: true }]}
+            >
+              <InputNumber min={0} className="w-full" />
+            </Form.Item>
+
+            {isIncremental && (
+              <Card
+                size="small"
+                className="bg-gray-50 mb-4 border-2 border-gray-200"
+              >
+                <Space direction="vertical" className="w-full">
+                  <Form.Item
+                    name="baseWeight"
+                    label="Base Weight Limit (kg)"
+                    rules={[{ required: isIncremental }]}
+                    className="mb-2"
+                  >
+                    <InputNumber min={0} step={0.1} className="w-full" />
+                  </Form.Item>
+                  <Form.Item
+                    name="perKgRate"
+                    label="Extra Cost Per Kg (LKR)"
+                    rules={[{ required: isIncremental }]}
+                    className="mb-0"
+                  >
+                    <InputNumber min={0} className="w-full" />
+                  </Form.Item>
+                </Space>
+              </Card>
+            )}
+
+            <Form.Item
+              name="isActive"
+              label="Active Status"
+              valuePropName="checked"
+            >
+              <Switch checkedChildren="ACTIVE" unCheckedChildren="INACTIVE" />
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
     </PageContainer>
   );
 };

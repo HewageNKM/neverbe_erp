@@ -265,21 +265,23 @@ export default function PettyCashList() {
   return (
     <PageContainer title="Petty Cash" description="Manage Expenses">
       <div className="w-full space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b-2 border-gray-200 pb-6">
-          <div className="flex flex-col">
-            <span className="text-xs font-bold  text-gray-500  mb-1">
-              Financial Records
-            </span>
-            <h2 className="text-4xl font-bold text-black  tracking-tighter leading-none">
-              Petty Cash
-            </h2>
+        <div className="flex justify-between items-end mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+                Finance
+              </span>
+              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+                Petty Cash
+              </h2>
+            </div>
           </div>
           <Button
             type="primary"
-            size="large"
-            icon={<IconPlus size={16} />}
+            icon={<IconPlus size={18} />}
             onClick={handleOpenCreate}
+            className="rounded-xl h-11 px-6 bg-green-600 hover:bg-green-700 border-none"
           >
             Create Entry
           </Button>
