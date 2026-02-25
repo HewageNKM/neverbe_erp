@@ -55,7 +55,7 @@ const ViewPurchaseOrderPage = () => {
   }, [currentUser, poId, fetchPO]);
 
   const handleUpdateStatus = (status: PurchaseOrderStatus) => {
-    const action = status === "SUBMITTED" ? "Send to Supplier" : "Cancel Order";
+    const action = status === "SUBMITTED" ? "Submit" : "Cancel Order";
     const isDestructive = status === "REJECTED";
 
     showConfirmation({
@@ -72,7 +72,9 @@ const ViewPurchaseOrderPage = () => {
           await api.put(`/api/v1/erp/procurement/purchase-orders/${poId}`, {
             status,
           });
-          toast.error(`Order ${status === "SUBMITTED" ? "Sent" : "Cancelled"}`);
+          toast.success(
+            `Order ${status === "SUBMITTED" ? "Submitted" : "Cancelled"}`,
+          );
           fetchPO();
         } catch (error) {
           console.error(error);
@@ -149,7 +151,7 @@ const ViewPurchaseOrderPage = () => {
                   : "bg-gray-100 text-gray-400"
             }`}
           >
-            {item.receivedQuantity || 0}
+            {PO_STATUS_LABELS.COMPLETED}
           </span>
         </>
       ),
@@ -250,7 +252,7 @@ const ViewPurchaseOrderPage = () => {
                     icon={!updating && <IconSend size={16} />}
                     className="bg-green-600 hover:bg-green-700 border-none rounded-full h-auto py-2.5 px-8 font-bold text-xs uppercase tracking-widest shadow-none"
                   >
-                    {updating ? <Spin size="small" /> : "Send to Supplier"}
+                    {updating ? <Spin size="small" /> : "Submit"}
                   </Button>
                   <Button
                     danger
@@ -277,7 +279,7 @@ const ViewPurchaseOrderPage = () => {
               {po.status === "COMPLETED" && (
                 <div className="flex items-center text-green-700 font-bold text-[10px] uppercase tracking-widest bg-green-50 px-6 py-3 rounded-full border border-green-100">
                   <IconPackage size={16} className="mr-2" />
-                  Order Fully Received
+                  Order Completed
                 </div>
               )}
               {po.status === "REJECTED" && (

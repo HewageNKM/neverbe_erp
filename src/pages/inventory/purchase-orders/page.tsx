@@ -208,7 +208,11 @@ const PurchaseOrdersPage = () => {
               />
             </Form.Item>
             <Form.Item name="status" className="!mb-0 w-40">
-              <Select placeholder="All Status" allowClear>
+              <Select
+                placeholder="All Status"
+                allowClear
+                onChange={() => form.submit()}
+              >
                 <Select.Option value="">All Status</Select.Option>
                 {Object.entries(PO_STATUS_LABELS).map(([value, label]) => (
                   <Select.Option key={value} value={value}>
