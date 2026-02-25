@@ -306,14 +306,13 @@ const OrdersPage = () => {
                 <Button
                   type="primary"
                   htmlType="submit"
-                  icon={<IconFilter size={16} />}
+                  icon={<IconFilter size={15} />}
                 >
                   Filter
                 </Button>
-                <Button
-                  icon={<IconX size={16} />}
-                  onClick={handleClearFilters}
-                />
+                <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
               </Space>
             </Form.Item>
           </Form>

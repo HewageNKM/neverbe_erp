@@ -3,7 +3,7 @@ import { auth } from "@/firebase/firebaseClient";
 
 const API_BASE_URL = import.meta.env.PROD
   ? "https://api.neverbe.lk"
-  : "http://localhost:3000";
+  : "http://localhost:8080";
 
 const api = axios.create({
   baseURL: API_BASE_URL,

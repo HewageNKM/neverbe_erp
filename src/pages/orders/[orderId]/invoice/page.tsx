@@ -1,4 +1,4 @@
-import {  Spin , Button } from "antd";
+import { Spin, Button } from "antd";
 import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -66,11 +66,13 @@ const OrderInvoice = () => {
       <div className="max-w-4xl mx-auto mb-6 no-print pt-8 px-4 flex justify-between items-center">
         <Link
           to="/orders"
-          className="flex items-center gap-2 text-xs font-bold   text-gray-500 hover:text-black transition-colors"
+          className="flex items-center gap-2 text-xs font-bold text-green-600 hover:text-green-700 transition-colors"
         >
           <IconChevronLeft size={16} /> Back to Orders
         </Link>
-        <Button type="primary" size="large" onClick={handlePrint}>Print Document</Button>
+        <Button type="primary" size="large" onClick={handlePrint}>
+          Print Document
+        </Button>
       </div>
 
       <div className="min-h-screen bg-gray-100 pb-20 pt-8 print:bg-white print:py-0">
@@ -78,17 +80,24 @@ const OrderInvoice = () => {
           {/* Invoice Paper */}
           <div
             id="printable-area"
-            className="bg-white p-12 md:p-16 shadow-2xl min-h-[1100px] relative text-black print:shadow-none print:p-0"
+            className="bg-white p-12 md:p-16 shadow-2xl rounded-2xl min-h-[1100px] relative text-black print:shadow-none print:p-0"
           >
             {/* Header */}
-            <div className="flex justify-between items-start border-b-4 border-gray-200 pb-10 mb-10">
-              <div className="flex flex-col">
-                <h1 className="text-5xl font-bold  tracking-tighter text-black leading-none mb-1">
-                  Invoice
-                </h1>
-                <span className="text-xs font-bold   text-gray-400">
-                  Official Receipt
-                </span>
+            <div className="flex justify-between items-start border-b-4 border-gray-100 pb-10 mb-10">
+              <div className="flex flex-col gap-4">
+                <img
+                  src="/logo.png"
+                  alt="NeverBe"
+                  className="h-12 w-auto object-contain"
+                />
+                <div>
+                  <h1 className="text-5xl font-bold tracking-tighter text-black leading-none mb-1">
+                    Invoice
+                  </h1>
+                  <span className="text-xs font-bold text-gray-400">
+                    Official Receipt
+                  </span>
+                </div>
               </div>
 
               <div className="text-right">
@@ -107,34 +116,39 @@ const OrderInvoice = () => {
             </div>
 
             {/* Meta Data Grid */}
-            <div className="grid grid-cols-2 gap-10 mb-14 border-b border-gray-100 pb-10">
+            <div className="grid grid-cols-2 gap-10 mb-14 border-b border-gray-50 pb-10">
               <div className="space-y-6">
-                <div>
-                  <span className="block text-xs font-bold text-gray-400   mb-1">
-                    Invoice To
-                  </span>
-                  <p className="text-sm font-bold ">
-                    {order.customer?.name || "Guest"}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1  max-w-[200px] leading-relaxed">
-                    {order.customer?.address}
-                    <br />
-                    {order.customer?.city} {order.customer?.zip}
-                  </p>
-                </div>
-                <div>
-                  <span className="block text-xs font-bold text-gray-400   mb-1">
-                    Ship To
-                  </span>
-                  <p className="text-sm font-bold ">
-                    {order.customer?.shippingName || order.customer?.name}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1  max-w-[200px] leading-relaxed">
-                    {order.customer?.shippingAddress}
-                    <br />
-                    {order.customer?.shippingCity} {order.customer?.shippingZip}
-                  </p>
-                </div>
+                {order.customer?.address && (
+                  <div>
+                    <span className="block text-xs font-bold text-gray-400 mb-1">
+                      Invoice To
+                    </span>
+                    <p className="text-sm font-bold">
+                      {order.customer?.name || "Guest"}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1 max-w-[200px] leading-relaxed">
+                      {order.customer?.address}
+                      <br />
+                      {order.customer?.city} {order.customer?.zip}
+                    </p>
+                  </div>
+                )}
+                {order.customer?.shippingAddress && (
+                  <div>
+                    <span className="block text-xs font-bold text-gray-400 mb-1">
+                      Ship To
+                    </span>
+                    <p className="text-sm font-bold">
+                      {order.customer?.shippingName || order.customer?.name}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1 max-w-[200px] leading-relaxed">
+                      {order.customer?.shippingAddress}
+                      <br />
+                      {order.customer?.shippingCity}{" "}
+                      {order.customer?.shippingZip}
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="text-right space-y-6">
                 <div>
@@ -150,11 +164,7 @@ const OrderInvoice = () => {
                     Date Issued
                   </span>
                   <p className="text-sm font-bold ">
-                    {new Date(
-                      (order.createdAt as any)?.seconds
-                        ? (order.createdAt as any).toDate()
-                        : order.createdAt,
-                    ).toLocaleDateString()}
+                    {order.createdAt ? String(order.createdAt) : "N/A"}
                   </p>
                 </div>
                 <div>
@@ -258,7 +268,7 @@ const OrderInvoice = () => {
                                   >
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center gap-2">
-                                        <span className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 ">
+                                        <span className="bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded">
                                           Combo
                                         </span>
                                         <span className="font-bold text-black  text-sm">
@@ -335,7 +345,7 @@ const OrderInvoice = () => {
                   <div className="flex justify-between text-xs font-bold text-gray-500 ">
                     <div className="flex items-center gap-2">
                       <span>Coupon</span>
-                      <span className="bg-green-100 text-green-700 px-1 py-0.5 text-[8px] font-bold">
+                      <span className="bg-green-100 text-green-700 px-1 py-0.5 text-[8px] font-bold rounded">
                         {order.couponCode}
                       </span>
                     </div>
