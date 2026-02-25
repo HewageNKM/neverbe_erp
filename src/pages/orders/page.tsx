@@ -49,6 +49,26 @@ const OrdersPage = () => {
   // --- Orders state ---
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [stocks, setStocks] = useState<{ id: string; label: string }[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+
+  // --- Fetch dropdown data ---
+  const fetchDropdownData = async () => {
+    try {
+      const [stocksRes, pmRes] = await Promise.all([
+        api.get("/api/v1/erp/catalog/stocks/dropdown"),
+        api.get("/api/v1/erp/finance/payment-methods"),
+      ]);
+      setStocks(stocksRes.data);
+      setPaymentMethods(pmRes.data);
+    } catch (err) {
+      console.error("Failed to fetch dropdown data", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchDropdownData();
+  }, []);
 
   // --- Fetch orders from API ---
   const fetchOrders = async (values?: Record<string, unknown>) => {
@@ -73,6 +93,12 @@ const OrdersPage = () => {
         if (range[0]) params.append("from", range[0].format("YYYY-MM-DD"));
         if (range[1]) params.append("to", range[1].format("YYYY-MM-DD"));
       }
+      if (filters.source && filters.source !== "all")
+        params.append("source", filters.source as string);
+      if (filters.stockId && filters.stockId !== "all")
+        params.append("stockId", filters.stockId as string);
+      if (filters.paymentMethod && filters.paymentMethod !== "all")
+        params.append("paymentMethod", filters.paymentMethod as string);
 
       const { data } = await api.get(`/api/v1/erp/orders?${params.toString()}`);
       setOrders(data.dataList);
@@ -250,7 +276,11 @@ const OrdersPage = () => {
   ];
 
   return (
-    <PageContainer title="Orders" description="Manage Customer Orders">
+    <PageContainer
+      title="Orders | NEVERBE ERP"
+      loading={isLoading}
+      description="Manage Customer Orders"
+    >
       <Space direction="vertical" size="large" className="w-full">
         {/* Header - Kept simpler or matched layout? Let's use standard AntD layout logic if possible, 
             but kept the header visual style consistently with other refactored pages if any. 
@@ -272,7 +302,13 @@ const OrdersPage = () => {
             form={form}
             layout="inline"
             onFinish={handleFilterSubmit}
-            initialValues={{ payment: "all", status: "all" }}
+            initialValues={{
+              payment: "all",
+              status: "all",
+              source: "all",
+              stockId: "all",
+              paymentMethod: "all",
+            }}
             className="flex flex-wrap gap-2 w-full"
           >
             <Form.Item name="search" className="!mb-0 flex-1 min-w-[200px]">
@@ -300,6 +336,33 @@ const OrdersPage = () => {
             </Form.Item>
             <Form.Item name="dateRange" className="!mb-0 w-64">
               <RangePicker className="w-full" />
+            </Form.Item>
+            <Form.Item name="source" className="!mb-0 w-36">
+              <Select>
+                <Option value="all">All Sources</Option>
+                <Option value="Store">Store</Option>
+                <Option value="Website">Website</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="stockId" className="!mb-0 w-40">
+              <Select dropdownMatchSelectWidth={false}>
+                <Option value="all">All Stocks</Option>
+                {stocks.map((s) => (
+                  <Option key={s.id} value={s.id}>
+                    {s.label}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="paymentMethod" className="!mb-0 w-44">
+              <Select dropdownMatchSelectWidth={false}>
+                <Option value="all">All Methods</Option>
+                {paymentMethods.map((pm) => (
+                  <Option key={pm.id} value={pm.name}>
+                    {pm.name}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
             <Form.Item className="!mb-0">
               <Space>

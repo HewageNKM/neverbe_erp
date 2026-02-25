@@ -256,10 +256,10 @@ const CustomerAnalyticsPage = () => {
               </div>
               <div className="bg-white border border-gray-200 p-6">
                 <div className="flex items-center gap-2 mb-2">
-                  <IconRepeat size={16} className="text-blue-500" />
+                  <IconRepeat size={16} className="text-green-500" />
                   <p className="text-xs font-bold   text-gray-500">Returning</p>
                 </div>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl font-bold text-green-600">
                   {report.overview.returningCustomers}
                 </p>
               </div>

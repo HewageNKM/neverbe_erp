@@ -111,7 +111,7 @@ const EditRolePage = () => {
               type="link"
               onClick={() => navigate(-1)}
               icon={<IconArrowLeft size={16} />}
-              className="px-0 text-gray-500 hover:text-black mb-2"
+              className="px-0 text-green-600 hover:text-green-700 mb-2 font-medium"
             >
               Back to Roles
             </Button>

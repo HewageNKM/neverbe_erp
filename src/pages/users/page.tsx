@@ -469,7 +469,11 @@ const UsersPage = () => {
   ];
 
   return (
-    <PageContainer title="Users" description="Users Management">
+    <PageContainer
+      title="Users"
+      description="Users Management"
+      loading={loading}
+    >
       <Space direction="vertical" size="large" className="w-full">
         <div className="flex justify-between items-center">
           <div>

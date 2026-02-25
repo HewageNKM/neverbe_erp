@@ -88,9 +88,7 @@ const Reports = () => {
       id: "06",
       category: "Customer Insights",
       icon: <IconChartBar size={20} stroke={2} />,
-      reports: [
-        { title: "Customer Analytics", link: "/reports/customers" },
-      ],
+      reports: [{ title: "Customer Analytics", link: "/reports/customers" }],
     },
   ];
 
@@ -137,7 +135,7 @@ const Reports = () => {
                       <div className="w-8 h-1 bg-green-600 group-hover:bg-white transition-colors"></div>
                       <IconArrowRight
                         size={20}
-                        className="text-black group-hover:text-white -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
+                        className="text-green-600 group-hover:text-white -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
                       />
                     </div>
 

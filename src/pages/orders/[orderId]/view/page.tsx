@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState } from "react";
 import PageContainer from "../../../components/container/PageContainer";
 import { useParams } from "react-router-dom";
 import OrderView from "./components/OrderView";
@@ -7,16 +6,18 @@ import OrderView from "./components/OrderView";
 const OrderPage = () => {
   const params = useParams();
   const orderId = params?.orderId as string;
+  const [isLoading, setIsLoading] = useState(true);
 
   return (
-    <PageContainer title={`Order View - ${orderId}`} description="Order View">
+    <PageContainer
+      title={`Order View - ${orderId}`}
+      description="Order View"
+      loading={isLoading}
+    >
       {/* 
           Removing DashboardCard wrapper here to allow OrderView to control its own layout cards
           similar to how we did in Edit page for a cleaner, less nested look.
        */}
-      <div className="max-w-5xl mx-auto">
-        <OrderView orderId={orderId} />
-      </div>
     </PageContainer>
   );
 };

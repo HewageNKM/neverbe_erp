@@ -1,82 +1,55 @@
-import {  Spin , Button } from "antd";
+import {
+  Form,
+  Input,
+  Select,
+  Button,
+  Card,
+  Row,
+  Col,
+  Space,
+  Divider,
+  Alert,
+} from "antd";
 import api from "@/lib/api";
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Order } from "@/model/Order";
-import { Customer } from "@/model/Customer";
-import { IoCheckmark, IoClose } from "react-icons/io5";
 import toast from "react-hot-toast";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
-import { IconLoader, IconAlertTriangle } from "@tabler/icons-react";
 
 interface OrderEditFormProps {
   order: Order;
   onRefresh?: () => void;
 }
 
-// --- STYLES ---
-const styles = {
-  label:
-    "block text-xs font-bold text-gray-500   mb-2",
-  input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-bold px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none placeholder:text-gray-400",
-  select:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-bold px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none appearance-none cursor-pointer ",
-  sectionTitle:
-    "text-lg font-bold text-black  tracking-tighter mb-6 pb-2 border-b-2 border-gray-200",
-};
-
 export const OrderEditForm: React.FC<OrderEditFormProps> = ({
   order,
   onRefresh,
 }) => {
-  const [formData, setFormData] = useState<Order>(order);
+  const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState<
+    { paymentId: string; name: string }[]
+  >([]);
   const { showConfirmation } = useConfirmationDialog();
 
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      paymentStatus: e.target.value,
-    }));
-  };
-
-  const handleOrderStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStatus = e.target.value;
-    setFormData((prev) => {
-      // Add status change to history
-      const existingHistory = prev.statusHistory || [];
-      const newHistoryEntry = {
-        status: newStatus,
-        date: new Date().toISOString(),
-      };
-      return {
-        ...prev,
-        status: newStatus,
-        statusHistory: [...existingHistory, newHistoryEntry],
-      };
+  useEffect(() => {
+    form.setFieldsValue({
+      ...order,
+      customer: order.customer || {},
     });
+    fetchPaymentMethods();
+  }, [order, form]);
+
+  const fetchPaymentMethods = async () => {
+    try {
+      const response = await api.get("/api/v1/erp/finance/payment-methods");
+      setPaymentMethods(response.data);
+    } catch (error) {
+      console.error("Failed to fetch payment methods:", error);
+    }
   };
 
-  const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => {
-      const currentCustomer = prev.customer || ({} as Customer);
-      return {
-        ...prev,
-        customer: {
-          ...currentCustomer,
-          [name]: value,
-        },
-      };
-    });
-  };
-
-  const handleReset = () => setFormData(order);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onFinish = async (values: Order) => {
     showConfirmation({
       title: "UPDATE ORDER",
       message:
@@ -88,14 +61,24 @@ export const OrderEditForm: React.FC<OrderEditFormProps> = ({
       onSuccess: async () => {
         try {
           setIsSubmitting(true);
+          // Construct payload with status history if status changed
+          const payload = { ...values };
+          if (values.status !== order.status) {
+            const existingHistory = order.statusHistory || [];
+            payload.statusHistory = [
+              ...existingHistory,
+              { status: values.status, date: new Date().toISOString() },
+            ];
+          }
 
-          await api.put(`/api/v1/erp/orders/${order.orderId}`, formData);
-
+          await api.put(`/api/v1/erp/orders/${order.orderId}`, payload);
           toast.success(`ORDER #${order.orderId} UPDATED`);
           onRefresh?.();
         } catch (error: any) {
           console.error(error);
-          toast.error(error.response?.data?.message || "Failed to update order");
+          toast.error(
+            error.response?.data?.message || "Failed to update order",
+          );
         } finally {
           setIsSubmitting(false);
         }
@@ -104,168 +87,269 @@ export const OrderEditForm: React.FC<OrderEditFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-      {/* ⚠️ Tampered Order Warning */}
-      {order && order.integrity === false && (
-        <div className="bg-red-600 text-white p-4 border border-red-500 rounded-lg shadow-sm">
-          <div className="flex items-center gap-3">
-            <IconAlertTriangle size={24} stroke={2} />
-            <div>
-              <h3 className="text-sm font-bold  tracking-wide">
-                Security Alert
-              </h3>
-              <p className="text-xs font-medium opacity-90 ">
-                Order flagged for integrity violation. Proceed with caution.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="w-full animate-in fade-in duration-500">
+      <Space direction="vertical" size={48} className="w-full">
+        {/* ⚠️ Security Alert */}
+        {order.integrity === false && (
+          <Alert
+            message="Security Integrity Check Failed"
+            description="This order has failed system integrity checks. Please exercise extreme caution before proceeding."
+            type="error"
+            showIcon
+            className="shadow-sm"
+          />
+        )}
 
-      {/* ✏️ Edit Form Card */}
-      <div className="bg-white border border-gray-200 p-8 shadow-sm">
-        <h2 className={styles.sectionTitle}>Order Configuration</h2>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          requiredMark={false}
+        >
+          <Row gutter={[32, 48]}>
+            {/* Main Configuration Card */}
+            <Col xs={24} lg={16}>
+              <Space direction="vertical" size={48} className="w-full">
+                <Card
+                  title="Order Configuration"
+                  className="shadow-sm border-gray-200"
+                >
+                  <Row gutter={16}>
+                    <Col xs={24} md={8}>
+                      <Form.Item
+                        label="Order Status"
+                        name="status"
+                        rules={[{ required: true }]}
+                      >
+                        <Select size="large">
+                          <Select.Option value="Pending">PENDING</Select.Option>
+                          <Select.Option value="Processing">
+                            PROCESSING
+                          </Select.Option>
+                          <Select.Option value="Shipped">SHIPPED</Select.Option>
+                          <Select.Option value="Completed">
+                            COMPLETED
+                          </Select.Option>
+                          <Select.Option value="Cancelled">
+                            CANCELLED
+                          </Select.Option>
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8}>
+                      <Form.Item
+                        label="Payment Method"
+                        name="paymentMethod"
+                        rules={[{ required: true }]}
+                      >
+                        <Select size="large" placeholder="Select Method">
+                          {paymentMethods.map((m) => (
+                            <Select.Option
+                              key={m.paymentId}
+                              value={m.paymentId.toUpperCase()}
+                            >
+                              {m.name.toUpperCase()}
+                            </Select.Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={8}>
+                      <Form.Item
+                        label="Payment Status"
+                        name="paymentStatus"
+                        rules={[{ required: true }]}
+                      >
+                        <Select size="large">
+                          <Select.Option value="Pending">PENDING</Select.Option>
+                          <Select.Option value="Paid">PAID</Select.Option>
+                          <Select.Option value="Failed">FAILED</Select.Option>
+                          <Select.Option value="Refunded">
+                            REFUNDED
+                          </Select.Option>
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                </Card>
 
-        <div className="flex flex-col gap-8">
-          {/* Statuses */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col">
-              <label className={styles.label}>Payment Status</label>
-              <select
-                name="paymentStatus"
-                value={formData?.paymentStatus}
-                onChange={handleStatusChange}
-                className={styles.select}
+                {/* Customer Information Grid */}
+                <Row gutter={[32, 48]}>
+                  <Col xs={24} md={12}>
+                    <Card
+                      title="Billing Details"
+                      className="shadow-sm border-gray-200 h-full"
+                    >
+                      <div className="space-y-4">
+                        <Form.Item
+                          label="Customer Name"
+                          name={["customer", "name"]}
+                        >
+                          <Input size="large" placeholder="Full Name" />
+                        </Form.Item>
+                        <Form.Item
+                          label="Email Address"
+                          name={["customer", "email"]}
+                        >
+                          <Input
+                            size="large"
+                            type="email"
+                            placeholder="email@example.com"
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          label="Phone Number"
+                          name={["customer", "phone"]}
+                        >
+                          <Input size="large" placeholder="+94 XX XXX XXXX" />
+                        </Form.Item>
+                        <Form.Item
+                          label="Street Address"
+                          name={["customer", "address"]}
+                        >
+                          <Input.TextArea
+                            rows={3}
+                            placeholder="Mailing Address"
+                          />
+                        </Form.Item>
+                        <Row gutter={8}>
+                          <Col span={14}>
+                            <Form.Item label="City" name={["customer", "city"]}>
+                              <Input size="large" placeholder="City" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={10}>
+                            <Form.Item
+                              label="Zip Code"
+                              name={["customer", "zip"]}
+                            >
+                              <Input size="large" placeholder="00000" />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      </div>
+                    </Card>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Card
+                      title="Shipping Details"
+                      className="shadow-sm border-gray-200 h-full"
+                    >
+                      <div className="space-y-4">
+                        <Form.Item
+                          label="Recipient Name"
+                          name={["customer", "shippingName"]}
+                        >
+                          <Input size="large" placeholder="Recipient Name" />
+                        </Form.Item>
+                        <Form.Item
+                          label="Contact Phone"
+                          name={["customer", "shippingPhone"]}
+                        >
+                          <Input size="large" placeholder="+94 XX XXX XXXX" />
+                        </Form.Item>
+                        <Form.Item
+                          label="Street Address"
+                          name={["customer", "shippingAddress"]}
+                        >
+                          <Input.TextArea
+                            rows={3}
+                            placeholder="Shipping Address"
+                          />
+                        </Form.Item>
+                        <Row gutter={8}>
+                          <Col span={14}>
+                            <Form.Item
+                              label="City"
+                              name={["customer", "shippingCity"]}
+                            >
+                              <Input size="large" placeholder="City" />
+                            </Form.Item>
+                          </Col>
+                          <Col span={10}>
+                            <Form.Item
+                              label="Zip Code"
+                              name={["customer", "shippingZip"]}
+                            >
+                              <Input size="large" placeholder="00000" />
+                            </Form.Item>
+                          </Col>
+                        </Row>
+                      </div>
+                    </Card>
+                  </Col>
+                </Row>
+              </Space>
+            </Col>
+
+            {/* Action Sidebar */}
+            <Col xs={24} lg={8}>
+              <Card
+                className="sticky top-8 shadow-md border-green-100 bg-gray-50/50"
+                title={
+                  <span className="text-gray-500 text-xs font-bold uppercase tracking-widest">
+                    Update Summary
+                  </span>
+                }
               >
-                <option value="Pending">PENDING</option>
-                <option value="Paid">PAID</option>
-                <option value="Failed">FAILED</option>
-                <option value="Refunded">REFUNDED</option>
-              </select>
-            </div>
-
-            <div className="flex flex-col">
-              <label className={styles.label}>Order Status</label>
-              <select
-                name="status"
-                value={formData?.status || ""}
-                onChange={handleOrderStatusChange}
-                className={styles.select}
-              >
-                <option value="Pending">PENDING</option>
-                <option value="Processing">PROCESSING</option>
-                <option value="Shipped">SHIPPED</option>
-                <option value="Completed">COMPLETED</option>
-                <option value="Cancelled">CANCELLED</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Tracking Information */}
-          <div className="pt-4 border-t border-gray-100">
-            <h3 className="text-xs font-bold   text-gray-400 mb-4 flex items-center gap-2">
-              <span className="w-1 h-1 bg-green-600 rounded-full"></span> Tracking
-              Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col">
-                <label className={styles.label}>Tracking Number</label>
-                <input
-                  type="text"
-                  name="trackingNumber"
-                  value={formData?.trackingNumber || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      trackingNumber: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter tracking number..."
-                  className={styles.input}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Customer Edit Fields */}
-          {formData?.customer && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 pt-4 border-t border-gray-100">
-              {/* Billing */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold   text-gray-400 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-1 bg-green-600 rounded-full"></span>{" "}
-                  Billing Information
-                </h3>
-                <div className="grid grid-cols-1 gap-4">
-                  {[
-                    { id: "name", label: "Name" },
-                    { id: "email", label: "Email" },
-                    { id: "phone", label: "Phone" },
-                    { id: "address", label: "Address" },
-                    { id: "city", label: "City" },
-                    { id: "zip", label: "ZIP Code" },
-                  ].map((field) => (
-                    <div key={field.id}>
-                      <label className={styles.label}>{field.label}</label>
-                      <input
-                        type="text"
-                        name={field.id}
-                        value={(formData.customer as any)?.[field.id] || ""}
-                        onChange={handleCustomerChange}
-                        className={styles.input}
-                      />
+                <div className="space-y-6">
+                  <div className="bg-white p-4 border border-gray-100 rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs text-gray-500 font-medium">
+                        Order ID
+                      </span>
+                      <span className="font-bold">#{order.orderId}</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Shipping */}
-              <div className="space-y-4">
-                <h3 className="text-xs font-bold   text-gray-400 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-1 bg-green-600 rounded-full"></span>{" "}
-                  Shipping Information
-                </h3>
-                <div className="grid grid-cols-1 gap-4">
-                  {[
-                    { id: "shippingName", label: "Recipient Name" },
-                    { id: "shippingPhone", label: "Contact Phone" },
-                    { id: "shippingAddress", label: "Street Address" },
-                    { id: "shippingCity", label: "City / Town" },
-                    { id: "shippingZip", label: "Postal Code" },
-                  ].map((field) => (
-                    <div key={field.id}>
-                      <label className={styles.label}>{field.label}</label>
-                      <input
-                        type="text"
-                        name={field.id}
-                        value={(formData.customer as any)?.[field.id] || ""}
-                        onChange={handleCustomerChange}
-                        className={styles.input}
-                      />
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500 font-medium">
+                        Original Status
+                      </span>
+                      <span className="text-xs font-bold px-2 py-0.5 bg-gray-100 rounded uppercase">
+                        {order.status}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+                  </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-4 mt-4 pt-6 border-t-2 border-gray-200">
-            <Button type="primary" size="large" disabled={isSubmitting} htmlType="submit">{isSubmitting && (
-                <Spin size="small" />
-              )}
-              Save Changes</Button>
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={handleReset}
-              className="px-8 py-4 bg-white text-black border border-gray-200 rounded-lg text-xs font-bold   hover:border-gray-200 transition-all"
-            >
-              Reset Form
-            </button>
-          </div>
-        </div>
-      </div>
-    </form>
+                  <Divider className="my-0" />
+
+                  <Space direction="vertical" className="w-full" size="middle">
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      block
+                      size="large"
+                      loading={isSubmitting}
+                      className="h-14 font-bold text-base shadow-lg shadow-green-100"
+                      style={{ background: "#16a34a", borderColor: "#16a34a" }}
+                    >
+                      Commit Changes
+                    </Button>
+                    <Button
+                      block
+                      size="large"
+                      onClick={() =>
+                        form.setFieldsValue({
+                          ...order,
+                          customer: order.customer || {},
+                        })
+                      }
+                      className="h-12 border-gray-200 text-gray-600 hover:text-black font-medium"
+                    >
+                      Discard Changes
+                    </Button>
+                  </Space>
+
+                  <p className="text-[10px] text-gray-400 text-center px-4 leading-relaxed">
+                    By committing these changes, the order state and customer
+                    data will be permanently updated. Detailed history will be
+                    recorded for audit purposes.
+                  </p>
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        </Form>
+      </Space>
+    </div>
   );
 };

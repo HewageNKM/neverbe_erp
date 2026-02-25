@@ -3,11 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { getPendingOrdersCountAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
-import {
-  IconClock,
-  IconTruck,
-  IconAlertCircle,
-} from "@tabler/icons-react";
+import { IconClock, IconTruck, IconAlertCircle } from "@tabler/icons-react";
 import { Spin, Button } from "antd";
 
 interface PendingData {
@@ -47,7 +43,6 @@ const PendingOrdersCount = () => {
           <h4 className="text-lg font-bold tracking-tighter text-black m-0">
             Needs Attention
           </h4>
-          
         </div>
       </div>
 
@@ -79,14 +74,14 @@ const PendingOrdersCount = () => {
                 </p>
               </div>
 
-              <div className="p-4 border border-blue-100 bg-blue-50 rounded-2xl shadow-sm transition-all hover:-translate-y-0.5">
+              <div className="p-4 border border-green-100 bg-green-50 rounded-2xl shadow-sm transition-all hover:-translate-y-0.5">
                 <div className="flex items-center gap-2 mb-2">
-                  <IconTruck size={16} className="text-blue-600" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-700">
+                  <IconTruck size={16} className="text-green-600" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-green-700">
                     To Ship
                   </span>
                 </div>
-                <p className="text-xl font-bold text-blue-700 m-0">
+                <p className="text-xl font-bold text-green-700 m-0">
                   {data.pendingShipment}
                 </p>
               </div>

@@ -1,8 +1,8 @@
-import { Spin } from "antd";
+import { Spin, Result, Button } from "antd";
 import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Order } from "@/model/Order";
 import PageContainer from "../../components/container/PageContainer";
 import DashboardCard from "../../components/shared/DashboardCard";
@@ -14,11 +14,10 @@ import { Link } from "react-router-dom"; // Use Next.js Link instead of MUI
 
 const OrderEditPage = () => {
   const param = useParams();
-  const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const { currentUser, loading: authLoading } = useAppSelector(
-    (state) => state.authSlice
+    (state) => state.authSlice,
   );
 
   useEffect(() => {
@@ -32,9 +31,10 @@ const OrderEditPage = () => {
       setLoading(true);
       const response = await api.get(`/api/v1/erp/orders/${param.orderId}`);
       setOrder(response.data);
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || "Failed to fetch order");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to fetch order");
+      }
     } finally {
       setLoading(false);
     }
@@ -53,34 +53,35 @@ const OrderEditPage = () => {
     </div>
   );
 
-  if (loading) {
-    return (
-      <PageContainer title="Edit Order">
-        <DashboardCard title="Loading Order...">
-          <div className="flex justify-center items-center min-h-[50vh]">
-            <Spin />
-          </div>
-        </DashboardCard>
-      </PageContainer>
-    );
-  }
-
   if (!order) {
     return (
       <PageContainer title="Edit Order">
-        <DashboardCard title="Order Not Found">
-          <div className="p-8 text-center text-gray-500">
-            <p>Order not found or failed to load.</p>
-          </div>
-        </DashboardCard>
+        <div className="flex justify-center items-center min-h-[70vh]">
+          <Result
+            status="404"
+            title="Order Not Found"
+            subTitle="Sorry, the order you are looking for does not exist or failed to load."
+            extra={
+              <Link to="/orders">
+                <Button
+                  type="primary"
+                  size="large"
+                  style={{ background: "#16a34a", borderColor: "#16a34a" }}
+                >
+                  Back to Orders
+                </Button>
+              </Link>
+            }
+          />
+        </div>
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer title={`Edit Order #${order.orderId}`}>
+    <PageContainer title={`Edit Order #${order.orderId}`} loading={loading}>
       <BreadcrumbNav />
-      <div className="max-w-5xl mx-auto flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <OrderEditForm order={order} onRefresh={fetchOrder} />
         <OrderExchangeHistory orderId={order.orderId} />
       </div>

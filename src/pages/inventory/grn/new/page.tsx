@@ -339,7 +339,7 @@ const NewGRNPageContent = () => {
         <div className="flex items-center gap-4 border-b-2 border-gray-200 pb-6">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:text-white transition-colors"
+            className="w-10 h-10 flex items-center justify-center border border-gray-200 text-green-600 hover:bg-green-600 hover:text-white transition-colors"
           >
             <IconArrowLeft size={20} stroke={2} />
           </button>

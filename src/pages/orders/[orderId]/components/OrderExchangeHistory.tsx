@@ -1,208 +1,253 @@
-import { Spin } from "antd";
+import { Spin, Card, Row, Col, Divider, Tag, Typography } from "antd";
 import api from "@/lib/api";
-
 import React, { useEffect, useState } from "react";
 import { ExchangeRecord } from "@/model/ExchangeRecord";
-import {
-  IconAlertCircle,
-  IconArrowRight,
-  IconLoader,
-} from "@tabler/icons-react";
+import { IconRefresh, IconNotes } from "@tabler/icons-react";
+
+const { Text, Title } = Typography;
 
 interface OrderExchangeHistoryProps {
   orderId: string;
 }
-
-const styles = {
-  sectionTitle:
-    "text-lg font-bold text-black  tracking-tighter mb-6 pb-2 border-b-2 border-gray-200 flex items-center justify-between",
-  tableHeader:
-    "bg-green-600 text-white text-xs font-bold   py-3 px-4 text-left",
-  tableCell: "py-4 px-4 text-xs font-bold border-b border-gray-100",
-  badge:
-    "inline-flex items-center px-2 py-1 text-xs font-bold  tracking-wide border-2",
-};
 
 export const OrderExchangeHistory: React.FC<OrderExchangeHistoryProps> = ({
   orderId,
 }) => {
   const [exchanges, setExchanges] = useState<ExchangeRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchExchanges();
-  }, [orderId]);
-
-  const fetchExchanges = async () => {
+  const fetchExchanges = React.useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/api/v1/erp/orders/${orderId}/exchanges`);
       setExchanges(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError("Failed to load exchange history");
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]);
+
+  useEffect(() => {
+    fetchExchanges();
+  }, [fetchExchanges]);
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 p-8 shadow-sm flex justify-center py-12">
-        <Spin size="small" />
-      </div>
+      <Card className="shadow-sm border-gray-200">
+        <div className="flex justify-center py-12">
+          <Spin />
+        </div>
+      </Card>
     );
   }
 
   if (exchanges.length === 0) {
-    return null; // Don't show anything if no exchanges
+    return null;
   }
 
   return (
-    <div className="bg-white border border-gray-200 p-8 shadow-sm">
-      <div className={styles.sectionTitle}>
-        <span>Exchange History ({exchanges.length})</span>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 px-1">
+        <IconRefresh size={24} className="text-gray-400" />
+        <Title level={4} style={{ margin: 0, letterSpacing: "-0.02em" }}>
+          Exchange History ({exchanges.length})
+        </Title>
       </div>
 
-      <div className="flex flex-col gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {exchanges.map((exchange) => (
-          <div
+          <Card
             key={exchange.id}
-            className="border-2 border-gray-100 hover:border-gray-200 transition-colors duration-200"
+            className="shadow-sm border-gray-200 overflow-hidden"
+            bodyStyle={{ padding: 0 }}
           >
             {/* Header */}
-            <div className="bg-gray-50 p-4 border-b-2 border-gray-100 flex flex-wrap gap-4 justify-between items-center">
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-gray-400  ">
-                  Exchange ID
-                </span>
-                <span className="text-sm font-bold text-black">
+            <div className="bg-gray-50/80 px-6 py-4 flex flex-wrap justify-between items-center gap-4 border-b border-gray-200">
+              <div className="space-y-1">
+                <Text
+                  type="secondary"
+                  className="text-[10px] uppercase font-bold tracking-widest block"
+                >
+                  Exchange Identifier
+                </Text>
+                <Text className="font-mono font-bold text-sm tracking-tighter">
                   {exchange.id}
-                </span>
+                </Text>
               </div>
 
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-gray-400  ">
-                  Date
-                </span>
-                <span className="text-xs font-bold text-black">
-                  {new Date(exchange.createdAt as string).toLocaleDateString()}
-                </span>
+              <div className="space-y-1">
+                <Text
+                  type="secondary"
+                  className="text-[10px] uppercase font-bold tracking-widest block"
+                >
+                  Transaction Date
+                </Text>
+                <Text className="font-bold text-sm">
+                  {new Date(exchange.createdAt as string).toLocaleDateString(
+                    undefined,
+                    { dateStyle: "long" },
+                  )}
+                </Text>
               </div>
 
-              <div className="flex flex-col items-end">
-                <span className="text-xs font-bold text-gray-400  ">
+              <div className="text-right">
+                <Text
+                  type="secondary"
+                  className="text-[10px] uppercase font-bold tracking-widest block"
+                >
                   Net Adjustment
-                </span>
-                <span
-                  className={`text-sm font-bold ${
+                </Text>
+                <Title
+                  level={4}
+                  style={{ margin: 0 }}
+                  className={
                     exchange.priceDifference > 0
                       ? "text-red-600"
                       : "text-gray-900"
-                  }`}
+                  }
                 >
                   {exchange.priceDifference > 0
                     ? `+ Rs. ${exchange.priceDifference.toLocaleString()}`
                     : exchange.priceDifference < 0
-                    ? `- Rs. ${Math.abs(
-                        exchange.priceDifference
-                      ).toLocaleString()}`
-                    : "Rs. 0"}
-                </span>
-                {exchange.priceDifference > 0 && exchange.paymentMethod && (
-                  <span className="text-xs  font-bold bg-green-600 text-white px-2 py-0.5 mt-1">
+                      ? `- Rs. ${Math.abs(exchange.priceDifference).toLocaleString()}`
+                      : "Rs. 0.00"}
+                </Title>
+                {exchange.paymentMethod && (
+                  <Tag
+                    color="green"
+                    className="mt-1 mr-0 font-bold border-none uppercase text-[10px]"
+                  >
                     Paid via {exchange.paymentMethod}
-                  </span>
+                  </Tag>
                 )}
               </div>
             </div>
 
-            {/* Content grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2">
-              {/* Returned Items */}
-              <div className="p-4 border-b md:border-b-0 md:border-r border-gray-100">
-                <h4 className="text-xs font-bold   text-red-500 mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>{" "}
-                  Returned Items
-                </h4>
-                <div className="space-y-3">
+            {/* Content */}
+            <Row>
+              <Col
+                xs={24}
+                md={12}
+                className="p-6 border-b md:border-b-0 md:border-r border-gray-100"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                  <Text
+                    type="secondary"
+                    className="text-xs font-bold uppercase tracking-wider"
+                  >
+                    Returned Items
+                  </Text>
+                </div>
+
+                <div className="space-y-4">
                   {exchange.returnedItems.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex justify-between items-start text-xs border-b border-gray-50 pb-2 last:border-0 last:pb-0"
+                      className="flex justify-between items-start gap-4"
                     >
-                      <div>
-                        <div className="font-bold text-gray-900">
+                      <div className="space-y-0.5">
+                        <Text className="font-bold text-sm block leading-tight">
                           {item.name}
-                        </div>
-                        <div className="text-xs text-gray-500 font-bold ">
+                        </Text>
+                        <Text
+                          type="secondary"
+                          className="text-[11px] font-medium italic"
+                        >
                           {item.size}{" "}
                           {item.variantName ? `• ${item.variantName}` : ""}
-                        </div>
+                        </Text>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold">x{item.quantity}</div>
-                        <div className="text-gray-500">
+                        <Text className="font-bold text-sm block">
+                          x{item.quantity}
+                        </Text>
+                        <Text type="secondary" className="text-[11px]">
                           Rs. {item.price.toLocaleString()}
-                        </div>
+                        </Text>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between text-xs font-bold">
-                  <span>TOTAL RETURN VALUE</span>
-                  <span>Rs. {exchange.returnTotal.toLocaleString()}</span>
-                </div>
-              </div>
 
-              {/* Replacement Items */}
-              <div className="p-4 bg-gray-50/50">
-                <h4 className="text-xs font-bold   text-green-600 mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-600 rounded-full"></span>{" "}
-                  Replacements
-                </h4>
-                <div className="space-y-3">
+                <Divider className="my-4" />
+                <div className="flex justify-between text-xs font-bold">
+                  <Text type="secondary" className="uppercase tracking-widest">
+                    Total Credit
+                  </Text>
+                  <Text className="text-sm tracking-tight text-red-500">
+                    Rs. {exchange.returnTotal.toLocaleString()}
+                  </Text>
+                </div>
+              </Col>
+
+              <Col xs={24} md={12} className="p-6 bg-green-50/10">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <Text
+                    type="secondary"
+                    className="text-xs font-bold uppercase tracking-wider"
+                  >
+                    Replacements
+                  </Text>
+                </div>
+
+                <div className="space-y-4">
                   {exchange.replacementItems.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex justify-between items-start text-xs border-b border-gray-200 pb-2 last:border-0 last:pb-0"
+                      className="flex justify-between items-start gap-4"
                     >
-                      <div>
-                        <div className="font-bold text-gray-900">
+                      <div className="space-y-0.5">
+                        <Text className="font-bold text-sm block leading-tight">
                           {item.name}
-                        </div>
-                        <div className="text-xs text-gray-500 font-bold ">
+                        </Text>
+                        <Text
+                          type="secondary"
+                          className="text-[11px] font-medium italic"
+                        >
                           {item.size}{" "}
                           {item.variantName ? `• ${item.variantName}` : ""}
-                        </div>
+                        </Text>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold">x{item.quantity}</div>
-                        <div className="text-gray-500">
+                        <Text className="font-bold text-sm block">
+                          x{item.quantity}
+                        </Text>
+                        <Text type="secondary" className="text-[11px]">
                           Rs. {item.price.toLocaleString()}
-                        </div>
+                        </Text>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between text-xs font-bold">
-                  <span>TOTAL REPLACEMENT VALUE</span>
-                  <span>Rs. {exchange.replacementTotal.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Notes Footer */}
+                <Divider className="my-4" />
+                <div className="flex justify-between text-xs font-bold">
+                  <Text type="secondary" className="uppercase tracking-widest">
+                    Total Debit
+                  </Text>
+                  <Text className="text-sm tracking-tight text-green-600">
+                    Rs. {exchange.replacementTotal.toLocaleString()}
+                  </Text>
+                </div>
+              </Col>
+            </Row>
+
+            {/* Footer Notes */}
             {exchange.notes && (
-              <div className="p-3 bg-yellow-50 border-t border-gray-100 text-xs font-medium text-gray-600">
-                <span className="font-bold  text-xs text-gray-400 mr-2">
-                  Notes:
-                </span>
-                {exchange.notes}
+              <div className="px-6 py-3 bg-yellow-50/40 border-t border-gray-100 flex items-start gap-2">
+                <IconNotes size={14} className="text-yellow-600 mt-0.5" />
+                <Text className="text-xs text-gray-500 italic">
+                  <span className="font-bold text-gray-400 not-italic uppercase tracking-widest mr-2">
+                    Notes:
+                  </span>
+                  {exchange.notes}
+                </Text>
               </div>
             )}
-          </div>
+          </Card>
         ))}
       </div>
     </div>

@@ -207,7 +207,7 @@ const ViewAdjustmentPage = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-100 transition-colors"
+              className="p-2 text-green-600 hover:bg-gray-100 transition-colors"
             >
               <IconArrowLeft size={20} />
             </button>

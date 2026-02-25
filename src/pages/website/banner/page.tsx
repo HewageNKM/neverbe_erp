@@ -262,57 +262,53 @@ const BannerPage = () => {
   };
 
   return (
-    <div className="flex flex-col gap-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
-      <Card
-        title={
-          <Title level={4} className="!m-0">
-            Active Assets{" "}
-            <Text type="secondary" className="text-sm font-normal">
-              ({banners.length})
-            </Text>
+    <PageContainer title="Banner Assets | NEVERBE ERP" loading={isLoading}>
+      <div className="flex flex-col gap-8 w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
+        <Card
+          title={
+            <Title level={4} className="!m-0">
+              Active Assets{" "}
+              <Text type="secondary" className="text-sm font-normal">
+                ({banners.length})
+              </Text>
+            </Title>
+          }
+          className="shadow-sm"
+        >
+          {!isLoading && banners.length === 0 && (
+            <EmptyState
+              title="NO ASSETS FOUND"
+              subtitle="Upload a banner below to initialize the slider."
+            />
+          )}
+
+          {!isLoading && banners.length > 0 && (
+            <Row gutter={[24, 24]}>
+              {banners.map(
+                (banner: { file: string; url: string; id: string }) => (
+                  <Col
+                    xs={24}
+                    sm={12}
+                    lg={8}
+                    xl={6}
+                    key={banner.id || banner.url}
+                  >
+                    <BannerCard banner={banner} onDelete={handleDelete} />
+                  </Col>
+                ),
+              )}
+            </Row>
+          )}
+        </Card>
+
+        <div>
+          <Title level={4} className="mb-4">
+            Upload New Asset
           </Title>
-        }
-        className="shadow-sm"
-      >
-        {isLoading && (
-          <div className="flex justify-center py-20">
-            <Spin size="large" />
-          </div>
-        )}
-
-        {!isLoading && banners.length === 0 && (
-          <EmptyState
-            title="NO ASSETS FOUND"
-            subtitle="Upload a banner below to initialize the slider."
-          />
-        )}
-
-        {!isLoading && banners.length > 0 && (
-          <Row gutter={[24, 24]}>
-            {banners.map(
-              (banner: { file: string; url: string; id: string }) => (
-                <Col
-                  xs={24}
-                  sm={12}
-                  lg={8}
-                  xl={6}
-                  key={banner.id || banner.url}
-                >
-                  <BannerCard banner={banner} onDelete={handleDelete} />
-                </Col>
-              ),
-            )}
-          </Row>
-        )}
-      </Card>
-
-      <div>
-        <Title level={4} className="mb-4">
-          Upload New Asset
-        </Title>
-        <BannerForm onSuccess={fetchBanners} />
+          <BannerForm onSuccess={fetchBanners} />
+        </div>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

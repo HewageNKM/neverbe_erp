@@ -5,20 +5,11 @@ import { Order } from "@/model/Order";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import {
-  IconAlertTriangle,
-  IconCheck,
-  IconX,
-  IconClock,
-  IconCalendar,
-  IconMapPin,
-} from "@tabler/icons-react";
-import {
   Card,
   Descriptions,
   Table,
   Tag,
   Typography,
-  Spin,
   Space,
   Alert,
   Divider,
@@ -26,7 +17,13 @@ import {
 
 const { Title, Text } = Typography;
 
-const OrderView = ({ orderId }: { orderId: string }) => {
+const OrderView = ({
+  orderId,
+  onLoadingChange,
+}: {
+  orderId: string;
+  onLoadingChange?: (loading: boolean) => void;
+}) => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loadingOrder, setLoadingOrder] = useState(true);
 
@@ -39,6 +36,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
   const fetchOrder = async () => {
     try {
       setLoadingOrder(true);
+      onLoadingChange?.(true);
       const res = await api.get(`/api/v1/erp/orders/${orderId}`);
       setOrder(res.data || null);
     } catch (error: any) {
@@ -46,6 +44,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
       toast.error(error?.message || "Failed to fetch order");
     } finally {
       setLoadingOrder(false);
+      onLoadingChange?.(false);
     }
   };
 
@@ -59,13 +58,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
   const fee = order?.fee || 0;
   const shippingFee = order?.shippingFee || 0;
 
-  if (loadingOrder) {
-    return (
-      <div className="flex justify-center items-center h-[60vh]">
-        <Spin size="large" tip="Loading Order Details..." />
-      </div>
-    );
-  }
+  if (loadingOrder) return null;
 
   // --- Helpers for Status Colors ---
   const getPaymentStatusColor = (status?: string) => {
@@ -199,7 +192,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
       <div className="flex items-center gap-2 text-gray-500 text-sm">
         <Link
           to="/orders"
-          className="text-green-600 hover:text-green-700 font-medium transition-colors"
+          className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
         >
           Orders
         </Link>
@@ -213,11 +206,10 @@ const OrderView = ({ orderId }: { orderId: string }) => {
       {order && order.integrity === false && (
         <Alert
           message="Security Integrity Check Failed"
-          description="This order has failed system integrity checks. Please review manually."
+          description="This order has failed system integrity checks. Please exercise extreme caution before proceeding."
           type="error"
           showIcon
-          icon={<IconAlertTriangle />}
-          className="mb-4"
+          className="shadow-sm"
         />
       )}
 
@@ -254,11 +246,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
         {/* Left Column: Items */}
         <div className="lg:col-span-2 flex flex-col gap-8">
           <Card
-            title={
-              <div className="flex items-center justify-between w-full">
-                <span>Order Items ({order?.items?.length || 0})</span>
-              </div>
-            }
+            title={`Order Items (${order?.items?.length || 0})`}
             className="shadow-sm border border-gray-100 rounded-xl overflow-hidden"
           >
             <Table
@@ -278,13 +266,8 @@ const OrderView = ({ orderId }: { orderId: string }) => {
           </Card>
 
           <Card
-            title={
-              <Space>
-                <IconClock size={18} className="text-blue-500" />
-                <span className="font-semibold">Transaction & Processing</span>
-              </Space>
-            }
-            className="shadow-sm border border-gray-100 rounded-xl overflow-hidden border-t-2 border-t-blue-500"
+            title="Transaction & Processing"
+            className="shadow-sm border border-gray-100 rounded-xl overflow-hidden border-t-2 border-t-green-600"
           >
             <Descriptions
               bordered
@@ -305,13 +288,15 @@ const OrderView = ({ orderId }: { orderId: string }) => {
                 </Space>
               </Descriptions.Item>
               <Descriptions.Item label="Transaction ID">
-                <Text code className="bg-blue-50 text-blue-700 border-blue-100">
+                <Text
+                  code
+                  className="bg-green-50 text-green-700 border-green-100"
+                >
                   {order?.paymentId || "N/A"}
                 </Text>
               </Descriptions.Item>
               <Descriptions.Item label="Placement Date">
                 <Space size={4}>
-                  <IconCalendar size={14} className="text-gray-400" />
                   <Text>
                     {order?.createdAt ? String(order.createdAt) : "N/A"}
                   </Text>
@@ -329,19 +314,11 @@ const OrderView = ({ orderId }: { orderId: string }) => {
               </Descriptions.Item>
               <Descriptions.Item label="System Check">
                 {order?.integrity ? (
-                  <Tag
-                    color="success"
-                    icon={<IconCheck size={12} />}
-                    bordered={false}
-                  >
+                  <Tag color="success" bordered={false}>
                     INTEGRITY VERIFIED
                   </Tag>
                 ) : (
-                  <Tag
-                    color="error"
-                    icon={<IconX size={12} />}
-                    bordered={false}
-                  >
+                  <Tag color="error" bordered={false}>
                     CHECKS FAILED
                   </Tag>
                 )}
@@ -372,11 +349,11 @@ const OrderView = ({ orderId }: { orderId: string }) => {
               )}
 
               {(order?.promotionDiscount || 0) > 0 && (
-                <div className="flex justify-between text-blue-600">
-                  <Text type="secondary" className="text-blue-600">
+                <div className="flex justify-between text-green-600">
+                  <Text type="secondary" className="text-green-600">
                     Auto Promotion
                   </Text>
-                  <Text type="secondary" className="text-blue-600">
+                  <Text type="secondary" className="text-green-600">
                     - {(order.promotionDiscount || 0).toLocaleString()} LKR
                   </Text>
                 </div>
@@ -436,14 +413,11 @@ const OrderView = ({ orderId }: { orderId: string }) => {
                   <div>
                     <Text
                       type="secondary"
-                      className="text-[10px] uppercase font-bold text-blue-600 block mb-2"
+                      className="text-[10px] uppercase font-bold text-green-600 block mb-2"
                     >
                       Contact Info
                     </Text>
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                        <IconMapPin size={16} className="text-blue-500" />
-                      </div>
                       <div className="flex flex-col">
                         <Text strong className="text-sm">
                           {order.customer.name}
@@ -453,6 +427,13 @@ const OrderView = ({ orderId }: { orderId: string }) => {
                           <br />
                           {order.customer.city} {order.customer.zip}
                         </Text>
+                        {order.customer.phone && (
+                          <div className="flex items-center gap-1.5 mt-2">
+                            <Text className="text-gray-600 text-[11px] font-medium">
+                              {order.customer.phone}
+                            </Text>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -467,9 +448,6 @@ const OrderView = ({ orderId }: { orderId: string }) => {
                       Shipping Address
                     </Text>
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
-                        <IconMapPin size={16} className="text-green-500" />
-                      </div>
                       <div className="flex flex-col">
                         <Text strong className="text-sm">
                           {order.customer.shippingName || order.customer.name}
@@ -480,6 +458,15 @@ const OrderView = ({ orderId }: { orderId: string }) => {
                           {order.customer.shippingCity}{" "}
                           {order.customer.shippingZip}
                         </Text>
+                        {(order.customer.shippingPhone ||
+                          order.customer.phone) && (
+                          <div className="flex items-center gap-1.5 mt-2">
+                            <Text className="text-gray-600 text-[11px] font-medium">
+                              {order.customer.shippingPhone ||
+                                order.customer.phone}
+                            </Text>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -178,7 +178,7 @@ const ProductViewPage = () => {
                 title: (
                   <Link
                     to="/master/products"
-                    className="flex items-center gap-1 text-gray-500 hover:text-gray-900"
+                    className="flex items-center gap-1 !text-green-600 hover:!text-green-700 font-medium transition-colors"
                   >
                     <IconChevronLeft size={14} />
                     Products

@@ -5,10 +5,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { auth } from "@/firebase/firebaseClient";
 import PageContainer from "../../components/container/PageContainer";
-import {
-  IconArrowLeft,
-  IconShield,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconShield } from "@tabler/icons-react";
 import {
   Form,
   Input,
@@ -65,11 +62,14 @@ const CreateRolePage = () => {
     }
   };
 
-  const groupedPermissions = permissionsList.reduce((acc, perm) => {
-    if (!acc[perm.group]) acc[perm.group] = [];
-    acc[perm.group].push(perm);
-    return acc;
-  }, {} as Record<string, Permission[]>);
+  const groupedPermissions = permissionsList.reduce(
+    (acc, perm) => {
+      if (!acc[perm.group]) acc[perm.group] = [];
+      acc[perm.group].push(perm);
+      return acc;
+    },
+    {} as Record<string, Permission[]>,
+  );
 
   return (
     <PageContainer
@@ -83,7 +83,7 @@ const CreateRolePage = () => {
               type="link"
               onClick={() => navigate(-1)}
               icon={<IconArrowLeft size={16} />}
-              className="px-0 text-gray-500 hover:text-black mb-2"
+              className="px-0 text-green-600 hover:text-green-700 mb-2 font-medium"
             >
               Back to Roles
             </Button>
@@ -135,20 +135,24 @@ const CreateRolePage = () => {
               <Form.Item name="permissions">
                 <Checkbox.Group className="w-full">
                   <div className="space-y-6 w-full">
-                    {Object.entries(groupedPermissions).map(([group, perms]) => (
-                      <div key={group}>
-                        <Text strong className="block mb-3 text-gray-500">
-                          {group.toUpperCase()}
-                        </Text>
-                        <Row gutter={[16, 16]}>
-                          {perms.map((perm) => (
-                            <Col xs={24} sm={12} md={8} key={perm.key}>
-                              <Checkbox value={perm.key}>{perm.label}</Checkbox>
-                            </Col>
-                          ))}
-                        </Row>
-                      </div>
-                    ))}
+                    {Object.entries(groupedPermissions).map(
+                      ([group, perms]) => (
+                        <div key={group}>
+                          <Text strong className="block mb-3 text-gray-500">
+                            {group.toUpperCase()}
+                          </Text>
+                          <Row gutter={[16, 16]}>
+                            {perms.map((perm) => (
+                              <Col xs={24} sm={12} md={8} key={perm.key}>
+                                <Checkbox value={perm.key}>
+                                  {perm.label}
+                                </Checkbox>
+                              </Col>
+                            ))}
+                          </Row>
+                        </div>
+                      ),
+                    )}
                   </div>
                 </Checkbox.Group>
               </Form.Item>

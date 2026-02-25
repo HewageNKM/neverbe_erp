@@ -358,7 +358,7 @@ const SupplierInvoiceFormModal: React.FC<SupplierInvoiceFormModalProps> = ({
                 href={invoice.attachment}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:underline mt-2  tracking-wide"
+                className="flex items-center gap-1 text-xs font-bold text-green-600 hover:underline mt-2  tracking-wide"
               >
                 <IconPaperclip size={12} /> View Current
               </a>

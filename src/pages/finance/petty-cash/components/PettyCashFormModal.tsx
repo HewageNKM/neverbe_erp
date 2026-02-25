@@ -149,8 +149,7 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
         throw new Error(err.message || "Failed to save entry");
       }
 
-      toast.success(
-        isEditing ? "ENTRY UPDATED" : "ENTRY CREATED");
+      toast.success(isEditing ? "ENTRY UPDATED" : "ENTRY CREATED");
       onSave();
       onClose();
     } catch (err: any) {
@@ -280,7 +279,7 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
               <a
                 href={entry.attachment}
                 target="_blank"
-                className="text-blue-600 flex items-center gap-1 text-xs"
+                className="text-green-600 flex items-center gap-1 text-xs hover:underline"
               >
                 <IconPaperclip size={12} /> View Current File
               </a>

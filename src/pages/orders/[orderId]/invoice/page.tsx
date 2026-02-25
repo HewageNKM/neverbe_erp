@@ -66,7 +66,7 @@ const OrderInvoice = () => {
       <div className="max-w-4xl mx-auto mb-6 no-print pt-8 px-4 flex justify-between items-center">
         <Link
           to="/orders"
-          className="flex items-center gap-2 text-xs font-bold text-green-600 hover:text-green-700 transition-colors"
+          className="flex items-center gap-2 text-xs font-bold !text-green-600 hover:!text-green-700 transition-colors"
         >
           <IconChevronLeft size={16} /> Back to Orders
         </Link>
@@ -360,11 +360,11 @@ const OrderInvoice = () => {
                   <div className="flex justify-between text-xs font-bold text-gray-500 ">
                     <div className="flex items-center gap-2">
                       <span>Promotion</span>
-                      <span className="bg-blue-100 text-blue-700 px-1 py-0.5 text-[8px] font-bold">
+                      <span className="bg-green-100 text-green-700 px-1 py-0.5 text-[8px] font-bold">
                         AUTO
                       </span>
                     </div>
-                    <span className="font-mono text-blue-600">
+                    <span className="font-mono text-green-600">
                       - {Number(order.promotionDiscount).toFixed(2)}
                     </span>
                   </div>
