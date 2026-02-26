@@ -1,6 +1,19 @@
 import type { ColumnsType } from "antd/es/table";
-import { Spin, Table, Tag } from "antd";
-import { Card, Form, Input, Select, Button, Space } from "antd";
+import {
+  Spin,
+  Table,
+  Tag,
+  Tooltip,
+  Card,
+  Form,
+  Input,
+  Select,
+  Button,
+  Space,
+  DatePicker,
+} from "antd";
+import type { TablePaginationConfig } from "antd";
+import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import {
   IconEye,
@@ -9,10 +22,7 @@ import {
   IconPencil,
   IconFilter,
   IconX,
-  IconChevronLeft,
-  IconChevronRight,
   IconLoader,
-  IconWallet,
   IconSearch,
 } from "@tabler/icons-react";
 import { PettyCash } from "@/model/PettyCash";
@@ -25,25 +35,15 @@ import PettyCashFormModal from "./components/PettyCashFormModal";
 import PettyCashViewModal from "./components/PettyCashViewModal";
 import PageContainer from "../../components/container/PageContainer";
 
-// --- STYLES ---
-const styles = {
-  label: "block text-xs font-bold text-gray-500   mb-2",
-  input:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none placeholder:text-gray-400",
-  select:
-    "block w-full bg-[#f5f5f5] text-gray-900 text-sm font-medium px-4 py-3 rounded-lg border border-transparent focus:bg-white focus:border-gray-200 transition-all duration-200 outline-none appearance-none cursor-pointer",
-  filterButton:
-    "flex items-center justify-center px-6 py-3 bg-green-600 text-white text-xs font-bold   hover:bg-gray-800 transition-all",
-  clearButton:
-    "flex items-center justify-center px-6 py-3 border border-gray-200 rounded-lg text-gray-500 text-xs font-bold   hover:border-gray-200 hover:text-black transition-all bg-white",
-  iconBtn:
-    "w-8 h-8 flex items-center justify-center border border-gray-200 hover:bg-green-600 hover:border-gray-200 hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-300",
-};
+const { RangePicker } = DatePicker;
 
 export default function PettyCashList() {
   const [pettyCashList, setPettyCashList] = useState<PettyCash[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -60,19 +60,22 @@ export default function PettyCashList() {
     status: "ALL",
     type: "ALL",
     category: "ALL",
+    fromDate: "",
+    toDate: "",
   });
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
   const { showConfirmation } = useConfirmationDialog();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (currentUser) fetchPettyCash();
-  }, [page, currentUser, appliedFilters]);
+  }, [pagination.current, pagination.pageSize, currentUser, appliedFilters]);
 
   const fetchPettyCash = async () => {
     try {
       setLoading(true);
-      let url = `/api/v1/erp/finance/petty-cash?page=${page}&size=10`;
+      let url = `/api/v1/erp/finance/petty-cash?page=${pagination.current}&size=${pagination.pageSize}`;
 
       if (appliedFilters.search)
         url += `&search=${encodeURIComponent(appliedFilters.search)}`;
@@ -81,12 +84,17 @@ export default function PettyCashList() {
       if (appliedFilters.type !== "ALL") url += `&type=${appliedFilters.type}`;
       if (appliedFilters.category !== "ALL")
         url += `&category=${encodeURIComponent(appliedFilters.category)}`;
+      if (appliedFilters.fromDate)
+        url += `&fromDate=${appliedFilters.fromDate}`;
+      if (appliedFilters.toDate) url += `&toDate=${appliedFilters.toDate}`;
 
-      const res = await fetch(url);
+      const { data } = await api.get(url);
 
-      const data = await res.json();
-      setPettyCashList(data.data || []);
-      setTotalPages(Math.ceil((data.total || 0) / 10));
+      setPettyCashList(Array.isArray(data) ? data : data.data || []);
+      setPagination((prev) => ({
+        ...prev,
+        total: Array.isArray(data) ? data.length : data.total || 0,
+      }));
     } catch (error) {
       console.error("Failed to fetch petty cash list", error);
       toast.error("Failed to fetch entries");
@@ -96,13 +104,22 @@ export default function PettyCashList() {
   };
 
   const handleFilterSubmit = (values: Record<string, any>) => {
+    let fromDate = "";
+    let toDate = "";
+    if (values.dateRange && values.dateRange.length === 2) {
+      fromDate = values.dateRange[0].format("YYYY-MM-DD");
+      toDate = values.dateRange[1].format("YYYY-MM-DD");
+    }
+
     setAppliedFilters({
       search: values.search || "",
       status: values.status || "ALL",
       type: values.type || "ALL",
       category: values.category || "ALL",
+      fromDate,
+      toDate,
     });
-    setPage(1);
+    setPagination((prev) => ({ ...prev, current: 1 }));
   };
 
   const handleClearFilters = () => {
@@ -112,8 +129,18 @@ export default function PettyCashList() {
       status: "ALL",
       type: "ALL",
       category: "ALL",
+      fromDate: "",
+      toDate: "",
     });
-    setPage(1);
+    setPagination((prev) => ({ ...prev, current: 1 }));
+  };
+
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    setPagination((prev) => ({
+      ...prev,
+      current: pagination.current,
+      pageSize: pagination.pageSize,
+    }));
   };
 
   const handleDelete = async (id: string) => {
@@ -124,9 +151,7 @@ export default function PettyCashList() {
       onSuccess: async () => {
         try {
           setDeletingId(id);
-          await fetch(`/api/v1/erp/finance/petty-cash/${id}`, {
-            method: "DELETE",
-          });
+          await api.delete(`/api/v1/erp/finance/petty-cash/${id}`);
           toast.success("ENTRY DELETED");
           fetchPettyCash();
         } catch (error) {
@@ -162,15 +187,21 @@ export default function PettyCashList() {
 
   // Helper for Status Badges
   const renderStatus = (status: string) => {
-    const map = {
-      APPROVED: "bg-green-600 text-white border-gray-200",
-      PENDING: "bg-white text-black border-gray-200 border-2",
-      REJECTED: "bg-white text-gray-400 border-gray-200 line-through",
-    };
-    const style = map[status as keyof typeof map] || map.PENDING;
-    return (
-      <span className={`px-2 py-1 text-xs font-bold   ${style}`}>{status}</span>
-    );
+    let color = "default";
+    switch (status) {
+      case "APPROVED":
+        color = "green";
+        break;
+      case "PENDING":
+        color = "blue";
+        break;
+      case "REJECTED":
+        color = "red";
+        break;
+      default:
+        color = "default";
+    }
+    return <Tag color={color}>{status}</Tag>;
   };
   const columns: ColumnsType<any> = [
     {
@@ -183,7 +214,7 @@ export default function PettyCashList() {
               {entry.note || "NO NOTE"}
             </span>
             <span className="text-xs text-gray-400 font-bold  ">
-              {new Date(entry.createdAt as string).toLocaleDateString()}
+              {new Date(entry.date as string).toLocaleDateString()}
             </span>
           </div>
         </>
@@ -210,13 +241,7 @@ export default function PettyCashList() {
     {
       title: "Category",
       key: "category",
-      render: (_, entry) => (
-        <>
-          <span className="font-bold text-xs   text-gray-700 bg-gray-100 px-2 py-1">
-            {entry.category}
-          </span>
-        </>
-      ),
+      render: (_, entry) => <Tag>{entry.category?.toUpperCase() || "N/A"}</Tag>,
     },
     {
       title: "Status",
@@ -227,45 +252,49 @@ export default function PettyCashList() {
       title: "Actions",
       key: "actions",
       render: (_, entry) => (
-        <>
-          <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200">
-            <button
+        <Space>
+          <Tooltip title="View">
+            <Button
+              type="text"
+              icon={<IconEye size={18} />}
               onClick={() => handleOpenView(entry)}
-              className={styles.iconBtn}
-              title="View"
-            >
-              <IconEye size={16} stroke={2} />
-            </button>
-            <button
-              onClick={() => handleOpenEdit(entry)}
+            />
+          </Tooltip>
+          <Tooltip title="Edit">
+            <Button
+              type="primary"
+              size="small"
+              icon={<IconPencil size={16} />}
               disabled={entry.status === "APPROVED"}
-              className={styles.iconBtn}
-              title="Edit"
-            >
-              <IconPencil size={16} stroke={2} />
-            </button>
-            <button
-              onClick={() => handleDelete(entry.id!)}
+              onClick={() => handleOpenEdit(entry)}
+            />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              type="primary"
+              size="small"
+              danger
+              icon={
+                deletingId === entry.id ? (
+                  <Spin size="small" />
+                ) : (
+                  <IconTrash size={16} />
+                )
+              }
               disabled={entry.status === "APPROVED" || deletingId === entry.id}
-              className={`${styles.iconBtn} hover:border-red-600 hover:bg-red-600`}
-              title="Delete"
-            >
-              {deletingId === entry.id ? (
-                <Spin size="small" />
-              ) : (
-                <IconTrash size={16} stroke={2} />
-              )}
-            </button>
-          </div>
-        </>
+              onClick={() => handleDelete(entry.id!)}
+            />
+          </Tooltip>
+        </Space>
       ),
     },
   ];
 
   return (
     <PageContainer title="Petty Cash" description="Manage Expenses">
-      <div className="w-full space-y-8">
-        <div className="flex justify-between items-end mb-8">
+      <Space direction="vertical" size="large" className="w-full">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
@@ -298,6 +327,7 @@ export default function PettyCashList() {
               status: "ALL",
               type: "ALL",
               category: "ALL",
+              dateRange: undefined,
             }}
             className="flex flex-wrap items-center gap-2 w-full"
           >
@@ -307,6 +337,9 @@ export default function PettyCashList() {
                 placeholder="Search Notes..."
                 allowClear
               />
+            </Form.Item>
+            <Form.Item name="dateRange" className="!mb-0">
+              <RangePicker />
             </Form.Item>
             <Form.Item name="status" className="!mb-0 w-32">
               <Select>
@@ -350,63 +383,18 @@ export default function PettyCashList() {
           </Form>
         </Card>
 
-        {/* Table Content */}
-        {loading ? (
-          <div className="text-center py-20 flex flex-col items-center">
-            <Spin size="small" />
-            <p className="text-xs font-bold   text-gray-400">
-              Loading Records...
-            </p>
-          </div>
-        ) : pettyCashList.length === 0 ? (
-          <div className="text-center py-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center">
-            <IconWallet className="text-gray-300 mb-4" size={48} />
-            <p className="text-lg font-bold  tracking-tighter text-gray-300">
-              No Entries Found
-            </p>
-          </div>
-        ) : (
-          <div className="w-full overflow-x-auto bg-white border border-gray-100 rounded-2xl shadow-sm">
-            <Table
-              scroll={{ x: 1000 }}
-              bordered
-              columns={columns}
-              dataSource={pettyCashList}
-              rowKey={(r: any) =>
-                r.id || r.date || r.month || Math.random().toString()
-              }
-              pagination={{ pageSize: 15, position: ["bottomRight"] }}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-            />
-          </div>
-        )}
-
-        {/* Pagination */}
-        {!loading && totalPages > 1 && (
-          <div className="flex justify-end pt-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page === 1}
-                className={styles.iconBtn + " w-10 h-10"}
-              >
-                <IconChevronLeft size={18} />
-              </button>
-              <div className="px-6 font-bold text-sm ">
-                PAGE {page} <span className="text-gray-400">/</span>{" "}
-                {totalPages}
-              </div>
-              <button
-                onClick={() => setPage(Math.min(totalPages, page + 1))}
-                disabled={page >= totalPages}
-                className={styles.iconBtn + " w-10 h-10"}
-              >
-                <IconChevronRight size={18} />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+        {/* Table */}
+        <Table
+          scroll={{ x: 1000 }}
+          bordered
+          columns={columns}
+          dataSource={pettyCashList}
+          rowKey={(r: PettyCash) => r.id || Math.random().toString()}
+          pagination={{ ...pagination, position: ["bottomRight"] }}
+          loading={loading}
+          onChange={handleTableChange}
+        />
+      </Space>
 
       {/* Modals */}
       <PettyCashFormModal

@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from "react";
+import React, { ReactNode, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/lib/authSlice/authSlice";
 import { onAuthStateChanged } from "@firebase/auth";
@@ -10,17 +10,24 @@ import { User } from "@/model/User";
 const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const currentUidRef = useRef<string | null>(null);
+
   useEffect(() => {
-    onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        // Skip re-fetching if the same user is already loaded
+        if (currentUidRef.current === user.uid) return;
+
         try {
           const newVar: User = await checkUserAction(user.uid);
           if (newVar) {
             console.log("User found");
+            currentUidRef.current = user.uid;
             window.localStorage.setItem("nvrUser", JSON.stringify(newVar));
             dispatch(setUser(newVar));
           } else {
             console.error("User not found");
+            currentUidRef.current = null;
             window.localStorage.removeItem("nvrUser");
             dispatch(setUser(null));
             navigate("/login");
@@ -28,17 +35,20 @@ const GlobalProvider = ({ children }: { children: ReactNode }) => {
         } catch (e) {
           console.log("Error fetching user", e);
           console.error(e);
+          currentUidRef.current = null;
           window.localStorage.removeItem("nvrUser");
           dispatch(setUser(null));
           navigate("/login");
         }
       } else {
         console.log("No user found in firebase");
+        currentUidRef.current = null;
         window.localStorage.removeItem("nvrUser");
         dispatch(setUser(null));
         navigate("/login");
       }
     });
+    return () => unsubscribe();
   }, []);
   return <>{children}</>;
 };

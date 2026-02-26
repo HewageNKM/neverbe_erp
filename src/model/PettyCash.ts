@@ -12,6 +12,7 @@ export interface PettyCash {
   paymentMethod: string; // e.g. "cash", "bank_transfer"
   bankAccountId?: string; // If paymentMethod is bank_transfer
   bankAccountName?: string;
+  date: string;
 
   type: "expense" | "income";
   status: "PENDING" | "APPROVED" | "REJECTED";

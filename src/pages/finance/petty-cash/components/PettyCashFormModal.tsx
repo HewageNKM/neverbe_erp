@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
-import { IconLoader, IconUpload, IconPaperclip } from "@tabler/icons-react";
+import { IconUpload, IconPaperclip } from "@tabler/icons-react";
 import { PettyCash } from "@/model/PettyCash";
 import toast from "react-hot-toast";
 import {
@@ -15,9 +15,10 @@ import {
   Alert,
   Row,
   Col,
+  DatePicker,
 } from "antd";
+import dayjs from "dayjs";
 
-const { Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -63,12 +64,14 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
           paymentMethod: entry.paymentMethod || "cash",
           type: entry.type || "expense",
           bankAccountId: entry.bankAccountId,
+          date: entry.date ? dayjs(entry.date) : dayjs(),
         });
       } else {
         form.resetFields();
         form.setFieldsValue({
           paymentMethod: "cash",
           type: "expense",
+          date: dayjs(),
         });
       }
       setFile(null);
@@ -116,6 +119,7 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
     try {
       const formPayload = new FormData();
       formPayload.append("amount", String(values.amount));
+      formPayload.append("date", values.date.format("YYYY-MM-DD"));
       formPayload.append("category", values.category);
       formPayload.append("note", values.note);
       formPayload.append("paymentMethod", values.paymentMethod);
@@ -137,16 +141,11 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
       const url = isEditing
         ? `/api/v1/erp/finance/petty-cash/${entry!.id}`
         : "/api/v1/erp/finance/petty-cash";
-      const method = isEditing ? "PUT" : "POST";
 
-      const res = await fetch(url, {
-        method,
-        body: formPayload,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Failed to save entry");
+      if (isEditing) {
+        await api.put(url, formPayload);
+      } else {
+        await api.post(url, formPayload);
       }
 
       toast.success(isEditing ? "ENTRY UPDATED" : "ENTRY CREATED");
@@ -185,17 +184,8 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
       >
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item
-              name="amount"
-              label="Amount (LKR)"
-              rules={[{ required: true }]}
-            >
-              <InputNumber
-                className="w-full"
-                size="large"
-                min={0}
-                placeholder="0.00"
-              />
+            <Form.Item name="date" label="Date" rules={[{ required: true }]}>
+              <DatePicker className="w-full" size="large" format="YYYY-MM-DD" />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -204,6 +194,24 @@ const PettyCashFormModal: React.FC<PettyCashFormModalProps> = ({
                 <Option value="expense">EXPENSE</Option>
                 <Option value="income">INCOME</Option>
               </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="amount"
+              label="Amount (LKR)"
+              rules={[{ required: true }]}
+            >
+              <InputNumber
+                className="w-full"
+                style={{ width: "100%" }}
+                size="large"
+                min={0}
+                placeholder="0.00"
+              />
             </Form.Item>
           </Col>
         </Row>

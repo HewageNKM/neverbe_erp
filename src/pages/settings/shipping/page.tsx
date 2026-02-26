@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
+import api from "@/lib/api";
 import { ShippingRule } from "@/model/ShippingRule";
 import {
   Modal,
@@ -18,7 +19,7 @@ import {
   Typography,
 } from "antd";
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 import { IconPlus, IconEdit, IconTrash } from "@tabler/icons-react";
 
 const ShippingSettingsPage = () => {
@@ -36,17 +37,12 @@ const ShippingSettingsPage = () => {
   const fetchRules = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/erp/procurement/shipping-rules");
-      if (res.ok) {
-        const data = await res.json();
-        data.sort(
-          (a: ShippingRule, b: ShippingRule) => a.minWeight - b.minWeight,
-        );
-        setRules(data);
-      } else {
-        toast.error("Failed to fetch shipping rules");
-      }
-    } catch (error) {
+      const res = await api.get("/api/v1/erp/procurement/shipping-rules");
+      res.data.sort(
+        (a: ShippingRule, b: ShippingRule) => a.minWeight - b.minWeight,
+      );
+      setRules(res.data);
+    } catch (error: Error | unknown) {
       console.error(error);
       toast.error("Error fetching rules");
     } finally {
@@ -86,7 +82,7 @@ const ShippingSettingsPage = () => {
     setOpen(true);
   };
 
-  const handleSave = async (values: any) => {
+  const handleSave = async (values: Record<string, any>) => {
     setSaving(true);
     try {
       const payload = {
@@ -105,31 +101,18 @@ const ShippingSettingsPage = () => {
       };
 
       if (editingRule) {
-        const res = await fetch(`/api/v1/shipping-rules/${editingRule.id}`, {
-          method: "PUT",
-          body: JSON.stringify(payload),
-          headers: { "Content-Type": "application/json" },
-        });
-        if (res.ok) {
-          toast.success("RULE UPDATED");
-        } else {
-          throw new Error("Failed to update");
-        }
+        await api.put(
+          `/api/v1/erp/procurement/shipping-rules/${editingRule.id}`,
+          payload,
+        );
+        toast.success("RULE UPDATED");
       } else {
-        const res = await fetch("/api/v1/erp/procurement/shipping-rules", {
-          method: "POST",
-          body: JSON.stringify(payload),
-          headers: { "Content-Type": "application/json" },
-        });
-        if (res.ok) {
-          toast.success("RULE CREATED");
-        } else {
-          throw new Error("Failed to create");
-        }
+        await api.post("/api/v1/erp/procurement/shipping-rules", payload);
+        toast.success("RULE CREATED");
       }
       setOpen(false);
       fetchRules();
-    } catch (error) {
+    } catch (error: Error | unknown) {
       console.error(error);
       toast.error("Operation failed");
     } finally {
@@ -141,16 +124,10 @@ const ShippingSettingsPage = () => {
     if (!window.confirm("Are you sure you want to delete this rule?")) return;
     setDeletingId(id);
     try {
-      const res = await fetch(`/api/v1/shipping-rules/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        toast.success("RULE DELETED");
-        fetchRules();
-      } else {
-        toast.error("Failed to delete rule");
-      }
-    } catch (error) {
+      await api.delete(`/api/v1/erp/procurement/shipping-rules/${id}`);
+      toast.success("RULE DELETED");
+      fetchRules();
+    } catch (error: Error | unknown) {
       toast.error("Error deleting rule");
     } finally {
       setDeletingId(null);
@@ -259,7 +236,7 @@ const ShippingSettingsPage = () => {
 
         <Table
           scroll={{ x: 1000 }}
-                    bordered
+          bordered
           columns={columns}
           dataSource={rules}
           rowKey="id"

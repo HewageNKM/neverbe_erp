@@ -7,6 +7,8 @@ import {
   IconSearch,
   IconX,
   IconUsers,
+  IconEdit,
+  IconTrash,
 } from "@tabler/icons-react";
 import { useAppSelector } from "@/lib/hooks";
 import { User } from "@/model/User";
@@ -444,18 +446,38 @@ const UsersPage = () => {
       ),
     },
     {
-      title: "Export",
-      key: "export",
+      title: "Actions",
+      key: "actions",
       align: "right",
       render: (_, record) => (
-        <Tooltip title="Export User Data">
-          <Button
-            size="small"
-            className="rounded-lg"
-            icon={<IconDownload size={16} />}
-            onClick={() => handleRowExport(record)}
-          />
-        </Tooltip>
+        <Space>
+          {canManageUsers && (
+            <>
+              <Tooltip title="Edit">
+                <Button
+                  size="small"
+                  icon={<IconEdit size={16} />}
+                  onClick={() => handleEdit(record)}
+                />
+              </Tooltip>
+              <Tooltip title="Delete">
+                <Button
+                  size="small"
+                  danger
+                  icon={<IconTrash size={16} />}
+                  onClick={() => handleDelete(record.userId)}
+                />
+              </Tooltip>
+            </>
+          )}
+          <Tooltip title="Export">
+            <Button
+              size="small"
+              icon={<IconDownload size={16} />}
+              onClick={() => handleRowExport(record)}
+            />
+          </Tooltip>
+        </Space>
       ),
     },
   ];
@@ -504,70 +526,6 @@ const UsersPage = () => {
               </Button>
             )}
           </div>
-        </div>
-
-        {/* STAT CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="shadow-sm border-0 bg-gray-50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                <IconUsers size={20} className="text-gray-600" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                  Total
-                </p>
-                <p className="text-2xl font-black text-gray-900">
-                  {pagination.total}
-                </p>
-              </div>
-            </div>
-          </Card>
-          <Card className="shadow-sm border-0 bg-green-50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                <IconUsers size={20} className="text-green-600" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                  Active
-                </p>
-                <p className="text-2xl font-black text-green-600">
-                  {stats.active}
-                </p>
-              </div>
-            </div>
-          </Card>
-          <Card className="shadow-sm border-0 bg-red-50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                <IconUsers size={20} className="text-red-400" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                  Inactive
-                </p>
-                <p className="text-2xl font-black text-red-400">
-                  {stats.inactive}
-                </p>
-              </div>
-            </div>
-          </Card>
-          <Card className="shadow-sm border-0 bg-blue-50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                <IconUsers size={20} className="text-blue-600" />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                  Admins
-                </p>
-                <p className="text-2xl font-black text-blue-600">
-                  {stats.admins}
-                </p>
-              </div>
-            </div>
-          </Card>
         </div>
 
         {/* Filters */}
@@ -630,16 +588,18 @@ const UsersPage = () => {
         </Card>
 
         {/* Table */}
-        <Table
-          scroll={{ x: 1000 }}
-          columns={columns}
-          dataSource={displayedUsers}
-          rowKey="userId"
-          pagination={{ ...pagination, position: ["bottomRight"] }}
-          loading={loading}
-          onChange={handleTableChange}
-          bordered
-        />
+        <div className="mt-6">
+          <Table
+            scroll={{ x: 1000 }}
+            columns={columns}
+            dataSource={displayedUsers}
+            rowKey="userId"
+            pagination={{ ...pagination, position: ["bottomRight"] }}
+            loading={loading}
+            onChange={handleTableChange}
+            bordered
+          />
+        </div>
       </div>
 
       <UserForm

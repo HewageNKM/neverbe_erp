@@ -217,8 +217,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
           onFinish={handleValidSubmit}
           disabled={saving}
         >
-          <Row gutter={24}>
-            <Col span={8}>
+          <Row gutter={[24, 24]}>
+            <Col xs={24} lg={8}>
               <Form.Item label="Main Visual" required={!isEditing}>
                 <Upload
                   beforeUpload={handleFileChange}
@@ -263,9 +263,9 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </Form.Item>
             </Col>
 
-            <Col span={16}>
-              <Row gutter={16}>
-                <Col span={16}>
+            <Col xs={24} lg={16}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={16}>
                   <Form.Item
                     name="name"
                     label="Product Name"
@@ -274,23 +274,31 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     <Input placeholder="Enter product name..." size="large" />
                   </Form.Item>
                 </Col>
-                <Col span={8}>
+                <Col xs={24} md={8}>
                   <Form.Item
                     name="weight"
                     label="Weight (g)"
                     rules={[{ required: true }]}
                   >
-                    <InputNumber className="w-full" size="large" min={0} />
+                    <InputNumber
+                      style={{ width: "100%" }}
+                      size="large"
+                      min={0}
+                    />
                   </Form.Item>
                 </Col>
               </Row>
 
-              <Form.Item name="description" label="Description">
+              <Form.Item
+                name="description"
+                label="Description"
+                className="mt-4 md:mt-0"
+              >
                 <TextArea rows={4} className="resize-none" />
               </Form.Item>
 
-              <Row gutter={16}>
-                <Col span={12}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} md={12}>
                   <Form.Item
                     name="category"
                     label="Category"
@@ -305,7 +313,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     </Select>
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col xs={24} md={12}>
                   <Form.Item
                     name="brand"
                     label="Brand"
@@ -322,7 +330,11 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 </Col>
               </Row>
 
-              <Form.Item name="gender" label="Target Audience">
+              <Form.Item
+                name="gender"
+                label="Target Audience"
+                className="mt-4 md:mt-0"
+              >
                 <Select mode="multiple" placeholder="Select Target">
                   <Option value="men">Men</Option>
                   <Option value="women">Women</Option>
@@ -334,29 +346,29 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
 
           <Divider orientation={"left" as any}>Pricing</Divider>
           <div className="bg-gray-50 p-6 rounded-md border border-gray-100 mb-6">
-            <Row gutter={16}>
-              <Col span={6}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12} md={6}>
                 <Form.Item
                   name="sellingPrice"
                   label="Selling Price"
                   rules={[{ required: true }]}
                 >
-                  <InputNumber className="w-full" min={0} />
+                  <InputNumber style={{ width: "100%" }} min={0} />
                 </Form.Item>
               </Col>
-              <Col span={6}>
+              <Col xs={24} sm={12} md={6}>
                 <Form.Item name="marketPrice" label="Market Price">
-                  <InputNumber className="w-full" min={0} />
+                  <InputNumber style={{ width: "100%" }} min={0} />
                 </Form.Item>
               </Col>
-              <Col span={6}>
+              <Col xs={24} sm={12} md={6}>
                 <Form.Item name="buyingPrice" label="Cost Price">
-                  <InputNumber className="w-full" min={0} />
+                  <InputNumber style={{ width: "100%" }} min={0} />
                 </Form.Item>
               </Col>
-              <Col span={6}>
+              <Col xs={24} sm={12} md={6}>
                 <Form.Item name="discount" label="Discount %">
-                  <InputNumber className="w-full" min={0} max={100} />
+                  <InputNumber style={{ width: "100%" }} min={0} max={100} />
                 </Form.Item>
               </Col>
             </Row>
@@ -368,8 +380,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
             )}
           </div>
 
-          <Row gutter={16}>
-            <Col span={8}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={8}>
               <Form.Item
                 name="listing"
                 label="Public Listing"
@@ -378,7 +390,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 <Switch checkedChildren="VISIBLE" unCheckedChildren="HIDDEN" />
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col xs={24} sm={12} md={8}>
               <Form.Item
                 name="status"
                 label="Active Status"

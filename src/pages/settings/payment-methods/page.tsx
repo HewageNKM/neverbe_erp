@@ -4,6 +4,7 @@ import { IconPlus, IconEdit, IconTrash } from "@tabler/icons-react";
 import toast from "react-hot-toast";
 import { PaymentMethod } from "@/model/PaymentMethod";
 import { auth } from "@/firebase/firebaseClient";
+import api from "@/lib/api";
 import {
   Modal,
   Form,
@@ -18,7 +19,7 @@ import {
   Tooltip,
 } from "antd";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { TextArea } = Input;
 
 const PaymentMethodsPage = () => {
@@ -37,18 +38,10 @@ const PaymentMethodsPage = () => {
   const fetchMethods = async () => {
     setLoading(true);
     try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) return;
-
-      const res = await fetch("/api/v1/erp/finance/payment-methods");
-      if (res.ok) {
-        const data = await res.json();
-        // Filter out deleted if API doesn't already
-        const validData = data.filter((m: any) => !m.isDeleted);
-        setMethods(validData);
-      } else {
-        toast.error("Failed to fetch payment methods");
-      }
+      const res = await api.get("/api/v1/erp/finance/payment-methods");
+      // Filter out deleted if API doesn't already
+      const validData = res.data.filter((m: PaymentMethod) => !m.isDeleted);
+      setMethods(validData);
     } catch (error) {
       console.error(error);
       toast.error("Error fetching methods");
@@ -89,48 +82,21 @@ const PaymentMethodsPage = () => {
   const handleSave = async (values: any) => {
     setSaving(true);
     try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error("Unauthorized");
-
-      const payload = {
-        ...values,
-      };
+      const payload = { ...values };
 
       if (editingMethod) {
-        const res = await fetch(
+        await api.put(
           `/api/v1/erp/finance/payment-methods/${editingMethod.id}`,
-          {
-            method: "PUT",
-            body: JSON.stringify(payload),
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          },
+          payload,
         );
-        if (res.ok) {
-          toast.success("METHOD UPDATED");
-        } else {
-          throw new Error("Failed to update");
-        }
+        toast.success("METHOD UPDATED");
       } else {
-        const res = await fetch("/api/v1/erp/finance/payment-methods", {
-          method: "POST",
-          body: JSON.stringify(payload),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (res.ok) {
-          toast.success("METHOD CREATED");
-        } else {
-          throw new Error("Failed to create");
-        }
+        await api.post("/api/v1/erp/finance/payment-methods", payload);
+        toast.success("METHOD CREATED");
       }
       setOpen(false);
       fetchMethods();
-    } catch (error) {
+    } catch (error: Error | unknown) {
       console.error(error);
       toast.error("Operation failed");
     } finally {
@@ -143,18 +109,9 @@ const PaymentMethodsPage = () => {
       return;
     setDeletingId(id);
     try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error("Unauthorized");
-
-      const res = await fetch(`/api/v1/erp/finance/payment-methods/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        toast.success("METHOD DELETED");
-        fetchMethods();
-      } else {
-        toast.error("Failed to delete method");
-      }
+      await api.delete(`/api/v1/erp/finance/payment-methods/${id}`);
+      toast.success("METHOD DELETED");
+      fetchMethods();
     } catch (error) {
       toast.error("Error deleting method");
     } finally {
@@ -264,7 +221,7 @@ const PaymentMethodsPage = () => {
 
         <Table
           scroll={{ x: 1000 }}
-                    bordered
+          bordered
           columns={columns}
           dataSource={methods}
           rowKey="id"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PageContainer from "../../components/container/PageContainer";
+import { useNavigate } from "react-router-dom";
 import {
   IconPlus,
   IconSearch,
@@ -7,6 +8,7 @@ import {
   IconFilter,
   IconEdit,
   IconTrash,
+  IconEye,
 } from "@tabler/icons-react";
 import { Product } from "@/model/Product";
 import ProductFormModal from "./components/ProductFormModal";
@@ -41,6 +43,7 @@ const ProductPage = () => {
   );
   const { showConfirmation } = useConfirmationDialog();
   const [form] = Form.useForm();
+  const navigate = useNavigate();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<DropdownOption[]>([]);
@@ -167,6 +170,7 @@ const ProductPage = () => {
 
       for (const [key, value] of Object.entries(productData)) {
         if (key === "thumbnail") continue;
+        if (value === undefined || value === null) continue;
         if (key === "variants" || key === "tags")
           formData.append(key, JSON.stringify(value));
         else formData.append(key, String(value));
@@ -276,6 +280,15 @@ const ProductPage = () => {
       key: "actions",
       render: (_, record) => (
         <Space>
+          <Tooltip title="View">
+            <Button
+              size="small"
+              icon={<IconEye size={16} />}
+              onClick={() =>
+                navigate(`/master/products/${record.productId}/view`)
+              }
+            />
+          </Tooltip>
           <Tooltip title="Edit">
             <Button
               size="small"
@@ -398,7 +411,7 @@ const ProductPage = () => {
         {/* Table */}
         <Table
           scroll={{ x: 1000 }}
-                    bordered
+          bordered
           columns={columns}
           dataSource={products}
           rowKey="productId"

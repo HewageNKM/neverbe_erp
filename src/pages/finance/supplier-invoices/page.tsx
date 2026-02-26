@@ -204,6 +204,7 @@ const SupplierInvoicesPage = () => {
           )}
           <Tooltip title="Edit">
             <Button
+              type="primary"
               size="small"
               icon={<IconEdit size={16} />}
               onClick={() => handleEdit(inv)}
@@ -211,6 +212,7 @@ const SupplierInvoicesPage = () => {
           </Tooltip>
           <Tooltip title="Delete">
             <Button
+              type="primary"
               size="small"
               danger
               icon={<IconTrash size={16} />}
@@ -224,8 +226,9 @@ const SupplierInvoicesPage = () => {
 
   return (
     <PageContainer title="Accounts Payable">
-      <div className="space-y-6">
-        <div className="flex justify-between items-end mb-8">
+      <Space direction="vertical" size="large" className="w-full">
+        {/* PREMIUM HEADER */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
@@ -241,7 +244,7 @@ const SupplierInvoicesPage = () => {
             type="primary"
             icon={<IconPlus size={18} />}
             onClick={handleCreate}
-            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
+            className="flex items-center gap-2"
           >
             New Invoice
           </Button>
@@ -318,17 +321,15 @@ const SupplierInvoicesPage = () => {
         </Card>
 
         {/* Table */}
-        <div className="mt-6">
-          <Table
-            scroll={{ x: 1000 }}
-                      bordered
-            columns={columns}
-            dataSource={filteredInvoices}
-            loading={loading}
-            rowKey="id"
-            pagination={{ pageSize: 10, position: ["bottomRight"] }}
-          />
-        </div>
+        <Table
+          scroll={{ x: 1000 }}
+          bordered
+          columns={columns}
+          dataSource={filteredInvoices}
+          loading={loading}
+          rowKey="id"
+          pagination={{ pageSize: 10, position: ["bottomRight"] }}
+        />
 
         <SupplierInvoiceFormModal
           open={showModal}
@@ -343,7 +344,7 @@ const SupplierInvoicesPage = () => {
           onPaymentSuccess={fetchInvoices}
           invoice={paymentInvoice}
         />
-      </div>
+      </Space>
     </PageContainer>
   );
 };

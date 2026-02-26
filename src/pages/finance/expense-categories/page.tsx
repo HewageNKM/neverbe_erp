@@ -8,11 +8,15 @@ import {
   IconEdit,
   IconTrash,
   IconCategory,
+  IconFilter,
+  IconX,
+  IconSearch,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+import { Space, Tooltip, Card, Form } from "antd";
 
 interface ExpenseCategory {
   id: string;
@@ -25,9 +29,13 @@ interface ExpenseCategory {
 const ExpenseCategoriesPage = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
-  const [typeFilter, setTypeFilter] = useState<"all" | "expense" | "income">(
-    "all",
-  );
+  const [filters, setFilters] = useState<{
+    type: "all" | "expense" | "income";
+    search: string;
+  }>({
+    type: "all",
+    search: "",
+  });
 
   // Modal
   const [showModal, setShowModal] = useState(false);
@@ -44,13 +52,15 @@ const ExpenseCategoriesPage = () => {
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
+  const [form] = Form.useForm();
+
   const fetchCategories = async () => {
     setLoading(true);
     try {
       const url =
-        typeFilter === "all"
+        filters.type === "all"
           ? "/api/v1/erp/finance/expense-categories"
-          : `/api/v1/erp/finance/expense-categories?type=${typeFilter}`;
+          : `/api/v1/erp/finance/expense-categories?type=${filters.type}`;
 
       const res = await api.get<ExpenseCategory[]>(url);
       setCategories(res.data);
@@ -64,7 +74,22 @@ const ExpenseCategoriesPage = () => {
 
   useEffect(() => {
     if (currentUser) fetchCategories();
-  }, [currentUser, typeFilter]);
+  }, [currentUser, filters.type]);
+
+  const handleFilterSubmit = (values: Record<string, any>) => {
+    setFilters({
+      type: values.type || "all",
+      search: values.search || "",
+    });
+  };
+
+  const handleClearFilters = () => {
+    form.resetFields();
+    setFilters({
+      type: "all",
+      search: "",
+    });
+  };
 
   const openAddModal = () => {
     setEditingId(null);
@@ -167,34 +192,47 @@ const ExpenseCategoriesPage = () => {
     },
     {
       title: "",
-      key: "col4",
+      key: "actions",
+      align: "right",
       render: (_, cat) => (
-        <>
-          <div className="flex gap-2 justify-end">
-            <button
+        <Space>
+          <Tooltip title="Edit">
+            <Button
+              type="primary"
+              size="small"
+              icon={<IconEdit size={16} />}
               onClick={() => openEditModal(cat)}
-              className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg"
-            >
-              <IconEdit size={16} />
-            </button>
-            <button
+            />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              type="primary"
+              size="small"
+              danger
+              icon={<IconTrash size={16} />}
               onClick={() => handleDelete(cat.id)}
-              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
-            >
-              <IconTrash size={16} />
-            </button>
-          </div>
-        </>
+            />
+          </Tooltip>
+        </Space>
       ),
     },
   ];
+
+  const filteredCategories = categories.filter((cat) => {
+    if (!filters.search) return true;
+    const s = filters.search.toLowerCase();
+    return (
+      cat.name.toLowerCase().includes(s) ||
+      (cat.description && cat.description.toLowerCase().includes(s))
+    );
+  });
 
   return (
     <PageContainer
       title="Expense Categories"
       description="Financial Classifications"
     >
-      <div className="space-y-6">
+      <Space direction="vertical" size="large" className="w-full">
         {/* PREMIUM HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
@@ -210,58 +248,82 @@ const ExpenseCategoriesPage = () => {
           </div>
           <Button
             type="primary"
-            size="large"
-            icon={<IconPlus size={16} />}
+            icon={<IconPlus size={18} />}
             onClick={openAddModal}
-            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
+            className="flex items-center gap-2"
           >
             Add Category
           </Button>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-2">
-          {["all", "expense", "income"].map((type) => (
-            <button
-              key={type}
-              onClick={() => setTypeFilter(type as any)}
-              className={`px-4 py-2 text-xs font-bold   border rounded-lg transition-colors ${
-                typeFilter === type
-                  ? "bg-green-600 text-white border-gray-200"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              {type === "all" ? "All" : type}
-            </button>
-          ))}
-        </div>
+        <Card size="small" className="shadow-sm">
+          <Form
+            form={form}
+            layout="inline"
+            onFinish={handleFilterSubmit}
+            initialValues={{
+              type: "all",
+              search: "",
+            }}
+            className="flex flex-wrap items-center gap-2 w-full"
+          >
+            <Form.Item name="search" className="!mb-0 flex-1 min-w-[150px]">
+              <Input
+                prefix={<IconSearch size={15} className="text-gray-400" />}
+                placeholder="Search Categories..."
+                allowClear
+              />
+            </Form.Item>
+            <Form.Item name="type" className="!mb-0 w-44">
+              <Select>
+                <Select.Option value="all">All Types</Select.Option>
+                <Select.Option value="expense">Expense</Select.Option>
+                <Select.Option value="income">Income</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item className="!mb-0">
+              <Space>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  icon={<IconFilter size={15} />}
+                >
+                  Filter
+                </Button>
+                <Button icon={<IconX size={15} />} onClick={handleClearFilters}>
+                  Clear
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Card>
 
         {/* List */}
-        {!loading && categories.length === 0 ? (
+        {!loading && filteredCategories.length === 0 ? (
           <div className="bg-white border border-gray-100 p-12 text-center rounded-2xl shadow-sm">
             <IconCategory size={48} className="mx-auto text-gray-300 mb-4" />
             <p className="text-gray-500">No categories found</p>
           </div>
         ) : (
-          <div className="bg-white border border-gray-100 overflow-hidden rounded-2xl shadow-sm">
+          <div>
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
               <Table
                 scroll={{ x: 1000 }}
-                          bordered
+                bordered
                 columns={columns}
-                dataSource={categories}
+                dataSource={filteredCategories}
                 loading={loading}
-                rowKey={(r: any) =>
-                  r.id || r.date || r.month || Math.random().toString()
+                rowKey={(r: ExpenseCategory) =>
+                  r.id || Math.random().toString()
                 }
                 pagination={{ pageSize: 15, position: ["bottomRight"] }}
-                className="overflow-hidden bg-white"
               />
             </div>
             {/* Mobile Cards */}
             <div className="md:hidden divide-y divide-gray-100">
-              {categories.map((cat) => (
+              {filteredCategories.map((cat) => (
                 <div key={cat.id} className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -291,18 +353,21 @@ const ExpenseCategoriesPage = () => {
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button
-                        onClick={() => openEditModal(cat)}
-                        className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg"
-                      >
-                        <IconEdit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(cat.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
-                      >
-                        <IconTrash size={16} />
-                      </button>
+                      <Tooltip title="Edit">
+                        <Button
+                          type="text"
+                          icon={<IconEdit size={16} />}
+                          onClick={() => openEditModal(cat)}
+                        />
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <Button
+                          type="text"
+                          danger
+                          icon={<IconTrash size={16} />}
+                          onClick={() => handleDelete(cat.id)}
+                        />
+                      </Tooltip>
                     </div>
                   </div>
                 </div>
@@ -374,7 +439,7 @@ const ExpenseCategoriesPage = () => {
             </div>
           </div>
         </Modal>
-      </div>
+      </Space>
     </PageContainer>
   );
 };

@@ -16,6 +16,7 @@ import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+import { Space, Tooltip } from "antd";
 
 interface BankAccount {
   id: string;
@@ -160,7 +161,7 @@ const BankAccountsPage = () => {
 
   return (
     <PageContainer title="Bank Accounts">
-      <div className="w-full space-y-4 md:space-y-6">
+      <Space direction="vertical" size="large" className="w-full">
         {/* PREMIUM HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
           <div className="flex items-center gap-3">
@@ -176,10 +177,9 @@ const BankAccountsPage = () => {
           </div>
           <Button
             type="primary"
-            size="large"
             icon={<IconPlus size={18} />}
             onClick={openAddModal}
-            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
+            className="flex items-center gap-2"
           >
             Add Account
           </Button>
@@ -239,18 +239,21 @@ const BankAccountsPage = () => {
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button
-                        onClick={() => openEditModal(account)}
-                        className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg"
-                      >
-                        <IconEdit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(account.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
-                      >
-                        <IconTrash size={16} />
-                      </button>
+                      <Tooltip title="Edit">
+                        <Button
+                          type="text"
+                          icon={<IconEdit size={16} />}
+                          onClick={() => openEditModal(account)}
+                        />
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <Button
+                          type="text"
+                          danger
+                          icon={<IconTrash size={16} />}
+                          onClick={() => handleDelete(account.id)}
+                        />
+                      </Tooltip>
                     </div>
                   </div>
                   <div className="mt-4">
@@ -398,7 +401,7 @@ const BankAccountsPage = () => {
             </div>
           </div>
         </Modal>
-      </div>
+      </Space>
     </PageContainer>
   );
 };

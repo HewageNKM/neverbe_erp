@@ -16,6 +16,7 @@ import {
 } from "@tabler/icons-react";
 import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 import { logoutUserAction } from "@/actions/authActions";
+import api from "@/lib/api";
 import toast from "react-hot-toast";
 import {
   Modal,
@@ -95,17 +96,14 @@ const ProfilePage = () => {
         formData.append("file", editFile);
       }
 
-      const response = await fetch(`/api/v1/erp/users/${currentUser?.userId}`, {
-        method: "PUT",
-        body: formData,
-      });
+      await api.put(`/api/v1/erp/users/${currentUser?.userId}`, formData);
 
-      if (!response.ok) throw new Error("Failed to update profile");
       toast.success("PROFILE UPDATED");
       setIsEditing(false);
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error(error);
-      toast.error(error.message || "Update failed");
+      const e = error as any;
+      toast.error(e?.response?.data?.message || e?.message || "Update failed");
     } finally {
       setIsLoading(false);
     }
@@ -131,18 +129,12 @@ const ProfilePage = () => {
       onSuccess: async () => {
         try {
           setIsLoading(true);
-          const response = await fetch(
-            `/api/v1/erp/users/${currentUser?.userId}`,
-            {
-              method: "DELETE",
-            },
-          );
+          await api.delete(`/api/v1/erp/users/${currentUser?.userId}`);
 
-          if (!response.ok) throw new Error("Failed to delete account");
           await logoutUserAction();
           navigate("/");
           toast.success("ACCOUNT DELETED");
-        } catch (error: any) {
+        } catch (error: Error | unknown) {
           console.error(error);
           toast.error("Could not delete account");
           setIsLoading(false);

@@ -178,8 +178,8 @@ const FinanceDashboard = () => {
           </div>
           <Button
             type="primary"
-            icon={<IconTrendingUp size={16} />}
-            className="bg-black hover:bg-gray-800 border-none h-12 px-6 rounded-lg text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2"
+            icon={<IconTrendingUp size={18} />}
+            className="flex items-center gap-2"
           >
             Generate Report
           </Button>
@@ -336,7 +336,7 @@ const FinanceDashboard = () => {
         >
           <Table
             scroll={{ x: 1000 }}
-                      bordered
+            bordered
             columns={transactionColumns}
             dataSource={recentTransactions}
             rowKey="id"

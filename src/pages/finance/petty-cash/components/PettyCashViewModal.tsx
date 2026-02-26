@@ -44,19 +44,9 @@ const PettyCashViewModal: React.FC<PettyCashViewModalProps> = ({
 
     setProcessing(newStatus === "APPROVED" ? "approve" : "reject");
     try {
-      const res = await fetch(`/api/v1/erp/finance/petty-cash/${entry.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          
-        },
-        body: JSON.stringify({ status: newStatus }),
+      await api.put(`/api/v1/erp/finance/petty-cash/${entry.id}`, {
+        status: newStatus,
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Failed to update status");
-      }
 
       toast.success(`ENTRY ${newStatus}`);
       onStatusChange();

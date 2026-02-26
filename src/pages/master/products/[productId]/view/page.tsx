@@ -22,7 +22,6 @@ import {
   IconTag,
   IconRuler,
   IconPhoto,
-  IconCurrencyRupee,
 } from "@tabler/icons-react";
 import api from "@/lib/api";
 import { Product } from "@/model/Product";
@@ -355,7 +354,7 @@ const ProductViewPage = () => {
                     </span>
                   }
                   value={product.sellingPrice}
-                  prefix={<IconCurrencyRupee size={16} className="mb-1" />}
+                  prefix={<span className="text-sm font-bold">LKR</span>}
                   valueStyle={{
                     color: "#059669",
                     fontSize: 24,
@@ -377,7 +376,7 @@ const ProductViewPage = () => {
                     </span>
                   }
                   value={product.marketPrice}
-                  prefix={<IconCurrencyRupee size={14} className="mb-0.5" />}
+                  prefix={<span className="text-sm font-bold">LKR</span>}
                   valueStyle={{
                     color: "#1f2937",
                     fontSize: 20,
@@ -488,7 +487,7 @@ const ProductViewPage = () => {
               <div className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-none">
                 <Table
                   scroll={{ x: 1000 }}
-                            bordered
+                  bordered
                   columns={variantColumns}
                   dataSource={product.variants || []}
                   rowKey="variantId"
