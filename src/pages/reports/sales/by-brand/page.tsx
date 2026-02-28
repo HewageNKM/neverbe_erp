@@ -8,6 +8,7 @@ import {
   Button,
   Space,
   Progress,
+  Tooltip,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
@@ -323,7 +324,11 @@ const SalesByBrandPage = () => {
       ),
     },
     {
-      title: "Total Sales",
+      title: (
+        <Tooltip title="Sum of product selling prices. Excludes order-level shipping fees.">
+          <span>Total Sales</span>
+        </Tooltip>
+      ),
       key: "sales",
       align: "right",
       render: (_, b) => (
@@ -333,7 +338,11 @@ const SalesByBrandPage = () => {
       ),
     },
     {
-      title: "Net Sales",
+      title: (
+        <Tooltip title="Product sales minus transaction fees. Excludes shipping fees.">
+          <span>Net Sales</span>
+        </Tooltip>
+      ),
       key: "netSale",
       align: "right",
       render: (_, b) => (
@@ -478,6 +487,7 @@ const SalesByBrandPage = () => {
               <SummaryCard
                 title="Total Brand Sales"
                 value={`LKR ${fmt(summary.totalSales)}`}
+                sub="Product sales only"
                 icon={<IconTrendingUp size={20} />}
                 color="text-blue-700"
                 bg="bg-blue-50"
@@ -485,6 +495,7 @@ const SalesByBrandPage = () => {
               <SummaryCard
                 title="Total Brand Profit"
                 value={`LKR ${fmt(summary.totalProfit)}`}
+                sub="Excl. shipping fees"
                 icon={<IconBusinessplan size={20} />}
                 color="text-emerald-700"
                 bg="bg-emerald-50"

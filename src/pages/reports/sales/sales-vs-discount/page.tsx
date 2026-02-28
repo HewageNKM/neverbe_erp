@@ -1,4 +1,14 @@
-import { Card, Form, Spin, Table, Tag, Space, Button, DatePicker } from "antd";
+import {
+  Card,
+  Form,
+  Spin,
+  Table,
+  Tag,
+  Space,
+  Button,
+  DatePicker,
+  Tooltip as AntdTooltip,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
@@ -140,7 +150,7 @@ const SalesVsDiscountPage = () => {
     if (!report.length) return;
     const exportData = report.map((r) => ({
       Period: r.period,
-      "Total Sales (LKR)": r.totalSales.toFixed(2),
+      "Total Revenue (LKR)": r.totalSales.toFixed(2),
       "Total Net Sale": r.totalNetSales.toFixed(2),
       "Total Discount (LKR)": r.totalDiscount.toFixed(2),
       "Total Transaction Fee (LKR)": (r.totalTransactionFee || 0).toFixed(2),
@@ -164,10 +174,11 @@ const SalesVsDiscountPage = () => {
     try {
       await exportReportPDF({
         title: "Sales vs Discount Analysis",
-        subtitle: "Comparison of gross sales, net sales and applied discounts",
+        subtitle:
+          "Comparison of total revenue, net sales and applied discounts",
         period: `${from} – ${to}`,
         summaryItems: [
-          { label: "Total Sales", value: `LKR ${fmt(summary.totalSales)}` },
+          { label: "Total Revenue", value: `LKR ${fmt(summary.totalSales)}` },
           { label: "Net Sales", value: `LKR ${fmt(summary.totalNetSales)}` },
           {
             label: "Total Discount",
@@ -181,7 +192,13 @@ const SalesVsDiscountPage = () => {
         tables: [
           {
             title: "Performance Data",
-            columns: ["Period", "Gross Sales", "Net Sales", "Discount", "Fee"],
+            columns: [
+              "Period",
+              "Total Revenue",
+              "Net Sales",
+              "Discount",
+              "Fee",
+            ],
             rows: report.map((r: any) => [
               r.period,
               fmt(r.totalSales),
@@ -209,7 +226,11 @@ const SalesVsDiscountPage = () => {
       ),
     },
     {
-      title: "Sales",
+      title: (
+        <AntdTooltip title="Total cash received (including shipping fees)">
+          <span>Total Revenue</span>
+        </AntdTooltip>
+      ),
       key: "sales",
       align: "right",
       render: (_, r) => (
@@ -328,7 +349,7 @@ const SalesVsDiscountPage = () => {
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <SummaryCard
-                title="Gross Sales"
+                title="Total Revenue"
                 value={`LKR ${fmt(summary?.totalSales || 0)}`}
                 icon={<IconTrendingUp size={20} />}
                 color="text-gray-900"

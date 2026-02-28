@@ -9,6 +9,7 @@ import {
   Button,
   Space,
   Tag,
+  Tooltip as AntdTooltip,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
@@ -259,7 +260,11 @@ const SalesByCategoryPage = () => {
       ),
     },
     {
-      title: "Sales",
+      title: (
+        <AntdTooltip title="Sum of product selling prices. Excludes order-level shipping fees.">
+          <span>Sales</span>
+        </AntdTooltip>
+      ),
       key: "sales",
       align: "right",
       render: (_, c) => (
@@ -269,7 +274,11 @@ const SalesByCategoryPage = () => {
       ),
     },
     {
-      title: "Net Sale",
+      title: (
+        <AntdTooltip title="Product sales minus allocated item discounts and transaction fees. Excludes shipping fees.">
+          <span>Net Sale</span>
+        </AntdTooltip>
+      ),
       key: "netSale",
       align: "right",
       render: (_, c) => (
@@ -421,6 +430,7 @@ const SalesByCategoryPage = () => {
               <SummaryCard
                 title="Total Sales"
                 value={`LKR ${fmt(totalSales)}`}
+                sub="Product sales only"
                 icon={<IconTrendingUp size={20} />}
                 color="text-gray-900"
                 bg="bg-gray-100"
@@ -428,6 +438,7 @@ const SalesByCategoryPage = () => {
               <SummaryCard
                 title="Net Sales"
                 value={`LKR ${fmt(totalNetSales)}`}
+                sub="Excl. shipping fees"
                 icon={<IconTrendingUp size={20} />}
                 color="text-indigo-600"
                 bg="bg-indigo-50"

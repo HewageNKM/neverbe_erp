@@ -9,6 +9,7 @@ import {
   Space,
   Tag,
   Progress,
+  Tooltip,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
@@ -239,7 +240,11 @@ const TopSellingProductsPage = () => {
       ),
     },
     {
-      title: "Sales",
+      title: (
+        <Tooltip title="Sum of product selling prices. Excludes order-level shipping fees.">
+          <span>Sales</span>
+        </Tooltip>
+      ),
       key: "sales",
       align: "right",
       render: (_, p) => (
@@ -249,7 +254,11 @@ const TopSellingProductsPage = () => {
       ),
     },
     {
-      title: "Net Sales",
+      title: (
+        <Tooltip title="Product sales minus allocated item discounts and transaction fees. Excludes shipping fees.">
+          <span>Net Sales</span>
+        </Tooltip>
+      ),
       key: "netSales",
       align: "right",
       render: (_, p) => (
@@ -384,8 +393,9 @@ const TopSellingProductsPage = () => {
                 bg="bg-blue-50"
               />
               <SummaryCard
-                title="Gross Sales"
+                title="Total Sales"
                 value={`LKR ${fmt(summary?.totalSales || 0)}`}
+                sub="Product sales only"
                 icon={<IconTrendingUp size={20} />}
                 color="text-gray-900"
                 bg="bg-gray-100"
@@ -393,6 +403,7 @@ const TopSellingProductsPage = () => {
               <SummaryCard
                 title="Net Sales"
                 value={`LKR ${fmt(summary?.totalNetSales || 0)}`}
+                sub="Excl. shipping fees"
                 icon={<IconCurrencyDollar size={20} />}
                 color="text-indigo-600"
                 bg="bg-indigo-50"

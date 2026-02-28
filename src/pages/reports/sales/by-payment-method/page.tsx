@@ -8,6 +8,7 @@ import {
   Tag,
   DatePicker,
   Progress,
+  Tooltip,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
@@ -139,7 +140,7 @@ const SalesByPaymentMethod = () => {
     if (!rows.length) return;
     const formatted = rows.map((r) => ({
       "Payment Method": r.paymentMethod,
-      "Total Amount (LKR)": r.totalAmount.toFixed(2),
+      "Total Revenue (LKR)": r.totalAmount.toFixed(2),
       "Total Orders": r.totalOrders,
       "Total Transactions": r.transactions,
     }));
@@ -165,7 +166,7 @@ const SalesByPaymentMethod = () => {
         period: `${from} – ${to}`,
         summaryItems: [
           { label: "Payment Methods", value: String(rows.length) },
-          { label: "Total Sale", value: `LKR ${fmt(summary.totalAmount)}` },
+          { label: "Total Revenue", value: `LKR ${fmt(summary.totalAmount)}` },
           { label: "Total Orders", value: String(summary.totalOrders) },
         ],
         chartSpecs: [
@@ -177,7 +178,7 @@ const SalesByPaymentMethod = () => {
         tables: [
           {
             title: "Detailed Statistics",
-            columns: ["Method", "Orders", "Transactions", "Total Sale"],
+            columns: ["Method", "Orders", "Transactions", "Total Revenue"],
             rows: rows.map((r: any) => [
               r.paymentMethod,
               String(r.totalOrders),
@@ -254,7 +255,11 @@ const SalesByPaymentMethod = () => {
       render: (_, r) => <span className="text-gray-500">{r.transactions}</span>,
     },
     {
-      title: "Total Amount",
+      title: (
+        <Tooltip title="Total cash received (including shipping fees)">
+          <span>Total Revenue</span>
+        </Tooltip>
+      ),
       key: "totalAmount",
       align: "right",
       render: (_, r) => (
@@ -341,7 +346,7 @@ const SalesByPaymentMethod = () => {
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <SummaryCard
-                title="Total Sales"
+                title="Total Revenue"
                 value={`LKR ${fmt(summary?.totalAmount || 0)}`}
                 icon={<IconTrendingUp size={20} />}
                 color="text-blue-700"
@@ -370,7 +375,7 @@ const SalesByPaymentMethod = () => {
                 className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm"
               >
                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-4">
-                  Total Sales by Method
+                  Total Revenue by Method
                 </p>
                 <div className="h-[300px] w-full text-xs font-semibold">
                   <ResponsiveContainer width="100%" height="100%">
@@ -400,7 +405,7 @@ const SalesByPaymentMethod = () => {
                       <Bar
                         dataKey="totalAmount"
                         fill="#3B82F6"
-                        name="Sales"
+                        name="Revenue"
                         radius={[4, 4, 0, 0]}
                         barSize={40}
                       />
