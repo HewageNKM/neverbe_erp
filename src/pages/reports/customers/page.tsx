@@ -14,6 +14,7 @@ import {
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import {
   IconFilter,
   IconDownload,
@@ -164,17 +165,57 @@ const CustomerAnalyticsPage = () => {
     toast.success("Excel exported successfully");
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!report) {
-      toast("No data to export");
+      toast.error("No data to export");
       return;
     }
-    window.print();
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Customer Analytics Report",
+        subtitle: "Key trends, retention, and top spender performance",
+        period: `${report.period.from} – ${report.period.to}`,
+        summaryItems: [
+          {
+            label: "Total Customers",
+            value: report.overview.totalCustomers.toLocaleString(),
+          },
+          {
+            label: "Returning Customers",
+            value: report.overview.returningCustomers.toLocaleString(),
+            sub: `${((report.overview.returningCustomers / report.overview.totalCustomers) * 100).toFixed(1)}% retention rate`,
+          },
+          {
+            label: "Average Order Value",
+            value: `LKR ${fmt(report.overview.averageOrderValue)}`,
+          },
+        ],
+        tables: [
+          {
+            title: "Top Spending Customers",
+            columns: ["Name", "Contact", "Orders", "Total Spent (LKR)"],
+            rows: report.topCustomers.map((c) => [
+              c.name,
+              c.email || c.phone || "-",
+              String(c.totalOrders),
+              fmt(c.totalSpent),
+            ]),
+            boldCols: [0],
+            greenCols: [3],
+          },
+        ],
+        filename: `customer_analytics_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
   };
 
   const columns: ColumnsType<CustomerAnalytics["topCustomers"][0]> = [
     {
-      title: "#",
+      title: "Rank",
       key: "rank",
       width: 48,
       render: (_, __, i) => (
@@ -208,9 +249,7 @@ const CustomerAnalyticsPage = () => {
       key: "totalSpent",
       align: "right",
       render: (v) => (
-        <span className="font-mono font-bold text-emerald-700">
-          LKR {fmt(v)}
-        </span>
+        <span className="font-mono font-bold text-blue-700">LKR {fmt(v)}</span>
       ),
     },
   ];

@@ -1,5 +1,10 @@
 import api from "@/lib/api";
-import { Card, Form, Spin, Tag, Progress, Button, Space } from "antd";
+import { useAppSelector } from "@/lib/hooks";
+import { RootState } from "@/lib/store";
+import toast from "react-hot-toast";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
+import { Card, Spin, Tag, Progress, Button, Space, Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import React, { useState } from "react";
 import {
   IconFilter,
@@ -42,6 +47,51 @@ const TOOLTIP_STYLE = {
   itemStyle: { color: "#F9FAFB" },
 };
 
+const SummaryCard = ({
+  label,
+  value,
+  icon,
+  color,
+  bg,
+  bar,
+  barLabel,
+  barColor,
+}: any) => (
+  <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+    <div
+      className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${bg}`}
+    >
+      <span className={color}>{icon}</span>
+    </div>
+    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+      {label}
+    </p>
+    <p className={`text-lg font-black tracking-tight ${color} leading-none`}>
+      {value}
+    </p>
+    {bar !== null && bar !== undefined && (
+      <div className="mt-3">
+        <div className="flex justify-between mb-1">
+          <span className="text-[10px] text-gray-400 font-bold">
+            {barLabel}
+          </span>
+          <span className={`text-[10px] font-black ${color}`}>
+            {bar.toFixed(1)}%
+          </span>
+        </div>
+        <Progress
+          percent={Math.min(Math.abs(bar), 100)}
+          showInfo={false}
+          strokeColor={barColor}
+          trailColor="#f3f4f6"
+          size="small"
+          strokeLinecap="square"
+        />
+      </div>
+    )}
+  </div>
+);
+
 const YearRevenuePage = () => {
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
@@ -68,31 +118,195 @@ const YearRevenuePage = () => {
     }
   };
 
+  const handleExportPDF = async () => {
+    if (!yearly?.length || !summary) {
+      toast.error("No data to export");
+      return;
+    }
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      await exportReportPDF({
+        title: "Yearly Revenue Report",
+        subtitle: "Multi-year revenue, costs, and profit trends",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          { label: "Total Revenue", value: `LKR ${fmt(summary.totalSales)}` },
+          {
+            label: "Total Net Sales",
+            value: `LKR ${fmt(summary.totalNetSales)}`,
+          },
+          {
+            label: "Gross Profit",
+            value: `LKR ${fmt(summary.overallGrossProfit)}`,
+            sub: `${summary.overallGrossMargin?.toFixed(1)}% margin`,
+          },
+          {
+            label: "Net Profit",
+            value: `LKR ${fmt(summary.overallNetProfit)}`,
+            sub: `${summary.overallNetMargin?.toFixed(1)}% margin`,
+          },
+        ],
+        chartSpecs: [
+          {
+            title: "Long-term Revenue Trend",
+            elementId: "yearly-revenue-chart",
+          },
+        ],
+        tables: [
+          {
+            title: "Yearly Breakdown",
+            columns: [
+              "Year",
+              "Orders",
+              "Net Sales",
+              "COGS",
+              "Gross Profit",
+              "Net Margin",
+            ],
+            rows: yearly.map((r) => [
+              String(r.year),
+              String(r.totalOrders),
+              `LKR ${fmt(r.totalNetSales)}`,
+              `LKR ${fmt(r.totalCOGS)}`,
+              `LKR ${fmt(r.grossProfit)}`,
+              `${r.netProfitMargin?.toFixed(1)}%`,
+            ]),
+            boldCols: [0],
+            greenCols: [4],
+          },
+        ],
+        filename: `yearly_revenue_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
+  };
+
   const handleExportExcel = () => {
-    if (!yearly?.length) return;
-    const exportData: any[] = yearly.map((y: any) => ({
+    if (!yearly?.length) {
+      toast.error("No data to export");
+      return;
+    }
+    const data = yearly.map((y: any) => ({
       Year: y.year,
-      Orders: y.totalOrders,
-      "Total Sales (LKR)": y.totalSales.toFixed(2),
-      "Net Sales (LKR)": y.totalNetSales.toFixed(2),
-      "COGS (LKR)": y.totalCOGS.toFixed(2),
-      "Discount (LKR)": y.totalDiscount.toFixed(2),
-      "Trans. Fee (LKR)": y.totalTransactionFee.toFixed(2),
-      "Expenses (LKR)": y.totalExpenses.toFixed(2),
-      "Other Income (LKR)": y.totalOtherIncome.toFixed(2),
-      "Gross Profit (LKR)": y.grossProfit.toFixed(2),
-      "Gross Margin (%)": y.grossProfitMargin.toFixed(2),
-      "Net Profit (LKR)": y.netProfit.toFixed(2),
-      "Net Margin (%)": y.netProfitMargin.toFixed(2),
+      "Total Orders": y.totalOrders,
+      "Total Sales (LKR)": y.totalSales,
+      "Net Sales (LKR)": y.totalNetSales,
+      "COGS (LKR)": y.totalCOGS,
+      "Gross Profit (LKR)": y.grossProfit,
+      "Gross Margin (%)": y.grossProfitMargin?.toFixed(1),
+      "Net Profit (LKR)": y.netProfit,
+      "Net Margin (%)": y.netProfitMargin?.toFixed(1),
     }));
-    const ws = XLSX.utils.json_to_sheet(exportData);
+    const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Yearly Revenue");
     XLSX.writeFile(wb, `yearly_revenue_${from}_${to}.xlsx`);
+    toast.success("Excel exported!");
   };
 
   const gp = summary?.grossProfit ?? 0;
   const np = summary?.netProfit ?? 0;
+
+  const columns: ColumnsType<any> = [
+    {
+      title: "Year",
+      dataIndex: "year",
+      key: "year",
+      render: (v) => <span className="font-bold text-gray-900">{v}</span>,
+    },
+    {
+      title: "Orders",
+      dataIndex: "totalOrders",
+      key: "totalOrders",
+      align: "center",
+      render: (v) => <Tag className="m-0 font-bold text-[9px]">{v}</Tag>,
+    },
+    {
+      title: "Total Sales",
+      dataIndex: "totalSales",
+      key: "totalSales",
+      align: "right",
+      render: (v) => (
+        <span className="text-blue-700 font-mono text-xs">LKR {fmt(v)}</span>
+      ),
+    },
+    {
+      title: "Net Sales",
+      dataIndex: "totalNetSales",
+      key: "totalNetSales",
+      align: "right",
+      render: (v) => (
+        <span className="text-gray-600 font-mono text-xs">LKR {fmt(v)}</span>
+      ),
+    },
+    {
+      title: "COGS",
+      dataIndex: "totalCOGS",
+      key: "totalCOGS",
+      align: "right",
+      render: (v) => (
+        <span className="text-red-500 font-mono text-xs">(LKR {fmt(v)})</span>
+      ),
+    },
+    {
+      title: "Gross Profit",
+      dataIndex: "grossProfit",
+      key: "grossProfit",
+      align: "right",
+      render: (v) => (
+        <span
+          className={`font-bold px-2 py-0.5 rounded font-mono text-xs ${v >= 0 ? "text-emerald-700 bg-emerald-50" : "text-red-600 bg-red-50"}`}
+        >
+          {v < 0 ? "(" : ""}LKR {fmt(Math.abs(v))}
+          {v < 0 ? ")" : ""}
+        </span>
+      ),
+    },
+    {
+      title: "Margin",
+      dataIndex: "grossProfitMargin",
+      key: "grossProfitMargin",
+      align: "center",
+      render: (v) => (
+        <Tag
+          color={v >= 0 ? "success" : "error"}
+          className="m-0 font-bold text-[9px]"
+        >
+          {v.toFixed(1)}%
+        </Tag>
+      ),
+    },
+    {
+      title: "Net Profit",
+      dataIndex: "netProfit",
+      key: "netProfit",
+      align: "right",
+      render: (v) => (
+        <span
+          className={`font-bold px-2 py-0.5 rounded font-mono text-xs ${v >= 0 ? "text-emerald-700 bg-emerald-50" : "text-red-600 bg-red-50"}`}
+        >
+          {v < 0 ? "(" : ""}LKR {fmt(Math.abs(v))}
+          {v < 0 ? ")" : ""}
+        </span>
+      ),
+    },
+    {
+      title: "Net Margin",
+      dataIndex: "netProfitMargin",
+      key: "netProfitMargin",
+      align: "center",
+      render: (v) => (
+        <Tag
+          color={v >= 0 ? "success" : "error"}
+          className="m-0 font-bold text-[9px]"
+        >
+          {v.toFixed(1)}%
+        </Tag>
+      ),
+    },
+  ];
 
   return (
     <PageContainer title="Yearly Revenue Report">
@@ -165,7 +379,7 @@ const YearRevenuePage = () => {
                 Excel
               </Button>
               <Button
-                onClick={() => window.print()}
+                onClick={handleExportPDF}
                 disabled={!yearly?.length}
                 icon={<IconFileTypePdf size={16} />}
                 danger
@@ -186,159 +400,92 @@ const YearRevenuePage = () => {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Revenue KPI row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                {
-                  label: "Total Orders",
-                  value: (summary.totalOrders ?? 0).toLocaleString(),
-                  icon: <IconShoppingCart size={20} />,
-                  color: "text-blue-700",
-                  bg: "bg-blue-50",
-                  bar: null,
-                },
-                {
-                  label: "Total Sales",
-                  value: `LKR ${fmt(summary.totalSales)}`,
-                  icon: <IconTrendingUp size={20} />,
-                  color: "text-blue-700",
-                  bg: "bg-blue-50",
-                  bar: null,
-                },
-                {
-                  label: "Net Sales",
-                  value: `LKR ${fmt(summary.totalNetSales)}`,
-                  icon: <IconTrendingUp size={20} />,
-                  color: "text-indigo-700",
-                  bg: "bg-indigo-50",
-                  bar: null,
-                },
-                {
-                  label: "Total COGS",
-                  value: `LKR ${fmt(summary.totalCOGS)}`,
-                  icon: <IconTrendingDown size={20} />,
-                  color: "text-red-600",
-                  bg: "bg-red-50",
-                  bar: null,
-                },
-              ].map((c) => (
-                <div
-                  key={c.label}
-                  className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"
-                >
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${c.bg}`}
-                  >
-                    <span className={c.color}>{c.icon}</span>
-                  </div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                    {c.label}
-                  </p>
-                  <p
-                    className={`text-lg font-black tracking-tight ${c.color} leading-none`}
-                  >
-                    {c.value}
-                  </p>
-                </div>
-              ))}
+              <SummaryCard
+                label="Total Orders"
+                value={(summary.totalOrders ?? 0).toLocaleString()}
+                icon={<IconShoppingCart size={20} />}
+                color="text-blue-700"
+                bg="bg-blue-50"
+              />
+              <SummaryCard
+                label="Total Sales"
+                value={`LKR ${fmt(summary.totalSales)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-blue-700"
+                bg="bg-blue-50"
+              />
+              <SummaryCard
+                label="Net Sales"
+                value={`LKR ${fmt(summary.totalNetSales)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-indigo-700"
+                bg="bg-indigo-50"
+              />
+              <SummaryCard
+                label="Total COGS"
+                value={`LKR ${fmt(summary.totalCOGS)}`}
+                icon={<IconTrendingDown size={20} />}
+                color="text-red-600"
+                bg="bg-red-50"
+              />
             </div>
 
             {/* Profit KPI row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                {
-                  label: "Gross Profit",
-                  value: `LKR ${fmt(Math.abs(gp))}`,
-                  icon:
-                    gp >= 0 ? (
-                      <IconTrendingUp size={20} />
-                    ) : (
-                      <IconTrendingDown size={20} />
-                    ),
-                  color: gp >= 0 ? "text-emerald-700" : "text-red-600",
-                  bg: gp >= 0 ? "bg-emerald-50" : "bg-red-50",
-                  bar: summary.grossProfitMargin ?? 0,
-                  barLabel: "gross margin",
-                  barColor: "#059669",
-                },
-                {
-                  label: "Net Profit",
-                  value: `LKR ${fmt(Math.abs(np))}`,
-                  icon:
-                    np >= 0 ? (
-                      <IconTrendingUp size={20} />
-                    ) : (
-                      <IconTrendingDown size={20} />
-                    ),
-                  color: np >= 0 ? "text-emerald-700" : "text-red-600",
-                  bg: np >= 0 ? "bg-emerald-50" : "bg-red-50",
-                  bar: summary.netProfitMargin ?? 0,
-                  barLabel: "net margin",
-                  barColor: "#111827",
-                },
-                {
-                  label: "Total Expenses",
-                  value: `LKR ${fmt(summary.totalExpenses)}`,
-                  icon: <IconTrendingDown size={20} />,
-                  color: "text-amber-700",
-                  bg: "bg-amber-50",
-                  bar: null,
-                  barLabel: "",
-                  barColor: "",
-                },
-                {
-                  label: "Trans. Fees",
-                  value: `LKR ${fmt(summary.totalTransactionFee)}`,
-                  icon: <IconTrendingDown size={20} />,
-                  color: "text-orange-600",
-                  bg: "bg-orange-50",
-                  bar: null,
-                  barLabel: "",
-                  barColor: "",
-                },
-              ].map((c) => (
-                <div
-                  key={c.label}
-                  className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"
-                >
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${c.bg}`}
-                  >
-                    <span className={c.color}>{c.icon}</span>
-                  </div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                    {c.label}
-                  </p>
-                  <p
-                    className={`text-lg font-black tracking-tight ${c.color} leading-none`}
-                  >
-                    {c.value}
-                  </p>
-                  {c.bar !== null && c.bar !== undefined && (
-                    <div className="mt-3">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-[10px] text-gray-400 font-bold">
-                          {c.barLabel}
-                        </span>
-                        <span className={`text-[10px] font-black ${c.color}`}>
-                          {c.bar.toFixed(1)}%
-                        </span>
-                      </div>
-                      <Progress
-                        percent={Math.min(Math.abs(c.bar), 100)}
-                        showInfo={false}
-                        strokeColor={c.barColor}
-                        trailColor="#f3f4f6"
-                        size="small"
-                        strokeLinecap="square"
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+              <SummaryCard
+                label="Gross Profit"
+                value={`LKR ${fmt(Math.abs(gp))}`}
+                icon={
+                  gp >= 0 ? (
+                    <IconTrendingUp size={20} />
+                  ) : (
+                    <IconTrendingDown size={20} />
+                  )
+                }
+                color={gp >= 0 ? "text-emerald-700" : "text-red-600"}
+                bg={gp >= 0 ? "bg-emerald-50" : "bg-red-50"}
+                bar={summary.grossProfitMargin ?? 0}
+                barLabel="gross margin"
+                barColor="#059669"
+              />
+              <SummaryCard
+                label="Net Profit"
+                value={`LKR ${fmt(Math.abs(np))}`}
+                icon={
+                  np >= 0 ? (
+                    <IconTrendingUp size={20} />
+                  ) : (
+                    <IconTrendingDown size={20} />
+                  )
+                }
+                color={np >= 0 ? "text-emerald-700" : "text-red-600"}
+                bg={np >= 0 ? "bg-emerald-50" : "bg-red-50"}
+                bar={summary.netProfitMargin ?? 0}
+                barLabel="net margin"
+                barColor="#111827"
+              />
+              <SummaryCard
+                label="Total Expenses"
+                value={`LKR ${fmt(summary.totalExpenses)}`}
+                icon={<IconTrendingDown size={20} />}
+                color="text-amber-700"
+                bg="bg-amber-50"
+              />
+              <SummaryCard
+                label="Trans. Fees"
+                value={`LKR ${fmt(summary.totalTransactionFee)}`}
+                icon={<IconTrendingDown size={20} />}
+                color="text-orange-600"
+                bg="bg-orange-50"
+              />
             </div>
 
             {/* Charts */}
             {yearly?.length > 0 && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div
+                id="yearly-revenue-chart"
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+              >
                 <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
                     Gross vs Net Profit
@@ -449,83 +596,14 @@ const YearRevenuePage = () => {
             {/* Table */}
             {yearly?.length > 0 && (
               <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-[11px] text-left">
-                    <thead className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
-                      <tr>
-                        <th className="px-5 py-3">Year</th>
-                        <th className="px-5 py-3 text-right">Orders</th>
-                        <th className="px-5 py-3 text-right">Total Sales</th>
-                        <th className="px-5 py-3 text-right">Net Sales</th>
-                        <th className="px-5 py-3 text-right">COGS</th>
-                        <th className="px-5 py-3 text-right">Gross Profit</th>
-                        <th className="px-5 py-3 text-center">Margin</th>
-                        <th className="px-5 py-3 text-right">Net Profit</th>
-                        <th className="px-5 py-3 text-center">Net Margin</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 font-mono">
-                      {yearly.map((y: any) => (
-                        <tr
-                          key={y.year}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="px-5 py-4 font-bold text-gray-900 font-sans">
-                            {y.year}
-                          </td>
-                          <td className="px-5 py-4 text-right">
-                            <Tag className="m-0 font-bold text-[9px]">
-                              {y.totalOrders}
-                            </Tag>
-                          </td>
-                          <td className="px-5 py-4 text-right text-blue-700">
-                            LKR {fmt(y.totalSales)}
-                          </td>
-                          <td className="px-5 py-4 text-right text-gray-700">
-                            LKR {fmt(y.totalNetSales)}
-                          </td>
-                          <td className="px-5 py-4 text-right text-red-500">
-                            (LKR {fmt(y.totalCOGS)})
-                          </td>
-                          <td
-                            className={`px-5 py-4 text-right font-medium ${y.grossProfit >= 0 ? "text-emerald-700" : "text-red-600"}`}
-                          >
-                            {y.grossProfit < 0 ? "(" : ""}LKR{" "}
-                            {fmt(Math.abs(y.grossProfit))}
-                            {y.grossProfit < 0 ? ")" : ""}
-                          </td>
-                          <td className="px-5 py-4 text-center">
-                            <Tag
-                              color={
-                                y.grossProfitMargin >= 0 ? "success" : "error"
-                              }
-                              className="m-0 font-bold text-[9px]"
-                            >
-                              {y.grossProfitMargin.toFixed(1)}%
-                            </Tag>
-                          </td>
-                          <td
-                            className={`px-5 py-4 text-right font-bold ${y.netProfit >= 0 ? "text-emerald-700" : "text-red-600"}`}
-                          >
-                            {y.netProfit < 0 ? "(" : ""}LKR{" "}
-                            {fmt(Math.abs(y.netProfit))}
-                            {y.netProfit < 0 ? ")" : ""}
-                          </td>
-                          <td className="px-5 py-4 text-center">
-                            <Tag
-                              color={
-                                y.netProfitMargin >= 0 ? "success" : "error"
-                              }
-                              className="m-0 font-bold text-[9px]"
-                            >
-                              {y.netProfitMargin.toFixed(1)}%
-                            </Tag>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <Table
+                  columns={columns}
+                  dataSource={yearly}
+                  rowKey="year"
+                  pagination={false}
+                  size="small"
+                  scroll={{ x: "max-content" }}
+                />
               </div>
             )}
           </div>

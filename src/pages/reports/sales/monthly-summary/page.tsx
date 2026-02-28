@@ -12,13 +12,30 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
-import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconDownload,
+  IconFileTypePdf,
+  IconShoppingCart,
+  IconTrendingUp,
+  IconPackages,
+  IconPercentage,
+  IconCurrencyDollar,
+  IconTruckDelivery,
+} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
 import dayjs from "dayjs";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+
+const fmt = (v: number) =>
+  v.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
 // Recharts
 import {
@@ -132,16 +149,99 @@ const MonthlySummaryPage = () => {
     XLSX.writeFile(wb, `monthly_summary_${dateRange[0]}_${dateRange[1]}.xlsx`);
   };
 
+  const handleExportPDF = async () => {
+    if (!summary?.monthly?.length) {
+      toast.error("No data to export");
+      return;
+    }
+
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Monthly Sales Summary",
+        subtitle: "Monthly revenue and performance breakdown",
+        period: `${dateRange[0]} – ${dateRange[1]}`,
+        summaryItems: [
+          { label: "Total Orders", value: String(summary.totalOrders) },
+          { label: "Total Sales", value: `LKR ${fmt(summary.totalSales)}` },
+          {
+            label: "Gross Profit",
+            value: `LKR ${fmt(summary.totalGrossProfit || 0)}`,
+            sub: `${(summary.totalGrossProfitMargin || 0).toFixed(1)}% margin`,
+          },
+          {
+            label: "Avg Order Value",
+            value: `LKR ${fmt(summary.averageOrderValue || 0)}`,
+          },
+        ],
+        chartSpecs: [
+          {
+            title: "Monthly Sales Trend",
+            elementId: "monthly-sales-trend-chart",
+          },
+        ],
+        tables: [
+          {
+            title: "Monthly Breakdown",
+            columns: [
+              "Month",
+              "Orders",
+              "Net Sales",
+              "COGS",
+              "Profit",
+              "Shipping",
+            ],
+            rows: summary.monthly.map((m: any) => [
+              m.month,
+              String(m.orders),
+              fmt(m.netSales),
+              fmt(m.cogs || 0),
+              fmt(m.grossProfit || 0),
+              fmt(m.shipping),
+            ]),
+            boldCols: [0],
+            greenCols: [4],
+          },
+        ],
+        filename: `monthly_sales_summary_${dateRange[0]}_${dateRange[1]}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate PDF", { id: toastId });
+    }
+  };
+
   const SummaryCard = ({
     title,
     value,
+    sub,
+    icon,
+    color,
+    bg,
   }: {
     title: string;
     value: string | number;
+    sub?: string;
+    icon: React.ReactNode;
+    color: string;
+    bg: string;
   }) => (
-    <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
-      <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
+    <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+      <div
+        className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${bg}`}
+      >
+        <span className={color}>{icon}</span>
+      </div>
+      <p className="text-[10px] uppercase font-black tracking-[0.1em] text-gray-400 mb-1">
+        {title}
+      </p>
+      <p className={`text-xl font-black tracking-tight ${color} leading-none`}>
+        {value}
+      </p>
+      {sub && (
+        <p className="text-[10px] text-gray-400 mt-1 font-medium">{sub}</p>
+      )}
     </div>
   );
 
@@ -161,7 +261,9 @@ const MonthlySummaryPage = () => {
       dataIndex: "orders",
       key: "orders",
       align: "right",
-      render: (text) => <span className="text-gray-600">{text}</span>,
+      render: (text) => (
+        <Tag className="font-mono text-[10px] font-bold m-0">{text}</Tag>
+      ),
     },
     {
       title: "Sales",
@@ -169,7 +271,9 @@ const MonthlySummaryPage = () => {
       key: "sales",
       align: "right",
       render: (val) => (
-        <span className="font-medium text-gray-900">Rs {val.toFixed(2)}</span>
+        <span className="font-semibold text-blue-700 font-mono text-xs">
+          LKR {fmt(val)}
+        </span>
       ),
     },
     {
@@ -178,7 +282,7 @@ const MonthlySummaryPage = () => {
       key: "netSales",
       align: "right",
       render: (val) => (
-        <span className="text-gray-600">Rs {val.toFixed(2)}</span>
+        <span className="text-gray-700 font-mono text-xs">LKR {fmt(val)}</span>
       ),
     },
     {
@@ -187,7 +291,9 @@ const MonthlySummaryPage = () => {
       key: "cogs",
       align: "right",
       render: (val) => (
-        <span className="text-gray-600">Rs {(val || 0).toFixed(2)}</span>
+        <span className="text-red-500 font-mono text-xs">
+          (LKR {fmt(val || 0)})
+        </span>
       ),
     },
     {
@@ -196,8 +302,11 @@ const MonthlySummaryPage = () => {
       key: "grossProfit",
       align: "right",
       render: (val) => (
-        <span className="font-medium text-green-600">
-          Rs {(val || 0).toFixed(2)}
+        <span
+          className={`font-bold px-2 py-0.5 rounded font-mono text-xs ${val >= 0 ? "text-emerald-700 bg-emerald-50" : "text-red-600 bg-red-50"}`}
+        >
+          {val < 0 ? "(" : ""}LKR {fmt(Math.abs(val || 0))}
+          {val < 0 ? ")" : ""}
         </span>
       ),
     },
@@ -214,7 +323,7 @@ const MonthlySummaryPage = () => {
       key: "shipping",
       align: "right",
       render: (val) => (
-        <span className="text-gray-600">Rs {val.toFixed(2)}</span>
+        <span className="text-gray-500 font-mono text-xs">LKR {fmt(val)}</span>
       ),
     },
   ];
@@ -225,11 +334,17 @@ const MonthlySummaryPage = () => {
         {/* Header & Controls */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
-            <h2 className="text-2xl font-bold  tracking-tight text-gray-900">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-6 rounded-full bg-blue-600" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Sales Analysis
+              </span>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
               Monthly Summary
             </h2>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              Filter sales by month range (Max 12 months)
+            <p className="text-xs text-gray-400 mt-1.5 font-mono">
+              {dateRange[0]} &nbsp;–&nbsp; {dateRange[1]}
             </p>
           </div>
 
@@ -266,14 +381,23 @@ const MonthlySummaryPage = () => {
               </Form>
             </Card>
 
-            <button
-              onClick={handleExportExcel}
-              disabled={!summary?.monthly?.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
-            >
-              <IconDownload size={16} />
-              Export
-            </button>
+            <Space>
+              <Button
+                onClick={handleExportExcel}
+                disabled={!summary?.monthly?.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={handleExportPDF}
+                disabled={!summary?.monthly?.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 
@@ -290,39 +414,73 @@ const MonthlySummaryPage = () => {
         {!loading && summary && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <SummaryCard title="Total Orders" value={summary.totalOrders} />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <SummaryCard
+                title="Total Orders"
+                value={summary.totalOrders.toLocaleString()}
+                icon={<IconShoppingCart size={20} />}
+                color="text-blue-600"
+                bg="bg-blue-50"
+              />
               <SummaryCard
                 title="Total Sales"
-                value={`Rs ${summary.totalSales.toFixed(2)}`}
+                value={`LKR ${fmt(summary.totalSales)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-gray-900"
+                bg="bg-gray-100"
               />
               <SummaryCard
                 title="Net Sales"
-                value={`Rs ${summary.totalNetSales.toFixed(2)}`}
+                value={`LKR ${fmt(summary.totalNetSales)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-indigo-600"
+                bg="bg-indigo-50"
               />
-              <SummaryCard title="Items Sold" value={summary.totalItemsSold} />
+              <SummaryCard
+                title="Items Sold"
+                value={summary.totalItemsSold.toLocaleString()}
+                icon={<IconPackages size={20} />}
+                color="text-amber-600"
+                bg="bg-amber-50"
+              />
               <SummaryCard
                 title="Gross Profit"
-                value={`Rs ${(summary.totalGrossProfit || 0).toFixed(2)}`}
-              />
-              <SummaryCard
-                title="Profit Margin"
-                value={`${(summary.totalGrossProfitMargin || 0).toFixed(2)}%`}
+                value={`LKR ${fmt(summary.totalGrossProfit || 0)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-emerald-700"
+                bg="bg-emerald-50"
+                sub={`${(summary.totalGrossProfitMargin || 0).toFixed(1)}% margin`}
               />
               <SummaryCard
                 title="Avg Order Value"
-                value={`Rs ${(summary.averageOrderValue || 0).toFixed(2)}`}
+                value={`LKR ${fmt(summary.averageOrderValue || 0)}`}
+                icon={<IconCurrencyDollar size={20} />}
+                color="text-emerald-600"
+                bg="bg-emerald-50"
               />
               <SummaryCard
-                title="Shipping"
-                value={`Rs ${summary.totalShipping.toFixed(2)}`}
+                title="Shipping Total"
+                value={`LKR ${fmt(summary.totalShipping)}`}
+                icon={<IconTruckDelivery size={20} />}
+                color="text-gray-500"
+                bg="bg-gray-50"
+              />
+              <SummaryCard
+                title="Total Discount"
+                value={`LKR ${fmt(summary.totalDiscount)}`}
+                icon={<IconPercentage size={20} />}
+                color="text-red-500"
+                bg="bg-red-50"
               />
             </div>
 
             {/* Charts Section */}
             {summary.monthly && summary.monthly.length > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+                <div
+                  id="monthly-sales-trend-chart"
+                  className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm"
+                >
                   <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-4">
                     Monthly Sales Trend
                   </p>

@@ -14,6 +14,7 @@ import {
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import { Link } from "react-router-dom";
 import {
   IconFilter,
@@ -76,7 +77,7 @@ const TaxReportPage = () => {
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
-  const fetchReport = async (values?: any) => {
+  const fetchReport = async (values?: { dateRange?: dayjs.Dayjs[] }) => {
     setLoading(true);
     const fromDate = values?.dateRange?.[0]?.format("YYYY-MM-DD") || from;
     const toDate = values?.dateRange?.[1]?.format("YYYY-MM-DD") || to;
@@ -124,12 +125,59 @@ const TaxReportPage = () => {
     toast.success("Excel exported successfully");
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!report || !report.transactions.length) {
-      toast("No data to export");
+      toast.error("No data to export");
       return;
     }
-    window.print();
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Tax Report",
+        subtitle: "Taxable sales and collected tax breakdown",
+        period: `${report.period.from} – ${report.period.to}`,
+        summaryItems: [
+          {
+            label: "Total Sales",
+            value: `LKR ${fmt(report.summary.totalSales)}`,
+          },
+          {
+            label: "Taxable Amount",
+            value: `LKR ${fmt(report.summary.totalTaxableAmount)}`,
+          },
+          {
+            label: "Tax Collected",
+            value: `LKR ${fmt(report.summary.totalTaxCollected)}`,
+            sub: `${report.summary.effectiveTaxRate.toFixed(2)}% effective rate`,
+          },
+        ],
+        tables: [
+          {
+            title: "Tax Transactions",
+            columns: [
+              "Date",
+              "Order ID",
+              "Order Total",
+              "Taxable Amt",
+              "Tax Collected",
+            ],
+            rows: report.transactions.map((t) => [
+              t.date,
+              t.orderId,
+              fmt(t.orderTotal),
+              fmt(t.taxableAmount),
+              fmt(t.taxCollected),
+            ]),
+            boldCols: [1],
+            greenCols: [4],
+          },
+        ],
+        filename: `tax_report_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
   };
 
   const columns: ColumnsType<TaxReportItem> = [

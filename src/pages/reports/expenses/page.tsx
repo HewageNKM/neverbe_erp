@@ -33,6 +33,7 @@ import {
   Legend,
 } from "recharts";
 import toast from "react-hot-toast";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
 
@@ -131,12 +132,58 @@ const ExpenseReportPage = () => {
     toast.success("Excel exported successfully");
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!report || !report.expenses.length) {
-      toast("No data to export");
+      toast.error("No data to export");
       return;
     }
-    window.print();
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Expense Report",
+        subtitle: "Breakdown of company expenditures",
+        period: `${report.period.from} – ${report.period.to}`,
+        summaryItems: [
+          {
+            label: "Total Expenses",
+            value: `LKR ${fmt(report.summary.total)}`,
+            sub: `${report.summary.count} transactions`,
+          },
+          {
+            label: "Average per Tx",
+            value: `LKR ${fmt(avgPerTx)}`,
+          },
+        ],
+        chartSpecs: [
+          { title: "Expense by Category", elementId: "expense-pie-chart" },
+        ],
+        tables: [
+          {
+            title: "Expense Transactions",
+            columns: [
+              "Date",
+              "Category",
+              "Description",
+              "Status",
+              "Amount (LKR)",
+            ],
+            rows: report.expenses.map((e) => [
+              e.date,
+              e.category,
+              e.description,
+              e.status,
+              fmt(e.amount),
+            ]),
+            boldCols: [1],
+            redCols: [4],
+          },
+        ],
+        filename: `expense_report_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
   };
 
   const columns: ColumnsType<ExpenseItem> = [
@@ -166,7 +213,7 @@ const ExpenseReportPage = () => {
       key: "amount",
       align: "right",
       render: (v) => (
-        <span className="font-mono font-bold text-red-600">LKR {fmt(v)}</span>
+        <span className="font-mono text-xs text-red-600">(LKR {fmt(v)})</span>
       ),
     },
     {

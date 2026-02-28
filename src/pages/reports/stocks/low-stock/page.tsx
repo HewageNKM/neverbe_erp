@@ -25,6 +25,7 @@ import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
 import toast from "react-hot-toast";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 
 const fmt = (v: number) =>
   new Intl.NumberFormat("en-LK", {
@@ -116,12 +117,53 @@ const LowStockPage = () => {
     toast.success("Excel exported!");
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     if (!stock.length) {
       toast.error("No data to export");
       return;
     }
-    window.print();
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Low Stock Alerts",
+        subtitle: "Products and variants falling below critical limits",
+        period: new Date().toLocaleDateString(),
+        summaryItems: [
+          {
+            label: "Critical SKUs",
+            value: Number(stock.length).toLocaleString(),
+          },
+        ],
+        tables: [
+          {
+            title: "Items Below Threshold",
+            columns: [
+              "Product",
+              "Variant",
+              "Size",
+              "Location",
+              "Threshold",
+              "Quantity",
+            ],
+            rows: stock.map((s) => [
+              String(s.productName),
+              String(s.variantName),
+              String(s.size || "-"),
+              String(s.stockName),
+              String(s.threshold),
+              String(s.quantity),
+            ]),
+            boldCols: [0],
+            redCols: [5],
+            greenCols: [],
+          },
+        ],
+        filename: "low_stock_alerts",
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
   };
 
   const columns: ColumnsType<any> = [

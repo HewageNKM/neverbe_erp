@@ -1,6 +1,4 @@
-import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
-
 import {
   Card,
   Form,
@@ -12,12 +10,30 @@ import {
   Space,
   Tag,
 } from "antd";
+import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
-import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconDownload,
+  IconFileTypePdf,
+  IconShoppingCart,
+  IconTrendingUp,
+  IconPackages,
+  IconCurrencyDollar,
+} from "@tabler/icons-react";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import dayjs from "dayjs";
 import toast from "react-hot-toast";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
+import { useAppSelector } from "@/lib/hooks";
+import { RootState } from "@/lib/store";
+
+const fmt = (v: number) =>
+  v.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 import {
   BarChart,
   Bar,
@@ -42,9 +58,31 @@ const COLORS = [
 ];
 
 const SalesByCategoryPage = () => {
+  const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
+
+  const totalSales = categories.reduce(
+    (sum, c) => sum + (c.totalSales || 0),
+    0,
+  );
+  const totalNetSales = categories.reduce(
+    (sum, c) => sum + (c.totalNetSales || 0),
+    0,
+  );
+  const totalProfit = categories.reduce(
+    (sum, c) => sum + (c.totalGrossProfit || 0),
+    0,
+  );
+  const totalQuantity = categories.reduce(
+    (sum, c) => sum + (c.totalQuantity || 0),
+    0,
+  );
+  const totalOrders = categories.reduce(
+    (sum, c) => sum + (c.totalOrders || 0),
+    0,
+  );
 
   // Initialize with last 30 days
   const [dateRange, setDateRange] = useState<[string, string]>([
@@ -75,13 +113,15 @@ const SalesByCategoryPage = () => {
   };
 
   useEffect(() => {
-    form.setFieldsValue({
-      dateRange: [dayjs(dateRange[0]), dayjs(dateRange[1])],
-      status: "Paid",
-    });
-    fetchReport(form.getFieldsValue());
+    if (currentUser) {
+      form.setFieldsValue({
+        dateRange: [dayjs(dateRange[0]), dayjs(dateRange[1])],
+        status: "Paid",
+      });
+      fetchReport(form.getFieldsValue());
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentUser]);
 
   const exportExcel = () => {
     if (!categories.length) return;
@@ -106,19 +146,109 @@ const SalesByCategoryPage = () => {
       `sales_by_category_${dateRange[0]}_${dateRange[1]}.xlsx`,
     );
   };
+
+  const handleExportPDF = async () => {
+    if (!categories.length) {
+      toast.error("No data to export");
+      return;
+    }
+
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Sales by Category",
+        subtitle: "Sales performance breakdown by product category",
+        period: `${dateRange[0]} – ${dateRange[1]}`,
+        summaryItems: [
+          { label: "Total Catégories", value: String(categories.length) },
+          { label: "Total Quantity", value: totalQuantity.toLocaleString() },
+          { label: "Total Sales", value: `LKR ${fmt(totalSales)}` },
+          { label: "Total Profit", value: `LKR ${fmt(totalProfit)}` },
+        ],
+        chartSpecs: [
+          { title: "Sales Comparison", elementId: "sales-comparison-chart" },
+        ],
+        tables: [
+          {
+            title: "Category Breakdown",
+            columns: [
+              "Category",
+              "Orders",
+              "Qty",
+              "Net Sales",
+              "Profit",
+              "Margin",
+            ],
+            rows: categories.map((c: any) => [
+              c.category,
+              String(c.totalOrders),
+              String(c.totalQuantity),
+              fmt(c.totalNetSales),
+              fmt(c.totalGrossProfit || 0),
+              `${(c.grossProfitMargin || 0).toFixed(1)}%`,
+            ]),
+            boldCols: [0],
+            greenCols: [4],
+          },
+        ],
+        filename: `sales_by_category_${dateRange[0]}_${dateRange[1]}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate PDF", { id: toastId });
+    }
+  };
+
+  const SummaryCard = ({
+    title,
+    value,
+    sub,
+    icon,
+    color,
+    bg,
+  }: {
+    title: string;
+    value: string | number;
+    sub?: string;
+    icon: React.ReactNode;
+    color: string;
+    bg: string;
+  }) => (
+    <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+      <div
+        className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${bg}`}
+      >
+        <span className={color}>{icon}</span>
+      </div>
+      <p className="text-[10px] uppercase font-black tracking-[0.1em] text-gray-400 mb-1">
+        {title}
+      </p>
+      <p className={`text-xl font-black tracking-tight ${color} leading-none`}>
+        {value}
+      </p>
+      {sub && (
+        <p className="text-[10px] text-gray-400 mt-1 font-medium">{sub}</p>
+      )}
+    </div>
+  );
   const columns: ColumnsType<any> = [
     {
       title: "Category",
       key: "category",
       render: (_, c) => (
-        <span className="font-medium text-gray-900">{c.category}</span>
+        <span className="font-semibold text-gray-900">{c.category}</span>
       ),
     },
     {
       title: "Orders",
       key: "orders",
       align: "right",
-      render: (_, c) => <span className="text-gray-600">{c.totalOrders}</span>,
+      render: (_, c) => (
+        <Tag className="font-mono text-[10px] font-bold m-0">
+          {c.totalOrders}
+        </Tag>
+      ),
     },
     {
       title: "Qty Sold",
@@ -133,8 +263,8 @@ const SalesByCategoryPage = () => {
       key: "sales",
       align: "right",
       render: (_, c) => (
-        <span className="font-medium text-gray-900">
-          Rs {(c.totalSales || 0).toFixed(2)}
+        <span className="font-semibold text-blue-700 font-mono text-xs">
+          LKR {fmt(c.totalSales || 0)}
         </span>
       ),
     },
@@ -143,8 +273,8 @@ const SalesByCategoryPage = () => {
       key: "netSale",
       align: "right",
       render: (_, c) => (
-        <span className="text-gray-600">
-          Rs {(c.totalNetSales || 0).toFixed(2)}
+        <span className="text-gray-700 font-mono text-xs">
+          LKR {fmt(c.totalNetSales || 0)}
         </span>
       ),
     },
@@ -153,8 +283,8 @@ const SalesByCategoryPage = () => {
       key: "cOGS",
       align: "right",
       render: (_, c) => (
-        <span className="text-gray-600">
-          Rs {(c.totalCOGS || 0).toFixed(2)}
+        <span className="text-red-500 font-mono text-xs">
+          (LKR {fmt(c.totalCOGS || 0)})
         </span>
       ),
     },
@@ -163,8 +293,12 @@ const SalesByCategoryPage = () => {
       key: "profit",
       align: "right",
       render: (_, c) => (
-        <span className="font-medium text-green-600">
-          Rs {(c.totalGrossProfit || 0).toFixed(2)}
+        <span
+          className={`font-bold px-2 py-0.5 rounded font-mono text-xs ${c.totalGrossProfit >= 0 ? "text-emerald-700 bg-emerald-50" : "text-red-600 bg-red-50"}`}
+        >
+          {c.totalGrossProfit < 0 ? "(" : ""}LKR{" "}
+          {fmt(Math.abs(c.totalGrossProfit || 0))}
+          {c.totalGrossProfit < 0 ? ")" : ""}
         </span>
       ),
     },
@@ -252,7 +386,7 @@ const SalesByCategoryPage = () => {
                 Excel
               </Button>
               <Button
-                onClick={() => window.print()}
+                onClick={handleExportPDF}
                 disabled={!categories.length}
                 icon={<IconFileTypePdf size={16} />}
                 danger
@@ -275,9 +409,51 @@ const SalesByCategoryPage = () => {
         {/* Content */}
         {!loading && categories.length > 0 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <SummaryCard
+                title="Total Orders"
+                value={totalOrders.toLocaleString()}
+                icon={<IconShoppingCart size={20} />}
+                color="text-blue-600"
+                bg="bg-blue-50"
+              />
+              <SummaryCard
+                title="Total Sales"
+                value={`LKR ${fmt(totalSales)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-gray-900"
+                bg="bg-gray-100"
+              />
+              <SummaryCard
+                title="Net Sales"
+                value={`LKR ${fmt(totalNetSales)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-indigo-600"
+                bg="bg-indigo-50"
+              />
+              <SummaryCard
+                title="Total Quantity"
+                value={totalQuantity.toLocaleString()}
+                icon={<IconPackages size={20} />}
+                color="text-amber-600"
+                bg="bg-amber-50"
+              />
+              <SummaryCard
+                title="Gross Profit"
+                value={`LKR ${fmt(totalProfit)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-emerald-700"
+                bg="bg-emerald-50"
+              />
+            </div>
+
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+              <div
+                id="sales-comparison-chart"
+                className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm"
+              >
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
                   Sales Comparison
                 </p>

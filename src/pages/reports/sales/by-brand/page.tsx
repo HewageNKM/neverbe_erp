@@ -11,17 +11,8 @@ import {
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import dayjs from "dayjs";
-import {
-  IconFilter,
-  IconDownload,
-  IconFileTypePdf,
-  IconTrendingUp,
-  IconShoppingCart,
-  IconReceipt2,
-  IconBusinessplan,
-} from "@tabler/icons-react";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
@@ -38,6 +29,18 @@ import {
   CartesianGrid,
 } from "recharts";
 import toast from "react-hot-toast";
+import {
+  IconFilter,
+  IconDownload,
+  IconFileTypePdf,
+  IconTrendingUp,
+  IconBusinessplan,
+  IconPackages,
+  IconReceipt2,
+} from "@tabler/icons-react";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
+import { useAppSelector } from "@/lib/hooks";
+import { RootState } from "@/lib/store";
 
 const COLORS = [
   "#111827",
@@ -51,10 +54,10 @@ const COLORS = [
 ];
 
 const fmt = (v: number) =>
-  new Intl.NumberFormat("en-LK", {
+  v.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(v);
+  });
 
 const TOOLTIP_STYLE = {
   contentStyle: {
@@ -68,19 +71,32 @@ const TOOLTIP_STYLE = {
 };
 
 const SalesByBrandPage = () => {
+  const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
   const [form] = Form.useForm();
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const [from, setFrom] = useState(
+    dayjs().subtract(30, "day").format("YYYY-MM-DD"),
+  );
+  const [to, setTo] = useState(dayjs().format("YYYY-MM-DD"));
   const [brands, setBrands] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<any>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      form.setFieldsValue({
+        dateRange: [dayjs(from), dayjs(to)],
+      });
+      fetchReport(form.getFieldsValue());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
 
   const fetchReport = async (values?: any) => {
     let fromDate = from;
     let toDate = to;
     if (values?.dateRange) {
-      fromDate = values.dateRange[0]?.format("YYYY-MM-DD") || from;
-      toDate = values.dateRange[1]?.format("YYYY-MM-DD") || to;
+      fromDate = values.dateRange[0]?.format("YYYY-MM-DD");
+      toDate = values.dateRange[1]?.format("YYYY-MM-DD");
       setFrom(fromDate);
       setTo(toDate);
     }
@@ -164,6 +180,129 @@ const SalesByBrandPage = () => {
       toast.error("Export failed");
     }
   };
+
+  const handleExportPDF = async () => {
+    if (!brands.length) {
+      toast.error("No data to export");
+      return;
+    }
+
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Sales by Brand",
+        subtitle: "Sales performance breakdown by brand",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          { label: "Total Brands", value: String(brands.length) },
+          {
+            label: "Total Quantity",
+            value: summary.totalQuantity.toLocaleString(),
+          },
+          { label: "Total Sales", value: `LKR ${fmt(summary.totalSales)}` },
+          { label: "Total Profit", value: `LKR ${fmt(summary.totalProfit)}` },
+        ],
+        chartSpecs: [
+          {
+            title: "Sales & Profit by Brand",
+            elementId: "brand-sales-profit-chart",
+          },
+        ],
+        tables: [
+          {
+            title: "Brand Breakdown",
+            columns: [
+              "Brand",
+              "Orders",
+              "Qty",
+              "Net Sales",
+              "Profit",
+              "Margin",
+            ],
+            rows: brands.map((b: any) => [
+              b.brand || "Unknown",
+              String(b.totalOrders),
+              String(b.totalQuantity),
+              fmt(b.totalNetSales),
+              fmt(b.totalGrossProfit || 0),
+              `${(b.grossProfitMargin || 0).toFixed(1)}%`,
+            ]),
+            boldCols: [0],
+            greenCols: [4],
+          },
+        ],
+        filename: `sales_by_brand_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate PDF", { id: toastId });
+    }
+  };
+
+  const SummaryCard = ({
+    title,
+    value,
+    sub,
+    icon,
+    color,
+    bg,
+    progress,
+  }: {
+    title: string;
+    value: string | number;
+    sub?: string;
+    icon: React.ReactNode;
+    color: string;
+    bg: string;
+    progress?: {
+      percent: number;
+      label: string;
+      value: string;
+    };
+  }) => (
+    <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+      <div
+        className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${bg}`}
+      >
+        <span className={color}>{icon}</span>
+      </div>
+      <p className="text-[10px] uppercase font-black tracking-[0.1em] text-gray-400 mb-1">
+        {title}
+      </p>
+      <p className={`text-xl font-black tracking-tight ${color} leading-none`}>
+        {value}
+      </p>
+      {sub && (
+        <p className="text-[10px] text-gray-400 mt-1 font-medium">{sub}</p>
+      )}
+      {progress && (
+        <div className="mt-3">
+          <div className="flex justify-between mb-1">
+            <span className="text-[10px] text-gray-400 font-bold">
+              {progress.label}
+            </span>
+            <span className={`text-[10px] font-black ${color}`}>
+              {progress.value}
+            </span>
+          </div>
+          <Progress
+            percent={Math.min(progress.percent, 100)}
+            showInfo={false}
+            strokeColor={
+              color.includes("emerald")
+                ? "#059669"
+                : color.includes("blue")
+                  ? "#3b82f6"
+                  : "#6366f1"
+            }
+            trailColor="#f3f4f6"
+            size="small"
+          />
+        </div>
+      )}
+    </div>
+  );
 
   const columns: ColumnsType<any> = [
     {
@@ -315,7 +454,7 @@ const SalesByBrandPage = () => {
                 Excel
               </Button>
               <Button
-                onClick={() => window.print()}
+                onClick={handleExportPDF}
                 disabled={!brands.length}
                 icon={<IconFileTypePdf size={16} />}
                 danger
@@ -336,89 +475,48 @@ const SalesByBrandPage = () => {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 bg-blue-50">
-                  <span className="text-blue-700">
-                    <IconTrendingUp size={20} />
-                  </span>
-                </div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  Total Brand Sales
-                </p>
-                <p className="text-2xl font-black tracking-tight text-blue-700 leading-none">
-                  LKR {fmt(summary.totalSales)}
-                </p>
-              </div>
-
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 bg-emerald-50">
-                  <span className="text-emerald-700">
-                    <IconBusinessplan size={20} />
-                  </span>
-                </div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  Total Brand Profit
-                </p>
-                <p className="text-2xl font-black tracking-tight text-emerald-700 leading-none">
-                  LKR {fmt(summary.totalProfit)}
-                </p>
-                <div className="mt-3">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-[10px] text-gray-400 font-bold">
-                      Avg Margin
-                    </span>
-                    <span className="text-[10px] font-black text-emerald-700">
-                      {(
-                        (summary.totalProfit / summary.totalSales) * 100 || 0
-                      ).toFixed(1)}
-                      %
-                    </span>
-                  </div>
-                  <Progress
-                    percent={Math.min(
-                      (summary.totalProfit / summary.totalSales) * 100 || 0,
-                      100,
-                    )}
-                    showInfo={false}
-                    strokeColor="#059669"
-                    trailColor="#f3f4f6"
-                    size="small"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 bg-indigo-50">
-                  <span className="text-indigo-700">
-                    <IconShoppingCart size={20} />
-                  </span>
-                </div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  Total Qty Sold
-                </p>
-                <p className="text-2xl font-black tracking-tight text-indigo-700 leading-none">
-                  {summary.totalQuantity.toLocaleString()}
-                </p>
-              </div>
-
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 bg-gray-50">
-                  <span className="text-gray-700">
-                    <IconReceipt2 size={20} />
-                  </span>
-                </div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
-                  Total Orders
-                </p>
-                <p className="text-2xl font-black tracking-tight text-gray-900 leading-none">
-                  {summary.totalOrders.toLocaleString()}
-                </p>
-              </div>
+              <SummaryCard
+                title="Total Brand Sales"
+                value={`LKR ${fmt(summary.totalSales)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-blue-700"
+                bg="bg-blue-50"
+              />
+              <SummaryCard
+                title="Total Brand Profit"
+                value={`LKR ${fmt(summary.totalProfit)}`}
+                icon={<IconBusinessplan size={20} />}
+                color="text-emerald-700"
+                bg="bg-emerald-50"
+                progress={{
+                  percent:
+                    (summary.totalProfit / summary.totalSales) * 100 || 0,
+                  label: "Avg Margin",
+                  value: `${((summary.totalProfit / summary.totalSales) * 100 || 0).toFixed(1)}%`,
+                }}
+              />
+              <SummaryCard
+                title="Total Qty Sold"
+                value={summary.totalQuantity.toLocaleString()}
+                icon={<IconPackages size={20} />}
+                color="text-indigo-700"
+                bg="bg-indigo-50"
+              />
+              <SummaryCard
+                title="Total Orders"
+                value={summary.totalOrders.toLocaleString()}
+                icon={<IconReceipt2 size={20} />}
+                color="text-gray-900"
+                bg="bg-gray-50"
+              />
             </div>
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+              <div
+                id="brand-sales-profit-chart"
+                className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"
+              >
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
                   Sales & Profit by Brand
                 </p>

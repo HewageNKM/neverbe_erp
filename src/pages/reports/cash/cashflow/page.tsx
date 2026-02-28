@@ -28,6 +28,7 @@ import {
   Bar,
 } from "recharts";
 import toast from "react-hot-toast";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 
 interface DailyCashFlow {
   date: string;
@@ -120,12 +121,65 @@ const CashFlowPage = () => {
     toast.success("Excel exported successfully");
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!report || !report.length) {
-      toast("No data to export");
+      toast.error("No data to export");
       return;
     }
-    window.print();
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Cashflow Report",
+        subtitle: "Daily cash movements and balances",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          {
+            label: "Total Cash In",
+            value: `LKR ${fmt(summary?.totalCashIn ?? 0)}`,
+          },
+          {
+            label: "Total Expenses",
+            value: `LKR ${fmt(summary?.totalExpenses ?? 0)}`,
+          },
+          {
+            label: "Transaction Fees",
+            value: `LKR ${fmt(summary?.totalTransactionFees ?? 0)}`,
+          },
+          {
+            label: "Net Cash Flow",
+            value: `LKR ${fmt(summary?.totalNetCashFlow ?? 0)}`,
+          },
+        ],
+        tables: [
+          {
+            title: "Daily Cashflow Summary",
+            columns: [
+              "Date",
+              "Orders",
+              "Cash In (LKR)",
+              "Trans. Fees (LKR)",
+              "Expenses (LKR)",
+              "Net Cashflow (LKR)",
+            ],
+            rows: report.map((d) => [
+              d.date,
+              String(d.orders),
+              fmt(d.cashIn),
+              fmt(d.transactionFees),
+              fmt(d.expenses),
+              fmt(d.netCashFlow),
+            ]),
+            boldCols: [0],
+            greenCols: [5],
+            redCols: [3, 4],
+          },
+        ],
+        filename: `cashflow_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
   };
 
   const columns: ColumnsType<DailyCashFlow> = [
@@ -170,7 +224,7 @@ const CashFlowPage = () => {
       key: "expenses",
       align: "right",
       render: (v) => (
-        <span className="font-mono text-amber-700">(LKR {fmt(v)})</span>
+        <span className="font-mono text-red-600">(LKR {fmt(v)})</span>
       ),
     },
     {

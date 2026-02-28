@@ -1,11 +1,23 @@
+import { Card, Form, Spin, Table, Tag, Space, Button, DatePicker } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
-
-import { Card, Form, Spin, Table, Tag, Space, Button } from "antd";
-import React, { useState } from "react";
-import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import React, { useState, useEffect } from "react";
+import dayjs from "dayjs";
+import {
+  IconFilter,
+  IconDownload,
+  IconFileTypePdf,
+  IconTrendingUp,
+  IconCurrencyDollar,
+  IconDiscount2,
+  IconCreditCard,
+} from "@tabler/icons-react";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
+import toast from "react-hot-toast";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
+import { useAppSelector } from "@/lib/hooks";
+import { RootState } from "@/lib/store";
 import {
   LineChart,
   Line,
@@ -17,23 +29,108 @@ import {
   CartesianGrid,
 } from "recharts";
 
+const fmt = (v: number) =>
+  v.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+const SummaryCard = ({
+  title,
+  value,
+  sub,
+  icon,
+  color,
+  bg,
+}: {
+  title: string;
+  value: string | number;
+  sub?: string;
+  icon: React.ReactNode;
+  color: string;
+  bg: string;
+}) => (
+  <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+    <div
+      className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${bg}`}
+    >
+      <span className={color}>{icon}</span>
+    </div>
+    <p className="text-[10px] uppercase font-black tracking-[0.1em] text-gray-400 mb-1">
+      {title}
+    </p>
+    <p className={`text-xl font-black tracking-tight ${color} leading-none`}>
+      {value}
+    </p>
+    {sub && <p className="text-[10px] text-gray-400 mt-1 font-medium">{sub}</p>}
+  </div>
+);
+
 const SalesVsDiscountPage = () => {
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
+  const [form] = Form.useForm();
+  const [from, setFrom] = useState(
+    dayjs().subtract(30, "day").format("YYYY-MM-DD"),
+  );
+  const [to, setTo] = useState(dayjs().format("YYYY-MM-DD"));
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<any[]>([]);
+  const [summary, setSummary] = useState<any>(null);
   const [groupBy] = useState<"day" | "month">("day");
 
-  const fetchReport = async (evt?: React.FormEvent) => {
-    evt.preventDefault();
+  useEffect(() => {
+    if (currentUser) {
+      form.setFieldsValue({
+        dateRange: [dayjs(from), dayjs(to)],
+      });
+      fetchReport(form.getFieldsValue());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
+
+  const fetchReport = async (values?: any) => {
+    let fromDate = from;
+    let toDate = to;
+    if (values?.dateRange) {
+      fromDate = values.dateRange[0]?.format("YYYY-MM-DD");
+      toDate = values.dateRange[1]?.format("YYYY-MM-DD");
+      setFrom(fromDate);
+      setTo(toDate);
+    }
+
     setLoading(true);
     try {
       const res = await api.get("/api/v1/erp/reports/sales/sales-vs-discount", {
-        params: { from, to, groupBy },
+        params: { from: fromDate, to: toDate, groupBy },
       });
-      setReport(res.data.report || []);
+      const data = res.data.report || [];
+      setReport(data);
+
+      if (data.length > 0) {
+        setSummary({
+          totalSales: data.reduce(
+            (sum: number, r: any) => sum + r.totalSales,
+            0,
+          ),
+          totalNetSales: data.reduce(
+            (sum: number, r: any) => sum + r.totalNetSales,
+            0,
+          ),
+          totalDiscount: data.reduce(
+            (sum: number, r: any) => sum + r.totalDiscount,
+            0,
+          ),
+          totalFee: data.reduce(
+            (sum: number, r: any) => sum + (r.totalTransactionFee || 0),
+            0,
+          ),
+        });
+      } else {
+        setSummary(null);
+      }
     } catch (error) {
       console.error(error);
+      toast.error("Failed to load report");
     } finally {
       setLoading(false);
     }
@@ -43,20 +140,65 @@ const SalesVsDiscountPage = () => {
     if (!report.length) return;
     const exportData = report.map((r) => ({
       Period: r.period,
-      "Total Sales (Rs)": r.totalSales.toFixed(2),
+      "Total Sales (LKR)": r.totalSales.toFixed(2),
       "Total Net Sale": r.totalNetSales.toFixed(2),
-      "Total Discount (Rs)": r.totalDiscount.toFixed(2),
-      "Total Transaction Fee (Rs)": (r.totalTransactionFee || 0).toFixed(2),
+      "Total Discount (LKR)": r.totalDiscount.toFixed(2),
+      "Total Transaction Fee (LKR)": (r.totalTransactionFee || 0).toFixed(2),
       "Total Orders": r.totalOrders,
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sales vs Discount");
-    XLSX.writeFile(
-      wb,
-      `sales_vs_discount_${from || "all"}_${to || "all"}.xlsx`,
-    );
+    XLSX.writeFile(wb, `sales_vs_discount_${from}_${to}.xlsx`);
+    toast.success("Excel exported!");
+  };
+
+  const handleExportPDF = async () => {
+    if (!report.length) {
+      toast.error("No data to export");
+      return;
+    }
+
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Sales vs Discount Analysis",
+        subtitle: "Comparison of gross sales, net sales and applied discounts",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          { label: "Total Sales", value: `LKR ${fmt(summary.totalSales)}` },
+          { label: "Net Sales", value: `LKR ${fmt(summary.totalNetSales)}` },
+          {
+            label: "Total Discount",
+            value: `LKR ${fmt(summary.totalDiscount)}`,
+          },
+          {
+            label: "Avg Discount %",
+            value: `${((summary.totalDiscount / summary.totalSales) * 100 || 0).toFixed(1)}%`,
+          },
+        ],
+        tables: [
+          {
+            title: "Performance Data",
+            columns: ["Period", "Gross Sales", "Net Sales", "Discount", "Fee"],
+            rows: report.map((r: any) => [
+              r.period,
+              fmt(r.totalSales),
+              fmt(r.totalNetSales),
+              fmt(r.totalDiscount),
+              fmt(r.totalTransactionFee || 0),
+            ]),
+            boldCols: [0],
+          },
+        ],
+        filename: `sales_vs_discount_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate PDF", { id: toastId });
+    }
   };
   const columns: ColumnsType<any> = [
     {
@@ -71,8 +213,8 @@ const SalesVsDiscountPage = () => {
       key: "sales",
       align: "right",
       render: (_, r) => (
-        <span className="font-medium text-gray-900">
-          Rs {r.totalSales.toFixed(2)}
+        <span className="font-semibold text-blue-700 font-mono text-xs">
+          LKR {fmt(r.totalSales || 0)}
         </span>
       ),
     },
@@ -81,7 +223,9 @@ const SalesVsDiscountPage = () => {
       key: "netSale",
       align: "right",
       render: (_, r) => (
-        <span className="text-gray-600">Rs {r.totalNetSales.toFixed(2)}</span>
+        <span className="text-gray-700 font-mono text-xs">
+          LKR {fmt(r.totalNetSales || 0)}
+        </span>
       ),
     },
     {
@@ -89,7 +233,9 @@ const SalesVsDiscountPage = () => {
       key: "discount",
       align: "right",
       render: (_, r) => (
-        <span className="text-red-500">Rs {r.totalDiscount.toFixed(2)}</span>
+        <span className="text-red-500 font-mono text-xs">
+          (LKR {fmt(r.totalDiscount || 0)})
+        </span>
       ),
     },
     {
@@ -97,8 +243,8 @@ const SalesVsDiscountPage = () => {
       key: "transFee",
       align: "right",
       render: (_, r) => (
-        <span className="text-orange-500">
-          Rs {(r.totalTransactionFee || 0).toFixed(2)}
+        <span className="text-orange-500 font-mono text-xs">
+          (LKR {fmt(r.totalTransactionFee || 0)})
         </span>
       ),
     },
@@ -112,7 +258,7 @@ const SalesVsDiscountPage = () => {
 
   return (
     <PageContainer title="Sales vs Discount">
-      <div className="w-full space-y-8">
+      <div className="w-full space-y-6">
         {/* Header & Controls */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
@@ -126,58 +272,39 @@ const SalesVsDiscountPage = () => {
               Sales vs Discount
             </h2>
             <p className="text-xs text-gray-400 mt-1.5 font-mono">
-              {from || "Start"} &nbsp;–&nbsp; {to || "End"}
+              {from} &nbsp;–&nbsp; {to}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
+                form={form}
                 layout="inline"
-                onFinish={() => fetchReport()}
+                onFinish={fetchReport}
                 className="flex flex-wrap items-center gap-2"
               >
-                <Form.Item className="mb-0!">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      required
-                      value={from}
-                      onChange={(e) => setFrom(e.target.value)}
-                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                    />
-                    <span className="text-gray-400 font-medium">-</span>
-                    <input
-                      type="date"
-                      required
-                      value={to}
-                      onChange={(e) => setTo(e.target.value)}
-                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                    />
-                  </div>
+                <Form.Item name="dateRange" className="mb-0!">
+                  <DatePicker.RangePicker allowClear={false} />
                 </Form.Item>
                 <Form.Item className="mb-0!">
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+                  <Button
+                    htmlType="submit"
+                    type="primary"
+                    icon={<IconFilter size={15} />}
                   >
-                    <IconFilter size={15} />
                     Filter
-                  </button>
+                  </Button>
                 </Form.Item>
               </Form>
             </Card>
 
             <Space>
-              <Button
-                onClick={exportExcel}
-                disabled={!report.length}
-                icon={<IconDownload size={16} />}
-              >
+              <Button onClick={exportExcel} icon={<IconDownload size={16} />}>
                 Excel
               </Button>
               <Button
-                onClick={() => window.print()}
+                onClick={handleExportPDF}
                 disabled={!report.length}
                 icon={<IconFileTypePdf size={16} />}
                 danger
@@ -191,15 +318,45 @@ const SalesVsDiscountPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12">
-              <Spin size="large" />
-            </div>
+            <Spin size="large" />
           </div>
         )}
 
         {/* Content */}
         {!loading && report.length > 0 && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <SummaryCard
+                title="Gross Sales"
+                value={`LKR ${fmt(summary?.totalSales || 0)}`}
+                icon={<IconTrendingUp size={20} />}
+                color="text-gray-900"
+                bg="bg-gray-100"
+              />
+              <SummaryCard
+                title="Net Sales"
+                value={`LKR ${fmt(summary?.totalNetSales || 0)}`}
+                icon={<IconCurrencyDollar size={20} />}
+                color="text-indigo-600"
+                bg="bg-indigo-50"
+              />
+              <SummaryCard
+                title="Applied Discounts"
+                value={`LKR ${fmt(summary?.totalDiscount || 0)}`}
+                icon={<IconDiscount2 size={20} />}
+                color="text-red-500"
+                bg="bg-red-50"
+              />
+              <SummaryCard
+                title="Trans. Fees"
+                value={`LKR ${fmt(summary?.totalFee || 0)}`}
+                icon={<IconCreditCard size={20} />}
+                color="text-orange-600"
+                bg="bg-orange-50"
+              />
+            </div>
+
             {/* Chart */}
             <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
               <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-4">

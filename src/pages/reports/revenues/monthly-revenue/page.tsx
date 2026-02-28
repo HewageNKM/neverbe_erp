@@ -13,6 +13,7 @@ import {
 } from "antd";
 import React, { useState, useEffect } from "react";
 import dayjs from "dayjs";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import {
   IconFilter,
   IconFileTypePdf,
@@ -170,35 +171,89 @@ export default function MonthlyRevenuePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
-  const handleExportExcel = () => {
+  const handleExportPDF = async () => {
     if (!rows.length || !summary) {
       toast.error("No data to export");
       return;
     }
-    const exportData = rows.map((r) => ({
-      Month: r.month,
-      "Total Orders": r.totalOrders,
-      "Total Sales (LKR)": r.totalSales,
-      "Net Sales (LKR)": r.totalNetSales,
-      "COGS (LKR)": r.totalCOGS,
-      "Gross Profit (LKR)": r.grossProfit,
-      "Gross Margin (%)": r.grossProfitMargin?.toFixed(1),
-      "Net Profit (LKR)": r.netProfit,
-      "Net Margin (%)": r.netProfitMargin?.toFixed(1),
-    }));
 
-    const ws = XLSX.utils.json_to_sheet(exportData);
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      await exportReportPDF({
+        title: "Monthly Revenue Report",
+        subtitle: "Monthly breakdown of sales, costs, and profit figures",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          { label: "Total Revenue", value: `LKR ${fmt(summary.totalSales)}` },
+          {
+            label: "Gross Profit",
+            value: `LKR ${fmt(summary.grossProfit)}`,
+            sub: `${summary.grossProfitMargin?.toFixed(1)}% margin`,
+          },
+          {
+            label: "Net Profit",
+            value: `LKR ${fmt(summary.netProfit)}`,
+            sub: `${summary.netProfitMargin?.toFixed(1)}% margin`,
+          },
+        ],
+        chartSpecs: [
+          {
+            title: "Net Revenue & Profit Trends",
+            elementId: "revenue-trend-chart",
+          },
+        ],
+        tables: [
+          {
+            title: "Monthly Breakdown",
+            columns: [
+              "Month",
+              "Orders",
+              "Net Sales",
+              "COGS",
+              "Gross Profit",
+              "Net Margin",
+            ],
+            rows: rows.map((r) => [
+              String(r.month),
+              String(r.totalOrders),
+              `LKR ${fmt(r.totalNetSales)}`,
+              `LKR ${fmt(r.totalCOGS)}`,
+              `LKR ${fmt(r.grossProfit)}`,
+              `${r.netProfitMargin?.toFixed(1)}%`,
+            ]),
+            boldCols: [0],
+            greenCols: [4],
+          },
+        ],
+        filename: `monthly_revenue_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
+  };
+
+  const handleExportExcel = () => {
+    if (!rows.length) {
+      toast.error("No data to export");
+      return;
+    }
+    const data = rows.map((r) => ({
+      Month: r.month,
+      Orders: r.totalOrders,
+      Sales: r.totalSales,
+      "Net Sales": r.totalNetSales,
+      COGS: r.totalCOGS,
+      "Gross Profit": r.grossProfit,
+      "Gross Margin %": r.grossProfitMargin,
+      "Net Profit": r.netProfit,
+      "Net Margin %": r.netProfitMargin,
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Monthly Revenue");
     XLSX.writeFile(wb, `monthly_revenue_${from}_${to}.xlsx`);
-  };
-
-  const handleExportPDF = () => {
-    if (!rows.length || !summary) {
-      toast.error("No data to export");
-      return;
-    }
-    window.print();
+    toast.success("Excel exported!");
   };
 
   const columns: ColumnsType<MonthlyRow> = [

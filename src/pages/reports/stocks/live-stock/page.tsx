@@ -13,6 +13,7 @@ import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
 import toast from "react-hot-toast";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 
 export interface LiveStockItem {
   id: string;
@@ -49,7 +50,7 @@ const LiveStockPage = () => {
     }
   };
 
-  const fetchStock = async (values?: any) => {
+  const fetchStock = async (values?: { stockId: string }) => {
     setLoading(true);
     const stockId = values?.stockId || "all";
     try {
@@ -102,12 +103,48 @@ const LiveStockPage = () => {
     toast.success("Excel exported!");
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     if (!stock.length) {
       toast.error("No data to export");
       return;
     }
-    window.print();
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Live Stock Report",
+        subtitle: "Current inventory levels across all locations",
+        period: new Date().toLocaleDateString(),
+        summaryItems: [
+          {
+            label: "Total Products",
+            value: summary.totalProducts.toLocaleString(),
+          },
+          {
+            label: "Total Units in Stock",
+            value: summary.totalQuantity.toLocaleString(),
+          },
+        ],
+        tables: [
+          {
+            title: "Inventory Stock Levels",
+            columns: ["Product", "Variant", "Size", "Location", "Quantity"],
+            rows: stock.map((s) => [
+              s.productName,
+              s.variantName,
+              s.size || "-",
+              s.stockName,
+              String(s.quantity),
+            ]),
+            boldCols: [0],
+            greenCols: [],
+          },
+        ],
+        filename: "live_stock",
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
   };
 
   const columns: ColumnsType<LiveStockItem> = [

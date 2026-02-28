@@ -1,6 +1,9 @@
+import api from "@/lib/api";
+import { useAppSelector } from "@/lib/hooks";
+import toast from "react-hot-toast";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import { Card, Form, Spin, Table, Select, Button, Space, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
 import {
   IconFilter,
@@ -12,8 +15,6 @@ import {
 } from "@tabler/icons-react";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
-import { useAppSelector } from "@/lib/hooks";
-import toast from "react-hot-toast";
 
 const fmt = (v: number) =>
   new Intl.NumberFormat("en-LK", {
@@ -97,12 +98,62 @@ const StockValuationPage = () => {
     toast.success("Excel exported!");
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     if (!stockList.length) {
       toast.error("No data to export");
       return;
     }
-    window.print();
+    const toastId = toast.loading("Generating PDF...");
+    try {
+      await exportReportPDF({
+        title: "Stock Valuation Report",
+        subtitle: "Locked asset value based on latest cost prices",
+        period: new Date().toLocaleDateString(),
+        summaryItems: [
+          {
+            label: "Total Unique Products",
+            value: summary.totalProducts.toLocaleString(),
+          },
+          {
+            label: "Total Units",
+            value: summary.totalQuantity.toLocaleString(),
+          },
+          {
+            label: "Total Valuation",
+            value: `LKR ${fmt(summary.totalValuation)}`,
+          },
+        ],
+        tables: [
+          {
+            title: "Inventory Valuation Details",
+            columns: [
+              "Product",
+              "Variant",
+              "Size",
+              "Location",
+              "Qty",
+              "Buying Price (LKR)",
+              "Valuation (LKR)",
+            ],
+            rows: stockList.map((s) => [
+              String(s.productName),
+              String(s.variantName),
+              String(s.size || "-"),
+              String(s.stockName),
+              String(s.quantity),
+              fmt(s.buyingPrice),
+              fmt(s.valuation),
+            ]),
+            boldCols: [0],
+            greenCols: [6],
+          },
+        ],
+        filename: "stock_valuation",
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
   };
 
   const columns: ColumnsType<any> = [
@@ -156,7 +207,7 @@ const StockValuationPage = () => {
       key: "buyingPrice",
       align: "right",
       render: (v) => (
-        <span className="font-mono text-gray-600">LKR {fmt(v)}</span>
+        <span className="font-mono text-red-500">(LKR {fmt(v)})</span>
       ),
     },
     {
@@ -165,7 +216,7 @@ const StockValuationPage = () => {
       key: "valuation",
       align: "right",
       render: (v) => (
-        <span className="font-bold font-mono text-emerald-700 bg-emerald-50 px-2 py-1 flex justify-end w-max ml-auto rounded">
+        <span className="font-bold font-mono text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
           LKR {fmt(v)}
         </span>
       ),
