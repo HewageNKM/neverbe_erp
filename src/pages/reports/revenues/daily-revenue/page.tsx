@@ -1,11 +1,28 @@
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
-
-import { Button, Card, DatePicker, Form, Space, Spin, Table } from "antd";
+import {
+  Button,
+  Card,
+  DatePicker,
+  Form,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  Progress,
+} from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
-import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconDownload,
+  IconFileTypePdf,
+  IconMinus,
+  IconTrendingUp,
+  IconTrendingDown,
+  IconShoppingCart,
+} from "@tabler/icons-react";
 import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
@@ -14,7 +31,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartTooltip,
   Legend,
   ResponsiveContainer,
   BarChart,
@@ -44,7 +61,25 @@ interface RevenueReport {
   daily: DailyRevenue[];
   summary: Omit<DailyRevenue, "date">;
 }
+
 const MAX_RANGE_DAYS = 31;
+
+const fmt = (v: number) =>
+  new Intl.NumberFormat("en-LK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(v);
+
+const TOOLTIP_STYLE = {
+  contentStyle: {
+    backgroundColor: "#111827",
+    border: "none",
+    borderRadius: "8px",
+    color: "#F9FAFB",
+    fontSize: "12px",
+  },
+  itemStyle: { color: "#F9FAFB" },
+};
 
 const DailyRevenuePage = () => {
   const [form] = Form.useForm();
@@ -69,14 +104,11 @@ const DailyRevenuePage = () => {
       setFrom(fromDate);
       setTo(toDate);
     }
-
     setLoading(true);
     try {
       const res = await api.get<RevenueReport>(
         "/api/v1/erp/reports/revenues/daily-revenue",
-        {
-          params: { from: fromDate, to: toDate },
-        },
+        { params: { from: fromDate, to: toDate } },
       );
       setReport(res.data.daily || []);
       setSummary(res.data.summary || null);
@@ -101,29 +133,26 @@ const DailyRevenuePage = () => {
       toast("No data to export");
       return;
     }
-
-    const exportData = report.map((d) => ({
-      Date: d.date,
-      "Total Orders": d.totalOrders,
-      "Total Sales (Rs)": d.totalSales.toFixed(2),
-      "Net Sales (Rs)": d.totalNetSales.toFixed(2),
-      "COGS (Rs)": d.totalCOGS.toFixed(2),
-      "Total Discount (Rs)": d.totalDiscount.toFixed(2),
-      "Total Transaction Fee (Rs)": d.totalTransactionFee.toFixed(2),
-      "Total Expenses (Rs)": d.totalExpenses.toFixed(2),
-      "Other Income (Rs)": d.totalOtherIncome.toFixed(2),
-      "Gross Profit (Rs)": d.grossProfit.toFixed(2),
-      "Gross Profit Margin (%)": d.grossProfitMargin.toFixed(2),
-      "Net Profit (Rs)": d.netProfit.toFixed(2),
-      "Net Profit Margin (%)": d.netProfitMargin.toFixed(2),
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(exportData);
+    const ws = XLSX.utils.json_to_sheet(
+      report.map((d) => ({
+        Date: d.date,
+        Orders: d.totalOrders,
+        "Total Sales (LKR)": d.totalSales.toFixed(2),
+        "Net Sales (LKR)": d.totalNetSales.toFixed(2),
+        "COGS (LKR)": d.totalCOGS.toFixed(2),
+        "Discount (LKR)": d.totalDiscount.toFixed(2),
+        "Trans. Fee (LKR)": d.totalTransactionFee.toFixed(2),
+        "Expenses (LKR)": d.totalExpenses.toFixed(2),
+        "Other Income (LKR)": d.totalOtherIncome.toFixed(2),
+        "Gross Profit (LKR)": d.grossProfit.toFixed(2),
+        "Gross Margin (%)": d.grossProfitMargin.toFixed(2),
+        "Net Profit (LKR)": d.netProfit.toFixed(2),
+        "Net Margin (%)": d.netProfitMargin.toFixed(2),
+      })),
+    );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Daily Revenue");
-
     XLSX.writeFile(wb, `daily_revenue_${from}_${to}.xlsx`);
-
     toast.success("Excel exported successfully");
   };
 
@@ -134,38 +163,24 @@ const DailyRevenuePage = () => {
     }
     const toastId = toast.loading("Generating PDF…");
     try {
-      const totals = report.reduce(
-        (acc, d) => ({
-          totalOrders: acc.totalOrders + (d.totalOrders || 0),
-          totalSales: acc.totalSales + (d.totalSales || 0),
-          totalNetSales: acc.totalNetSales + (d.totalNetSales || 0),
-          grossProfit: acc.grossProfit + (d.grossProfit || 0),
-          netProfit: acc.netProfit + (d.netProfit || 0),
-        }),
-        {
-          totalOrders: 0,
-          totalSales: 0,
-          totalNetSales: 0,
-          grossProfit: 0,
-          netProfit: 0,
-        },
-      );
+      const s = summary ?? ({} as RevenueReport["summary"]);
       await exportReportPDF({
         title: "Daily Revenue Report",
-        subtitle: "Daily sales, revenue, profit, and cost breakdown",
+        subtitle: "Daily sales, revenue, profit & cost breakdown",
         period: `${from} – ${to}`,
         summaryItems: [
-          { label: "Total Orders", value: String(totals.totalOrders) },
-          { label: "Total Sales", value: `Rs ${totals.totalSales.toFixed(2)}` },
-          {
-            label: "Net Sales",
-            value: `Rs ${totals.totalNetSales.toFixed(2)}`,
-          },
+          { label: "Total Orders", value: String(s.totalOrders ?? 0) },
+          { label: "Total Sales", value: `LKR ${fmt(s.totalSales ?? 0)}` },
           {
             label: "Gross Profit",
-            value: `Rs ${totals.grossProfit.toFixed(2)}`,
+            value: `LKR ${fmt(s.grossProfit ?? 0)}`,
+            sub: `${(s.grossProfitMargin ?? 0).toFixed(1)}% margin`,
           },
-          { label: "Net Profit", value: `Rs ${totals.netProfit.toFixed(2)}` },
+          {
+            label: "Net Profit",
+            value: `LKR ${fmt(s.netProfit ?? 0)}`,
+            sub: `${(s.netProfitMargin ?? 0).toFixed(1)}% margin`,
+          },
         ],
         chartSpecs: [
           {
@@ -187,11 +202,11 @@ const DailyRevenuePage = () => {
             ],
             rows: report.map((d) => [
               d.date,
-              d.totalOrders || 0,
-              `Rs ${(d.totalSales || 0).toFixed(2)}`,
-              `Rs ${(d.totalNetSales || 0).toFixed(2)}`,
-              `Rs ${(d.grossProfit || 0).toFixed(2)}`,
-              `Rs ${(d.netProfit || 0).toFixed(2)}`,
+              d.totalOrders,
+              `LKR ${fmt(d.totalSales)}`,
+              `LKR ${fmt(d.totalNetSales)}`,
+              `LKR ${fmt(d.grossProfit)}`,
+              `LKR ${fmt(d.netProfit)}`,
             ]),
             greenCols: [4, 5],
           },
@@ -204,84 +219,134 @@ const DailyRevenuePage = () => {
     }
   };
 
-  const SummaryCard = ({
-    label,
-    value,
-    isPercent = false,
-  }: {
-    label: string;
-    value: string | number;
-    isPercent?: boolean;
-  }) => (
-    <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">{label}</p>
-      <p className="text-xl font-bold text-gray-900 tracking-tight">
-        {/* @ts-ignore */}
-        {isPercent ? value : `Rs ${Number(value || 0).toFixed(2)}`}
-      </p>
-    </div>
-  );
-  const columns: ColumnsType<any> = [
-    { title: "Date", key: "date", render: (_, day) => <>{day.date}</> },
+  const columns: ColumnsType<DailyRevenue> = [
+    {
+      title: "Date",
+      dataIndex: "date",
+      key: "date",
+      fixed: "left",
+      render: (v) => (
+        <span className="font-mono text-xs text-gray-500">{v}</span>
+      ),
+    },
     {
       title: "Orders",
-      key: "orders",
-      align: "right",
-      render: (_, day) => <>{day.totalOrders}</>,
+      dataIndex: "totalOrders",
+      key: "totalOrders",
+      align: "center",
+      render: (v) => <Tag className="font-mono font-bold text-[10px]">{v}</Tag>,
     },
     {
       title: "Total Sales",
+      dataIndex: "totalSales",
       key: "totalSales",
-      render: (_, day) => <>Rs {day.totalSales.toFixed(2)}</>,
+      align: "right",
+      render: (v) => (
+        <span className="font-mono text-blue-700">LKR {fmt(v)}</span>
+      ),
     },
     {
       title: "Net Sales",
-      key: "netSales",
-      render: (_, day) => <>Rs {day.totalNetSales.toFixed(2)}</>,
+      dataIndex: "totalNetSales",
+      key: "totalNetSales",
+      align: "right",
+      render: (v) => (
+        <span className="font-mono text-gray-700">LKR {fmt(v)}</span>
+      ),
     },
     {
       title: "COGS",
-      key: "cOGS",
-      render: (_, day) => <>Rs {day.totalCOGS.toFixed(2)}</>,
+      dataIndex: "totalCOGS",
+      key: "totalCOGS",
+      align: "right",
+      render: (v) => (
+        <span className="font-mono text-red-500">(LKR {fmt(v)})</span>
+      ),
     },
     {
-      title: "Gro. Profit",
-      key: "groProfit",
-      render: (_, day) => <>Rs {day.grossProfit.toFixed(2)}</>,
+      title: "Gross Profit",
+      dataIndex: "grossProfit",
+      key: "grossProfit",
+      align: "right",
+      render: (v) => (
+        <span
+          className={`font-mono font-semibold ${v >= 0 ? "text-emerald-700" : "text-red-600"}`}
+        >
+          {v < 0 && "("}LKR {fmt(Math.abs(v))}
+          {v < 0 && ")"}
+        </span>
+      ),
     },
     {
       title: "Gro. Margin",
-      key: "groMargin",
-      render: (_, day) => <>{day.grossProfitMargin.toFixed(2)}%</>,
+      dataIndex: "grossProfitMargin",
+      key: "grossProfitMargin",
+      align: "right",
+      render: (v) => (
+        <Tag
+          color={v >= 0 ? "success" : "error"}
+          className="font-mono text-[10px] font-bold"
+        >
+          {v.toFixed(1)}%
+        </Tag>
+      ),
     },
     {
       title: "Net Profit",
+      dataIndex: "netProfit",
       key: "netProfit",
-      render: (_, day) => <>Rs {day.netProfit.toFixed(2)}</>,
+      align: "right",
+      render: (v) => (
+        <span
+          className={`font-mono font-bold ${v >= 0 ? "text-emerald-700" : "text-red-600"}`}
+        >
+          {v < 0 && "("}LKR {fmt(Math.abs(v))}
+          {v < 0 && ")"}
+        </span>
+      ),
     },
     {
       title: "Net Margin",
-      key: "netMargin",
-      render: (_, day) => <>{day.netProfitMargin.toFixed(2)}%</>,
+      dataIndex: "netProfitMargin",
+      key: "netProfitMargin",
+      align: "right",
+      render: (v) => (
+        <Tag
+          color={v >= 0 ? "success" : "error"}
+          className="font-mono text-[10px] font-bold"
+        >
+          {v.toFixed(1)}%
+        </Tag>
+      ),
     },
   ];
 
   return (
     <PageContainer title="Daily Revenue Report">
-      <div className="w-full space-y-8">
-        {/* Header & Controls */}
+      <div className="w-full space-y-6">
+        {/* Header */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
-            <h2 className="text-2xl font-bold  tracking-tight text-gray-900">
-              Daily Revenue Report
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-6 rounded-full bg-blue-600" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Revenue Reports
+              </span>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
+              Daily Revenue
             </h2>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              View daily revenue, gross profit, and net profit within a date
-              range.
+            <p className="text-xs text-gray-400 mt-1.5">
+              Max {MAX_RANGE_DAYS} days
+              {from && to && (
+                <span className="font-mono ml-2">
+                  {from} – {to}
+                </span>
+              )}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
                 form={form}
@@ -293,148 +358,244 @@ const DailyRevenuePage = () => {
                   <DatePicker.RangePicker size="middle" />
                 </Form.Item>
                 <Form.Item className="mb-0!">
-                  <Space>
-                    <Button
-                      htmlType="submit"
-                      type="primary"
-                      icon={<IconFilter size={15} />}
-                    >
-                      Filter
-                    </Button>
-                  </Space>
+                  <Button
+                    htmlType="submit"
+                    type="primary"
+                    icon={<IconFilter size={15} />}
+                  >
+                    Filter
+                  </Button>
                 </Form.Item>
               </Form>
             </Card>
-
-            <Button
-              onClick={handleExportExcel}
-              disabled={!report.length}
-              icon={<IconDownload size={16} />}
-            >
-              Excel
-            </Button>
-            <Button
-              onClick={handleExportPDF}
-              disabled={!report.length}
-              icon={<IconFileTypePdf size={16} />}
-              danger
-            >
-              PDF
-            </Button>
+            <Space>
+              <Button
+                onClick={handleExportExcel}
+                disabled={!report.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={handleExportPDF}
+                disabled={!report.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 
-        {/* Loading State */}
         {loading && (
-          <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12">
-              <Spin size="large" />
-            </div>
+          <div className="flex justify-center py-24">
+            <Spin size="large" />
           </div>
         )}
 
-        {/* Content */}
         {!loading && summary && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <SummaryCard
-                label="Total Orders"
-                value={summary.totalOrders}
-                isPercent={true}
-              />{" "}
-              {/* Hack: isPercent true just to avoid 'Rs' prefix on non-money value if logic below uses it, but wait, totalOrders is number. */}
-              {/* Actually, totalOrders should not have Rs. Let's fix the Card logic or just pass string. */}
-              {/* I'll fix the Logic in SummaryCard above to handle numbers better or just not add Rs if it's orders. */}
-              <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-                <p className="text-xs font-bold   text-gray-500 mb-2">
-                  Total Orders
-                </p>
-                <p className="text-xl font-bold text-gray-900 tracking-tight">
-                  {summary.totalOrders}
-                </p>
-              </div>
-              <SummaryCard label="Total Sales" value={summary.totalSales} />
-              <SummaryCard label="Net Sales" value={summary.totalNetSales} />
-              <SummaryCard label="COGS" value={summary.totalCOGS} />
-              <SummaryCard
-                label="Total Discount"
-                value={summary.totalDiscount}
-              />
-              <SummaryCard
-                label="Total Trans. Fee"
-                value={summary.totalTransactionFee}
-              />
-              <SummaryCard
-                label="Total Expenses"
-                value={summary.totalExpenses}
-              />
-              <SummaryCard
-                label="Other Income"
-                value={summary.totalOtherIncome}
-              />
-              <SummaryCard label="Gross Profit" value={summary.grossProfit} />
-              <SummaryCard
-                label="Gross Margin"
-                value={`${summary.grossProfitMargin.toFixed(2)}%`}
-                isPercent={true}
-              />
-              <SummaryCard label="Net Profit" value={summary.netProfit} />
-              <SummaryCard
-                label="Net Margin"
-                value={`${summary.netProfitMargin.toFixed(2)}%`}
-                isPercent={true}
-              />
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Revenue KPI row */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                {
+                  label: "Total Orders",
+                  value: summary.totalOrders.toLocaleString(),
+                  icon: <IconShoppingCart size={20} />,
+                  color: "text-blue-700",
+                  bg: "bg-blue-50",
+                  bar: null,
+                },
+                {
+                  label: "Total Sales",
+                  value: `LKR ${fmt(summary.totalSales)}`,
+                  icon: <IconTrendingUp size={20} />,
+                  color: "text-blue-700",
+                  bg: "bg-blue-50",
+                  bar: null,
+                },
+                {
+                  label: "Net Sales",
+                  value: `LKR ${fmt(summary.totalNetSales)}`,
+                  icon: <IconTrendingUp size={20} />,
+                  color: "text-indigo-700",
+                  bg: "bg-indigo-50",
+                  bar: null,
+                },
+                {
+                  label: "Total COGS",
+                  value: `LKR ${fmt(summary.totalCOGS)}`,
+                  icon: <IconTrendingDown size={20} />,
+                  color: "text-red-600",
+                  bg: "bg-red-50",
+                  bar: null,
+                },
+              ].map((c) => (
+                <div
+                  key={c.label}
+                  className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"
+                >
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${c.bg}`}
+                  >
+                    <span className={c.color}>{c.icon}</span>
+                  </div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                    {c.label}
+                  </p>
+                  <p
+                    className={`text-lg font-black tracking-tight ${c.color} leading-none`}
+                  >
+                    {c.value}
+                  </p>
+                </div>
+              ))}
             </div>
 
-            {/* Charts Section */}
+            {/* Profit KPI row */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                {
+                  label: "Gross Profit",
+                  value: `LKR ${fmt(Math.abs(summary.grossProfit))}`,
+                  icon:
+                    summary.grossProfit >= 0 ? (
+                      <IconTrendingUp size={20} />
+                    ) : (
+                      <IconTrendingDown size={20} />
+                    ),
+                  color:
+                    summary.grossProfit >= 0
+                      ? "text-emerald-700"
+                      : "text-red-600",
+                  bg: summary.grossProfit >= 0 ? "bg-emerald-50" : "bg-red-50",
+                  bar: summary.grossProfitMargin,
+                  barLabel: "gross margin",
+                  barColor: "#059669",
+                },
+                {
+                  label: "Net Profit",
+                  value: `LKR ${fmt(Math.abs(summary.netProfit))}`,
+                  icon:
+                    summary.netProfit >= 0 ? (
+                      <IconTrendingUp size={20} />
+                    ) : (
+                      <IconTrendingDown size={20} />
+                    ),
+                  color:
+                    summary.netProfit >= 0
+                      ? "text-emerald-700"
+                      : "text-red-600",
+                  bg: summary.netProfit >= 0 ? "bg-emerald-50" : "bg-red-50",
+                  bar: summary.netProfitMargin,
+                  barLabel: "net margin",
+                  barColor: "#111827",
+                },
+                {
+                  label: "Total Expenses",
+                  value: `LKR ${fmt(summary.totalExpenses)}`,
+                  icon: <IconTrendingDown size={20} />,
+                  color: "text-amber-700",
+                  bg: "bg-amber-50",
+                  bar: null,
+                  barLabel: "",
+                  barColor: "",
+                },
+                {
+                  label: "Trans. Fees",
+                  value: `LKR ${fmt(summary.totalTransactionFee)}`,
+                  icon: <IconTrendingDown size={20} />,
+                  color: "text-orange-600",
+                  bg: "bg-orange-50",
+                  bar: null,
+                  barLabel: "",
+                  barColor: "",
+                },
+              ].map((c) => (
+                <div
+                  key={c.label}
+                  className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"
+                >
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${c.bg}`}
+                  >
+                    <span className={c.color}>{c.icon}</span>
+                  </div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                    {c.label}
+                  </p>
+                  <p
+                    className={`text-lg font-black tracking-tight ${c.color} leading-none`}
+                  >
+                    {c.value}
+                  </p>
+                  {c.bar !== null && c.bar !== undefined && (
+                    <div className="mt-3">
+                      <div className="flex justify-between mb-1">
+                        <span className="text-[10px] text-gray-400 font-bold">
+                          {c.barLabel}
+                        </span>
+                        <span className={`text-[10px] font-black ${c.color}`}>
+                          {c.bar.toFixed(1)}%
+                        </span>
+                      </div>
+                      <Progress
+                        percent={Math.min(Math.abs(c.bar), 100)}
+                        showInfo={false}
+                        strokeColor={c.barColor}
+                        trailColor="#f3f4f6"
+                        size="small"
+                        strokeLinecap="square"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Charts */}
             {report.length > 0 && (
               <div className="space-y-6">
                 <div
                   id="daily-revenue-chart-1"
-                  className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm"
+                  className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"
                 >
-                  <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
                     Revenue vs Profit
-                  </h3>
-                  <div className="h-[400px] w-full text-xs font-semibold">
+                  </p>
+                  <div className="h-[320px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={report}>
                         <CartesianGrid
                           strokeDasharray="3 3"
                           vertical={false}
-                          stroke="#E5E7EB"
+                          stroke="#F3F4F6"
                         />
                         <XAxis
                           dataKey="date"
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: "#6B7280", fontSize: 10 }}
+                          tick={{ fill: "#9CA3AF", fontSize: 10 }}
                           tickMargin={10}
                         />
                         <YAxis
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: "#6B7280", fontSize: 10 }}
-                          width={60}
+                          tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                          width={75}
+                          tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                         />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#111827",
-                            border: "none",
-                            borderRadius: "4px",
-                            color: "#F9FAFB",
-                            fontSize: "12px",
-                            fontWeight: "bold",
-                          }}
-                          itemStyle={{ color: "#F9FAFB" }}
+                        <RechartTooltip
+                          {...TOOLTIP_STYLE}
+                          formatter={(v: number) => `LKR ${fmt(v)}`}
                         />
                         <Legend />
                         <Line
                           type="monotone"
                           dataKey="totalSales"
                           name="Total Sales"
-                          stroke="#1976d2"
+                          stroke="#2563EB"
                           strokeWidth={2}
                           dot={false}
                         />
@@ -442,7 +603,7 @@ const DailyRevenuePage = () => {
                           type="monotone"
                           dataKey="grossProfit"
                           name="Gross Profit"
-                          stroke="#8884d8"
+                          stroke="#7C3AED"
                           strokeWidth={2}
                           dot={false}
                         />
@@ -450,7 +611,7 @@ const DailyRevenuePage = () => {
                           type="monotone"
                           dataKey="netProfit"
                           name="Net Profit"
-                          stroke="#82ca9d"
+                          stroke="#059669"
                           strokeWidth={2}
                           dot={false}
                         />
@@ -459,61 +620,59 @@ const DailyRevenuePage = () => {
                   </div>
                 </div>
 
-                <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-                  <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
+                <div
+                  id="daily-revenue-chart-2"
+                  className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"
+                >
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
                     Cost Breakdown
-                  </h3>
-                  <div className="h-[400px] w-full text-xs font-semibold">
+                  </p>
+                  <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={report}>
+                      <BarChart data={report} barCategoryGap="25%">
                         <CartesianGrid
                           strokeDasharray="3 3"
                           vertical={false}
-                          stroke="#E5E7EB"
+                          stroke="#F3F4F6"
                         />
                         <XAxis
                           dataKey="date"
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: "#6B7280", fontSize: 10 }}
+                          tick={{ fill: "#9CA3AF", fontSize: 10 }}
                           tickMargin={10}
                         />
                         <YAxis
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: "#6B7280", fontSize: 10 }}
-                          width={60}
+                          tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                          width={75}
+                          tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                         />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#111827",
-                            border: "none",
-                            borderRadius: "4px",
-                            color: "#F9FAFB",
-                            fontSize: "12px",
-                            fontWeight: "bold",
-                          }}
-                          itemStyle={{ color: "#F9FAFB" }}
-                          cursor={{ fill: "#F3F4F6", opacity: 0.5 }}
+                        <RechartTooltip
+                          {...TOOLTIP_STYLE}
+                          formatter={(v: number) => `LKR ${fmt(v)}`}
+                          cursor={{ fill: "#F9FAFB" }}
                         />
                         <Legend />
                         <Bar
                           dataKey="totalDiscount"
                           name="Discount"
                           stackId="a"
-                          fill="#FF7043"
+                          fill="#EF4444"
                         />
                         <Bar
                           dataKey="totalTransactionFee"
-                          name="Transaction Fee"
+                          name="Trans. Fee"
                           stackId="a"
-                          fill="#42A5F5"
+                          fill="#F59E0B"
                         />
                         <Bar
                           dataKey="totalExpenses"
                           name="Expenses"
                           stackId="a"
-                          fill="#66BB6A"
+                          fill="#6B7280"
+                          radius={[3, 3, 0, 0]}
                         />
                       </BarChart>
                     </ResponsiveContainer>
@@ -524,22 +683,46 @@ const DailyRevenuePage = () => {
 
             {/* Table */}
             {report.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <Table
-                    bordered
-                    columns={columns}
-                    dataSource={report}
-                    rowKey={(r: any) =>
-                      r.id || r.date || r.month || Math.random().toString()
-                    }
-                    pagination={{ pageSize: 15, position: ["bottomRight"] }}
-                    className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-                    scroll={{ x: "max-content" }}
-                  />
+              <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                      Daily Breakdown
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                      {report.length} days
+                    </p>
+                  </div>
+                  <Tag
+                    color="default"
+                    className="text-[10px] font-bold uppercase"
+                  >
+                    LKR
+                  </Tag>
                 </div>
+                <Table
+                  columns={columns}
+                  dataSource={report}
+                  rowKey={(r) => r.date || Math.random().toString()}
+                  pagination={{
+                    pageSize: 15,
+                    position: ["bottomRight"],
+                    showSizeChanger: true,
+                  }}
+                  size="small"
+                  scroll={{ x: "max-content" }}
+                />
               </div>
             )}
+          </div>
+        )}
+
+        {!loading && !summary && (
+          <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+            <IconMinus size={40} stroke={1} />
+            <p className="mt-4 text-sm font-medium">
+              Select a date range (max {MAX_RANGE_DAYS} days) and click Filter.
+            </p>
           </div>
         )}
       </div>

@@ -1,10 +1,28 @@
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
-import { Button, Card, DatePicker, Form, Space, Spin, Table } from "antd";
+import {
+  Button,
+  Card,
+  DatePicker,
+  Form,
+  Space,
+  Spin,
+  Table,
+  Tag,
+  Progress,
+} from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
-import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconDownload,
+  IconFileTypePdf,
+  IconMinus,
+  IconWallet,
+  IconListDetails,
+  IconChartBar,
+} from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import {
@@ -12,7 +30,7 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Tooltip,
+  Tooltip as RechartTooltip,
   Legend,
 } from "recharts";
 import toast from "react-hot-toast";
@@ -38,21 +56,27 @@ interface ExpenseReport {
   };
 }
 
-const COLORS = [
+const PIE_COLORS = [
   "#111827",
-  "#374151",
-  "#6B7280",
-  "#9CA3AF",
-  "#D1D5DB",
-  "#E5E7EB",
+  "#059669",
+  "#DC2626",
+  "#7C3AED",
+  "#B45309",
+  "#0891B2",
 ];
+
+const fmt = (v: number) =>
+  new Intl.NumberFormat("en-LK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(v);
 
 const ExpenseReportPage = () => {
   const [form] = Form.useForm();
   const [from, setFrom] = useState(() => {
-    const date = new Date();
-    date.setDate(1);
-    return date.toISOString().split("T")[0];
+    const d = new Date();
+    d.setDate(1);
+    return d.toISOString().split("T")[0];
   });
   const [to, setTo] = useState(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(false);
@@ -94,15 +118,13 @@ const ExpenseReportPage = () => {
       toast("No data to export");
       return;
     }
-
     const exportData = report.expenses.map((e) => ({
       Date: e.date,
       Category: e.category,
       Description: e.description,
-      Amount: e.amount,
+      "Amount (LKR)": e.amount,
       Status: e.status,
     }));
-
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Expenses");
@@ -124,12 +146,16 @@ const ExpenseReportPage = () => {
         summaryItems: [
           {
             label: "Total Expenses",
-            value: `Rs ${report.summary.total.toLocaleString()}`,
+            value: `LKR ${fmt(report.summary.total)}`,
           },
-          { label: "Total Entries", value: String(report.summary.count) },
-          ...report.summary.byCategory.slice(0, 3).map((c) => ({
+          { label: "Transactions", value: String(report.summary.count) },
+          {
+            label: "Avg per Entry",
+            value: `LKR ${fmt(report.summary.count > 0 ? report.summary.total / report.summary.count : 0)}`,
+          },
+          ...report.summary.byCategory.slice(0, 2).map((c) => ({
             label: c.category,
-            value: `Rs ${c.amount.toLocaleString()}`,
+            value: `LKR ${fmt(c.amount)}`,
             sub: `${c.percentage.toFixed(1)}%`,
           })),
         ],
@@ -139,12 +165,18 @@ const ExpenseReportPage = () => {
         tables: [
           {
             title: "Expense Transactions",
-            columns: ["Date", "Category", "Description", "Amount", "Status"],
+            columns: [
+              "Date",
+              "Category",
+              "Description",
+              "Amount (LKR)",
+              "Status",
+            ],
             rows: report.expenses.map((e) => [
               e.date,
               e.category,
               e.description,
-              `Rs ${e.amount.toLocaleString()}`,
+              `LKR ${fmt(e.amount)}`,
               e.status,
             ]),
             redCols: [3],
@@ -158,57 +190,79 @@ const ExpenseReportPage = () => {
     }
   };
 
-  const columns: ColumnsType<any> = [
-    { title: "Date", key: "date", render: (_, exp) => <>{exp.date}</> },
+  const columns: ColumnsType<ExpenseItem> = [
+    {
+      title: "Date",
+      dataIndex: "date",
+      key: "date",
+      render: (v) => (
+        <span className="font-mono text-xs text-gray-500">{v}</span>
+      ),
+    },
     {
       title: "Category",
+      dataIndex: "category",
       key: "category",
-      render: (_, exp) => <>{exp.category}</>,
+      render: (v) => <Tag className="text-[10px] font-bold uppercase">{v}</Tag>,
     },
     {
       title: "Description",
+      dataIndex: "description",
       key: "description",
-      render: (_, exp) => <>{exp.description}</>,
+      render: (v) => <span className="text-gray-600 text-sm">{v}</span>,
     },
     {
       title: "Amount",
+      dataIndex: "amount",
       key: "amount",
-      render: (_, exp) => <>Rs {exp.amount.toLocaleString()}</>,
+      align: "right",
+      render: (v) => (
+        <span className="font-mono font-bold text-red-600">LKR {fmt(v)}</span>
+      ),
     },
     {
       title: "Status",
+      dataIndex: "status",
       key: "status",
-      render: (_, exp) => (
-        <>
-          <span
-            className={`px-2 py-1 text-xs font-bold  ${
-              exp.status === "APPROVED"
-                ? "bg-green-100 text-green-800"
-                : "bg-yellow-100 text-yellow-800"
-            }`}
-          >
-            {exp.status}
-          </span>
-        </>
+      render: (v) => (
+        <Tag
+          color={v === "APPROVED" ? "success" : "warning"}
+          className="text-[10px] font-bold uppercase"
+        >
+          {v}
+        </Tag>
       ),
     },
   ];
 
+  const avgPerTx =
+    report && report.summary.count > 0
+      ? Math.round(report.summary.total / report.summary.count)
+      : 0;
+
   return (
     <PageContainer title="Expense Report">
-      <div className="w-full space-y-8">
-        {/* Header & Controls */}
+      <div className="w-full space-y-6">
+        {/* Header */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
-            <h2 className="text-2xl font-bold  tracking-tight text-gray-900">
-              Expense Report
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-6 rounded-full bg-red-500" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Financial Reports
+              </span>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
+              Expenses
             </h2>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              Detailed breakdown of all expenses by category.
-            </p>
+            {report && (
+              <p className="text-xs text-gray-400 mt-1.5 font-mono">
+                {report.period.from} &nbsp;–&nbsp; {report.period.to}
+              </p>
+            )}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
                 form={form}
@@ -220,94 +274,102 @@ const ExpenseReportPage = () => {
                   <DatePicker.RangePicker size="middle" />
                 </Form.Item>
                 <Form.Item className="mb-0!">
-                  <Space>
-                    <Button
-                      htmlType="submit"
-                      type="primary"
-                      icon={<IconFilter size={15} />}
-                    >
-                      Filter
-                    </Button>
-                  </Space>
+                  <Button
+                    htmlType="submit"
+                    type="primary"
+                    icon={<IconFilter size={15} />}
+                  >
+                    Filter
+                  </Button>
                 </Form.Item>
               </Form>
             </Card>
-
-            <Button
-              onClick={handleExportExcel}
-              disabled={!report?.expenses.length}
-              icon={<IconDownload size={16} />}
-            >
-              Excel
-            </Button>
-            <Button
-              onClick={handleExportPDF}
-              disabled={!report?.expenses.length}
-              icon={<IconFileTypePdf size={16} />}
-              danger
-            >
-              PDF
-            </Button>
+            <Space>
+              <Button
+                onClick={handleExportExcel}
+                disabled={!report?.expenses.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={handleExportPDF}
+                disabled={!report?.expenses.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 
-        {/* Loading State */}
         {loading && (
-          <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12">
-              <Spin size="large" />
-            </div>
+          <div className="flex justify-center py-24">
+            <Spin size="large" />
           </div>
         )}
 
-        {/* Content */}
         {!loading && report && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white border border-gray-200 p-6">
-                <p className="text-xs font-bold   text-gray-500 mb-2">
-                  Total Expenses
-                </p>
-                <p className="text-2xl font-bold text-red-600">
-                  Rs {report.summary.total.toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-white border border-gray-200 p-6">
-                <p className="text-xs font-bold   text-gray-500 mb-2">
-                  Transactions
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {report.summary.count}
-                </p>
-              </div>
-              <div className="bg-white border border-gray-200 p-6">
-                <p className="text-xs font-bold   text-gray-500 mb-2">
-                  Avg. Per Transaction
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  Rs{" "}
-                  {report.summary.count > 0
-                    ? Math.round(
-                        report.summary.total / report.summary.count,
-                      ).toLocaleString()
-                    : 0}
-                </p>
-              </div>
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                {
+                  label: "Total Expenses",
+                  value: `LKR ${fmt(report.summary.total)}`,
+                  icon: <IconWallet size={20} />,
+                  color: "text-red-600",
+                  bg: "bg-red-50",
+                },
+                {
+                  label: "Total Transactions",
+                  value: report.summary.count.toLocaleString(),
+                  icon: <IconListDetails size={20} />,
+                  color: "text-gray-900",
+                  bg: "bg-gray-100",
+                },
+                {
+                  label: "Avg. per Transaction",
+                  value: `LKR ${fmt(avgPerTx)}`,
+                  icon: <IconChartBar size={20} />,
+                  color: "text-amber-700",
+                  bg: "bg-amber-50",
+                },
+              ].map((c) => (
+                <div
+                  key={c.label}
+                  className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${c.bg}`}
+                  >
+                    <span className={c.color}>{c.icon}</span>
+                  </div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                    {c.label}
+                  </p>
+                  <p
+                    className={`text-xl font-black tracking-tight ${c.color} leading-none`}
+                  >
+                    {c.value}
+                  </p>
+                </div>
+              ))}
             </div>
 
-            {/* Chart & Category Breakdown */}
+            {/* Chart + Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Pie Chart */}
               <div
                 id="expense-pie-chart"
-                className="bg-white border border-gray-200 p-6"
+                className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm"
               >
-                <h3 className="text-sm font-bold   text-gray-900 mb-4">
-                  By Category
-                </h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
+                  Expense Distribution
+                </p>
                 {report.summary.byCategory.length > 0 ? (
-                  <div className="h-[300px]">
+                  <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -316,65 +378,68 @@ const ExpenseReportPage = () => {
                           nameKey="category"
                           cx="50%"
                           cy="50%"
-                          outerRadius={100}
-                          label={({ category, percentage }: any) =>
-                            `${category} (${percentage}%)`
-                          }
-                          labelLine={false}
+                          outerRadius={90}
+                          innerRadius={40}
                         >
-                          {report.summary.byCategory.map((_, index) => (
+                          {report.summary.byCategory.map((_, i) => (
                             <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
+                              key={i}
+                              fill={PIE_COLORS[i % PIE_COLORS.length]}
                             />
                           ))}
                         </Pie>
-                        <Tooltip
-                          formatter={(value: number) =>
-                            `Rs ${value.toLocaleString()}`
-                          }
+                        <RechartTooltip
+                          formatter={(v: number) => `LKR ${fmt(v)}`}
                         />
                         <Legend />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-center py-20">No expenses</p>
+                  <p className="text-gray-400 text-center py-20 text-sm">
+                    No data
+                  </p>
                 )}
               </div>
 
-              {/* Category List */}
-              <div className="bg-white border border-gray-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                  <h3 className="text-sm font-bold   text-gray-900">
-                    Category Breakdown
-                  </h3>
-                </div>
-                <div className="divide-y divide-gray-100">
-                  {report.summary.byCategory.map((cat, idx) => (
-                    <div
-                      key={cat.category}
-                      className="flex items-center justify-between px-6 py-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4"
-                          style={{
-                            backgroundColor: COLORS[idx % COLORS.length],
-                          }}
-                        ></div>
-                        <span className="font-medium text-gray-900">
-                          {cat.category}
-                        </span>
+              {/* Category Breakdown */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
+                  Category Breakdown
+                </p>
+                <div className="space-y-3">
+                  {report.summary.byCategory.map((cat, i) => (
+                    <div key={cat.category}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                            style={{
+                              backgroundColor:
+                                PIE_COLORS[i % PIE_COLORS.length],
+                            }}
+                          />
+                          <span className="text-xs font-semibold text-gray-700">
+                            {cat.category}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs font-mono font-bold text-red-600">
+                            LKR {fmt(cat.amount)}
+                          </span>
+                          <span className="text-[10px] text-gray-400 ml-2">
+                            {cat.percentage.toFixed(1)}%
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-gray-900">
-                          Rs {cat.amount.toLocaleString()}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {cat.percentage}%
-                        </p>
-                      </div>
+                      <Progress
+                        percent={cat.percentage}
+                        showInfo={false}
+                        strokeColor={PIE_COLORS[i % PIE_COLORS.length]}
+                        trailColor="#f9fafb"
+                        size="small"
+                        strokeLinecap="square"
+                      />
                     </div>
                   ))}
                 </div>
@@ -383,22 +448,46 @@ const ExpenseReportPage = () => {
 
             {/* Expense Table */}
             {report.expenses.length > 0 && (
-              <div className="bg-white border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <Table
-                    bordered
-                    columns={columns}
-                    dataSource={report.expenses}
-                    rowKey={(r: any) =>
-                      r.id || r.date || r.month || Math.random().toString()
-                    }
-                    pagination={{ pageSize: 15, position: ["bottomRight"] }}
-                    className="border border-gray-200 rounded-lg overflow-hidden bg-white mt-4"
-                    scroll={{ x: "max-content" }}
-                  />
+              <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                      Expense Ledger
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                      {report.expenses.length} entries
+                    </p>
+                  </div>
+                  <Tag
+                    color="default"
+                    className="text-[10px] font-bold uppercase"
+                  >
+                    LKR
+                  </Tag>
                 </div>
+                <Table
+                  columns={columns}
+                  dataSource={report.expenses}
+                  rowKey={(r) => r.id || r.date || Math.random().toString()}
+                  pagination={{
+                    pageSize: 15,
+                    position: ["bottomRight"],
+                    showSizeChanger: true,
+                  }}
+                  size="small"
+                  scroll={{ x: "max-content" }}
+                />
               </div>
             )}
+          </div>
+        )}
+
+        {!loading && !report && (
+          <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+            <IconMinus size={40} stroke={1} />
+            <p className="mt-4 text-sm font-medium">
+              Select a date range and click Filter to load the report.
+            </p>
           </div>
         )}
       </div>

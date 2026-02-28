@@ -1,14 +1,26 @@
-import { Card, Form, Spin, Table, Select, Button, Space } from "antd";
+import { Card, Form, Spin, Table, Select, Button, Space, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
-
 import React, { useEffect, useState } from "react";
-import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconDownload,
+  IconFileTypePdf,
+  IconCoin,
+  IconPackages,
+  IconBusinessplan,
+} from "@tabler/icons-react";
 import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
 import toast from "react-hot-toast";
+
+const fmt = (v: number) =>
+  new Intl.NumberFormat("en-LK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(v);
 
 const StockValuationPage = () => {
   const [form] = Form.useForm();
@@ -16,12 +28,12 @@ const StockValuationPage = () => {
   const [stockList, setStockList] = useState<any[]>([]);
   const [stocksDropdown, setStocksDropdown] = useState<any[]>([]);
   const { currentUser } = useAppSelector((state) => state.authSlice);
-
   const [summary, setSummary] = useState({
     totalProducts: 0,
     totalQuantity: 0,
     totalValuation: 0,
   });
+
   const fetchStocksDropdown = async () => {
     try {
       const res = await api.get("/api/v1/erp/master/stocks/dropdown");
@@ -38,7 +50,6 @@ const StockValuationPage = () => {
       const res = await api.get("/api/v1/erp/reports/stocks/valuation", {
         params: { stockId },
       });
-
       setStockList(res.data.stock || []);
       setSummary(
         res.data.summary || {
@@ -49,36 +60,37 @@ const StockValuationPage = () => {
       );
     } catch (err) {
       console.error(err);
+      toast.error("Failed to load valuation.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     if (currentUser) {
       fetchStocksDropdown();
-      form.setFieldsValue({
-        stockId: "all",
-      });
+      form.setFieldsValue({ stockId: "all" });
       fetchStockValuation(form.getFieldsValue());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const exportExcel = () => {
-    if (!stockList.length) return;
+    if (!stockList.length) {
+      toast("No data to export");
+      return;
+    }
     const data = stockList.map((s) => ({
       "Product ID": s.productId,
       "Product Name": s.productName,
       "Variant ID": s.variantId,
       "Variant Name": s.variantName,
       Size: s.size,
-      "Stock ID": s.stockId,
-      "Stock Name": s.stockName,
+      Location: s.stockName,
       Quantity: s.quantity,
-      "Buying Price (Rs)": s.buyingPrice.toFixed(2),
-      "Valuation (Rs)": s.valuation.toFixed(2),
+      "Buying Price (LKR)": s.buyingPrice.toFixed(2),
+      "Valuation (LKR)": s.valuation.toFixed(2),
     }));
-
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Stock Valuation");
@@ -87,15 +99,18 @@ const StockValuationPage = () => {
   };
 
   const exportPDF = async () => {
-    if (!stockList.length) return;
+    if (!stockList.length) {
+      toast.error("No data to export");
+      return;
+    }
     const toastId = toast.loading("Generating PDF…");
     try {
       await exportReportPDF({
-        title: "Stock Valuation Report",
-        subtitle: "Total inventory value at buying price",
-        period: new Date().toLocaleDateString("en-US", {
+        title: "Inventory Valuation",
+        subtitle: "Total locked asset value at asset buying price",
+        period: new Date().toLocaleDateString("en-GB", {
           year: "numeric",
-          month: "long",
+          month: "short",
           day: "numeric",
         }),
         summaryItems: [
@@ -103,32 +118,23 @@ const StockValuationPage = () => {
           { label: "Total Quantity", value: String(summary.totalQuantity) },
           {
             label: "Total Valuation",
-            value: `Rs ${summary.totalValuation.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+            value: `LKR ${fmt(summary.totalValuation)}`,
           },
         ],
         tables: [
           {
-            title: "Stock Valuation by Product",
-            columns: [
-              "Product",
-              "Variant",
-              "Size",
-              "Stock",
-              "Qty",
-              "Buy Price",
-              "Valuation",
-            ],
+            title: "Asset Breakdown",
+            columns: ["Product", "Variant", "Location", "Qty", "Cost", "Value"],
             rows: stockList.map((s) => [
               s.productName,
-              s.variantName,
-              s.size,
+              s.variantName || s.size,
               s.stockName,
               s.quantity,
-              `Rs ${s.buyingPrice.toFixed(2)}`,
-              `Rs ${s.valuation.toFixed(2)}`,
+              `LKR ${fmt(s.buyingPrice)}`,
+              `LKR ${fmt(s.valuation)}`,
             ]),
             boldCols: [0],
-            greenCols: [6],
+            greenCols: [5],
           },
         ],
         filename: "stock_valuation_report",
@@ -139,82 +145,58 @@ const StockValuationPage = () => {
     }
   };
 
-  const SummaryCard = ({
-    title,
-    value,
-  }: {
-    title: string;
-    value: string | number;
-  }) => (
-    <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
-      <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
-    </div>
-  );
-
   const columns: ColumnsType<any> = [
     {
-      title: "Product ID",
-      dataIndex: "productId",
-      key: "productId",
-      render: (text) => (
-        <span className="font-medium text-gray-400">{text}</span>
+      title: "Product",
+      key: "product",
+      render: (_, r) => (
+        <div>
+          <p className="font-semibold text-gray-900 text-sm">{r.productName}</p>
+          <p className="text-[10px] text-gray-400 font-mono">{r.productId}</p>
+        </div>
       ),
     },
     {
-      title: "Product Name",
-      dataIndex: "productName",
-      key: "productName",
-      render: (text) => (
-        <span className="font-medium text-gray-900">{text}</span>
+      title: "Variant",
+      key: "variant",
+      render: (_, r) => (
+        <div>
+          <p className="font-medium text-gray-700 text-sm">{r.variantName}</p>
+          <p className="text-[10px] text-gray-400 font-mono">{r.variantId}</p>
+        </div>
       ),
-    },
-    {
-      title: "Variant ID",
-      dataIndex: "variantId",
-      key: "variantId",
-      render: (text) => <span className="text-gray-400">{text}</span>,
-    },
-    {
-      title: "Variant Name",
-      dataIndex: "variantName",
-      key: "variantName",
-      render: (text) => <span className="text-gray-600">{text}</span>,
     },
     {
       title: "Size",
       dataIndex: "size",
       key: "size",
-      render: (text) => <span className="text-gray-600">{text}</span>,
+      render: (v) => (
+        <Tag className="font-mono text-xs text-gray-600 m-0">{v || "—"}</Tag>
+      ),
     },
     {
-      title: "Stock ID",
-      dataIndex: "stockId",
-      key: "stockId",
-      render: (text) => <span className="text-gray-400">{text}</span>,
-    },
-    {
-      title: "Stock Name",
-      dataIndex: "stockName",
+      title: "Location",
       key: "stockName",
-      render: (text) => <span className="text-gray-600">{text}</span>,
+      render: (_, r) => (
+        <span className="text-gray-600 text-sm font-medium">{r.stockName}</span>
+      ),
     },
     {
       title: "Quantity",
       dataIndex: "quantity",
       key: "quantity",
-      align: "right",
-      render: (text) => (
-        <span className="font-medium text-gray-900">{text}</span>
+      align: "center",
+      render: (v) => (
+        <Tag className="font-mono text-[10px] font-bold m-0">{v}</Tag>
       ),
     },
     {
-      title: "Buying Price",
+      title: "Cost Price",
       dataIndex: "buyingPrice",
       key: "buyingPrice",
       align: "right",
-      render: (val) => (
-        <span className="text-gray-600">Rs {val.toFixed(2)}</span>
+      render: (v) => (
+        <span className="font-mono text-gray-600">LKR {fmt(v)}</span>
       ),
     },
     {
@@ -222,28 +204,35 @@ const StockValuationPage = () => {
       dataIndex: "valuation",
       key: "valuation",
       align: "right",
-      render: (val) => (
-        <span className="font-medium text-green-600">Rs {val.toFixed(2)}</span>
+      render: (v) => (
+        <span className="font-bold font-mono text-emerald-700 bg-emerald-50 px-2 py-1 flex justify-end w-max ml-auto rounded">
+          LKR {fmt(v)}
+        </span>
       ),
     },
   ];
 
   return (
-    <PageContainer title="Stock Valuation">
-      <div className="w-full space-y-8">
-        {/* Header & Controls */}
+    <PageContainer title="Stock Valuation Report">
+      <div className="w-full space-y-6">
+        {/* Header */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
-            <h2 className="text-2xl font-bold  tracking-tight text-gray-900">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-6 rounded-full bg-emerald-600" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Inventory Analysis
+              </span>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
               Stock Valuation
             </h2>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              Shows the current stock value per product/variant based on buying
-              price.
+            <p className="text-xs text-gray-400 mt-1.5">
+              Locked asset value based on latest cost prices.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
                 form={form}
@@ -263,75 +252,122 @@ const StockValuationPage = () => {
                   />
                 </Form.Item>
                 <Form.Item className="mb-0!">
-                  <Space>
-                    <Button
-                      htmlType="submit"
-                      type="primary"
-                      icon={<IconFilter size={15} />}
-                    >
-                      Filter
-                    </Button>
-                  </Space>
+                  <Button
+                    htmlType="submit"
+                    type="primary"
+                    icon={<IconFilter size={15} />}
+                  >
+                    Filter
+                  </Button>
                 </Form.Item>
               </Form>
             </Card>
-
-            <Button
-              onClick={exportExcel}
-              disabled={!stockList.length}
-              icon={<IconDownload size={16} />}
-            >
-              Excel
-            </Button>
-            <Button
-              onClick={exportPDF}
-              disabled={!stockList.length}
-              icon={<IconFileTypePdf size={16} />}
-              danger
-            >
-              PDF
-            </Button>
+            <Space>
+              <Button
+                onClick={exportExcel}
+                disabled={!stockList.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={exportPDF}
+                disabled={!stockList.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 
-        {/* Loading State */}
         {loading && (
-          <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12">
-              <Spin size="large" />
-            </div>
+          <div className="flex justify-center py-24">
+            <Spin size="large" />
           </div>
         )}
 
-        {/* Content */}
         {!loading && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Summary Cards */}
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <SummaryCard
-                title="Total Products"
-                value={summary.totalProducts}
-              />
-              <SummaryCard
-                title="Total Quantity"
-                value={summary.totalQuantity}
-              />
-              <SummaryCard
-                title="Total Valuation"
-                value={`Rs ${summary.totalValuation.toFixed(2)}`}
-              />
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 bg-indigo-50">
+                  <span className="text-indigo-700">
+                    <IconPackages size={20} />
+                  </span>
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  Total Assets (SKUs)
+                </p>
+                <p className="text-2xl font-black tracking-tight text-indigo-700 leading-none">
+                  {summary.totalProducts.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 bg-blue-50">
+                  <span className="text-blue-700">
+                    <IconBusinessplan size={20} />
+                  </span>
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  Total Unit Volume
+                </p>
+                <p className="text-2xl font-black tracking-tight text-blue-700 leading-none">
+                  {summary.totalQuantity.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="bg-white border flex flex-col justify-end border-emerald-200 rounded-2xl p-6 shadow-md hover:shadow-lg transition-shadow bg-gradient-to-br from-emerald-50 to-white relative overflow-hidden">
+                <div className="absolute right-[-20px] top-[-20px] opacity-10">
+                  <IconCoin size={150} />
+                </div>
+                <p className="text-[12px] font-black uppercase tracking-wider text-emerald-600 mb-2 relative z-10">
+                  Total Inventory Valuation
+                </p>
+                <p className="text-4xl font-black tracking-tight text-emerald-800 leading-none relative z-10">
+                  LKR {fmt(summary.totalValuation)}
+                </p>
+              </div>
             </div>
 
             {/* Table */}
-            <Table
-              columns={columns}
-              dataSource={stockList}
-              rowKey={(record, index) => index as number}
-              pagination={{ pageSize: 15, position: ["bottomRight"] }}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
-              scroll={{ x: 1000 }}
-              bordered
-            />
+            {stockList.length > 0 && (
+              <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                      Valuation Breakdown
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                      Asset cost distribution by variant
+                    </p>
+                  </div>
+                  <Tag
+                    color="success"
+                    className="text-[10px] font-bold uppercase border-0 bg-emerald-100 text-emerald-700"
+                  >
+                    LKR BASE
+                  </Tag>
+                </div>
+                <Table
+                  columns={columns}
+                  dataSource={stockList}
+                  rowKey={(r) =>
+                    r.productId + r.variantId + r.stockId + Math.random()
+                  }
+                  pagination={{
+                    pageSize: 15,
+                    position: ["bottomRight"],
+                    showSizeChanger: true,
+                  }}
+                  size="small"
+                  scroll={{ x: "max-content" }}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

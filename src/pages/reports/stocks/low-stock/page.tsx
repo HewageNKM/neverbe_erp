@@ -7,33 +7,44 @@ import {
   InputNumber,
   Button,
   Space,
+  Tag,
+  Progress,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
-
 import React, { useEffect, useState } from "react";
-import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconDownload,
+  IconFileTypePdf,
+  IconAlertTriangle,
+  IconPackages,
+  IconCoin,
+} from "@tabler/icons-react";
 import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
 import toast from "react-hot-toast";
 
+const fmt = (v: number) =>
+  new Intl.NumberFormat("en-LK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(v);
+
 const LowStockPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [stock, setStock] = useState<any[]>([]);
   const [stocksDropdown, setStocksDropdown] = useState<any[]>([]);
-
   const [summary, setSummary] = useState({
     totalProducts: 0,
     totalQuantity: 0,
     totalValuation: 0,
   });
-
   const { currentUser } = useAppSelector((state) => state.authSlice);
 
-  // Fetch stock dropdown
   const fetchStocksDropdown = async () => {
     try {
       const res = await api.get("/api/v1/erp/master/stocks/dropdown");
@@ -46,20 +57,16 @@ const LowStockPage = () => {
     }
   };
 
-  // Fetch all low-stock items at once
   const fetchStock = async (values?: any) => {
     setLoading(true);
     const threshold = values?.threshold || 10;
     const stockId = values?.stockId || "all";
-
     try {
       const res = await api.get("/api/v1/erp/reports/stocks/low-stock", {
         params: { threshold, stockId },
       });
-
       const data = res.data.stock || [];
       setStock(data);
-
       setSummary({
         totalProducts: data.length,
         totalQuantity: data.reduce(
@@ -73,36 +80,36 @@ const LowStockPage = () => {
       });
     } catch (err) {
       console.error(err);
+      toast.error("Failed to load low stock.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     if (currentUser) {
       fetchStocksDropdown();
-      form.setFieldsValue({
-        threshold: 10,
-        stockId: "all",
-      });
+      form.setFieldsValue({ threshold: 10, stockId: "all" });
       fetchStock(form.getFieldsValue());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const exportExcel = () => {
-    if (!stock.length) return;
+    if (!stock.length) {
+      toast("No data to export");
+      return;
+    }
     const data = stock.map((s) => ({
       "Product ID": s.productId,
       "Product Name": s.productName,
       "Variant ID": s.variantId,
       "Variant Name": s.variantName,
       Size: s.size,
-      "Stock ID": s.stockId,
-      "Stock Name": s.stockName,
+      Location: s.stockName,
       Quantity: s.quantity,
       Threshold: s.threshold,
     }));
-
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Low Stock");
@@ -111,46 +118,38 @@ const LowStockPage = () => {
   };
 
   const exportPDF = async () => {
-    if (!stock.length) return;
+    if (!stock.length) {
+      toast.error("No data to export");
+      return;
+    }
     const toastId = toast.loading("Generating PDF…");
     try {
       await exportReportPDF({
-        title: "Low Stock Alerts Report",
-        subtitle: "Products below the stock threshold",
-        period: new Date().toLocaleDateString("en-US", {
+        title: "Low Stock Alerts",
+        subtitle: "Items currently below the mandated threshold",
+        period: new Date().toLocaleDateString("en-GB", {
           year: "numeric",
-          month: "long",
+          month: "short",
           day: "numeric",
         }),
         summaryItems: [
           { label: "Low Stock SKUs", value: String(summary.totalProducts) },
           { label: "Total Quantity", value: String(summary.totalQuantity) },
-          {
-            label: "Approx. Valuation",
-            value: `Rs ${summary.totalValuation.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-          },
+          { label: "Est. Value", value: `LKR ${fmt(summary.totalValuation)}` },
         ],
         tables: [
           {
-            title: "Low Stock Items",
-            columns: [
-              "Product",
-              "Variant",
-              "Size",
-              "Stock",
-              "Quantity",
-              "Threshold",
-            ],
+            title: "Items At Risk",
+            columns: ["Product", "Variant", "Location", "Qty", "Threshold"],
             rows: stock.map((s) => [
               s.productName,
-              s.variantName,
-              s.size,
+              s.variantName || s.size,
               s.stockName,
               s.quantity,
               s.threshold,
             ]),
             boldCols: [0],
-            redCols: [4],
+            redCols: [3],
           },
         ],
         filename: "low_stock_report",
@@ -161,100 +160,100 @@ const LowStockPage = () => {
     }
   };
 
-  const SummaryCard = ({
-    title,
-    value,
-  }: {
-    title: string;
-    value: string | number;
-  }) => (
-    <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm flex flex-col justify-center">
-      <p className="text-xs font-bold   text-gray-500 mb-2">{title}</p>
-      <p className="text-xl font-bold text-gray-900 tracking-tight">{value}</p>
-    </div>
-  );
-
   const columns: ColumnsType<any> = [
     {
-      title: "Product ID",
-      dataIndex: "productId",
-      key: "productId",
-      render: (text) => (
-        <span className="font-medium text-gray-400">{text}</span>
+      title: "Product",
+      key: "product",
+      render: (_, r) => (
+        <div>
+          <p className="font-semibold text-gray-900 text-sm">{r.productName}</p>
+          <p className="text-[10px] text-gray-400 font-mono">{r.productId}</p>
+        </div>
       ),
     },
     {
-      title: "Product Name",
-      dataIndex: "productName",
-      key: "productName",
-      render: (text) => (
-        <span className="font-medium text-gray-900">{text}</span>
+      title: "Variant",
+      key: "variant",
+      render: (_, r) => (
+        <div>
+          <p className="font-medium text-gray-700 text-sm">{r.variantName}</p>
+          <p className="text-[10px] text-gray-400 font-mono">{r.variantId}</p>
+        </div>
       ),
-    },
-    {
-      title: "Variant ID",
-      dataIndex: "variantId",
-      key: "variantId",
-      render: (text) => <span className="text-gray-400">{text}</span>,
-    },
-    {
-      title: "Variant Name",
-      dataIndex: "variantName",
-      key: "variantName",
-      render: (text) => <span className="text-gray-600">{text}</span>,
     },
     {
       title: "Size",
       dataIndex: "size",
       key: "size",
-      render: (text) => <span className="text-gray-600">{text}</span>,
+      render: (v) => (
+        <Tag className="font-mono text-xs text-gray-600 m-0">{v || "—"}</Tag>
+      ),
     },
     {
-      title: "Stock ID",
-      dataIndex: "stockId",
-      key: "stockId",
-      render: (text) => <span className="text-gray-400">{text}</span>,
-    },
-    {
-      title: "Stock Name",
-      dataIndex: "stockName",
+      title: "Location",
       key: "stockName",
-      render: (text) => <span className="text-gray-600">{text}</span>,
-    },
-    {
-      title: "Quantity",
-      dataIndex: "quantity",
-      key: "quantity",
-      align: "right",
-      render: (text) => (
-        <span className="font-medium text-red-600">{text}</span>
+      render: (_, r) => (
+        <span className="text-gray-600 text-sm font-medium">{r.stockName}</span>
       ),
     },
     {
       title: "Threshold",
       dataIndex: "threshold",
       key: "threshold",
+      align: "center",
+      render: (v) => <Tag className="font-mono text-xs m-0">{v}</Tag>,
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
       align: "right",
-      render: (text) => <span className="text-gray-600">{text}</span>,
+      render: (v, r) => {
+        const pct = r.threshold > 0 ? (v / r.threshold) * 100 : 0;
+        return (
+          <div className="flex flex-col items-end gap-1 w-24 ml-auto">
+            <span className="font-bold text-red-600 font-mono bg-red-50 px-2 py-0.5 rounded">
+              {v}
+            </span>
+            <Progress
+              percent={pct}
+              size="small"
+              showInfo={false}
+              strokeColor="#ef4444"
+              trailColor="#fee2e2"
+              className="m-0"
+            />
+          </div>
+        );
+      },
     },
   ];
 
   return (
-    <PageContainer title="Low Stock">
-      <div className="w-full space-y-8">
-        {/* Header & Controls */}
+    <PageContainer title="Low Stock Alerts">
+      <div className="w-full space-y-6">
+        {/* Header */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
-            <h2 className="text-2xl font-bold  tracking-tight text-gray-900">
-              Low Stock Report
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-6 rounded-full bg-red-600" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Inventory Reports
+              </span>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
+              Low Stock Alerts
             </h2>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              Products and variants with stock below threshold.
+            <p className="text-xs text-gray-400 mt-1.5">
+              Products and variants falling below critical limits.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
-            <Card size="small" className="shadow-sm w-full xl:w-auto">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full xl:w-auto">
+            <Card
+              size="small"
+              className="shadow-sm w-full xl:w-auto border-red-100"
+            >
               <Form
                 form={form}
                 layout="inline"
@@ -264,88 +263,136 @@ const LowStockPage = () => {
                 <Form.Item name="threshold" className="mb-0!">
                   <InputNumber
                     min={0}
-                    placeholder="Threshold"
-                    className="w-24 border border-gray-300 focus:border-gray-900"
+                    placeholder="Limit <"
+                    className="w-[100px]"
                   />
                 </Form.Item>
-                <Form.Item name="stockId" className="mb-0! min-w-[200px]">
+                <Form.Item name="stockId" className="mb-0! min-w-[150px]">
                   <Select
                     options={stocksDropdown.map((s) => ({
                       value: s.id,
                       label: s.label,
                     }))}
+                    placeholder="Location"
                   />
                 </Form.Item>
                 <Form.Item className="mb-0!">
-                  <Space>
-                    <Button
-                      htmlType="submit"
-                      type="primary"
-                      icon={<IconFilter size={15} />}
-                    >
-                      Filter
-                    </Button>
-                  </Space>
+                  <Button
+                    htmlType="submit"
+                    type="primary"
+                    danger
+                    icon={<IconFilter size={15} />}
+                  >
+                    Filter
+                  </Button>
                 </Form.Item>
               </Form>
             </Card>
-
-            <Button
-              onClick={exportExcel}
-              disabled={!stock.length}
-              icon={<IconDownload size={16} />}
-            >
-              Excel
-            </Button>
-            <Button
-              onClick={exportPDF}
-              disabled={!stock.length}
-              icon={<IconFileTypePdf size={16} />}
-              danger
-            >
-              PDF
-            </Button>
+            <Space>
+              <Button
+                onClick={exportExcel}
+                disabled={!stock.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={exportPDF}
+                disabled={!stock.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 
-        {/* Loading State */}
         {loading && (
-          <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12">
-              <Spin size="large" />
-            </div>
+          <div className="flex justify-center py-24">
+            <Spin size="large" />
           </div>
         )}
 
-        {/* Content */}
         {!loading && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Summary Cards */}
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <SummaryCard
-                title="Total Products"
-                value={summary.totalProducts}
-              />
-              <SummaryCard
-                title="Total Quantity"
-                value={summary.totalQuantity}
-              />
-              <SummaryCard
-                title="Total Valuation"
-                value={`Rs ${summary.totalValuation.toFixed(2)}`}
-              />
+              <div className="bg-white border border-red-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                <div className="absolute -right-4 -top-4 opacity-5">
+                  <IconAlertTriangle size={100} />
+                </div>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 bg-red-50 relative z-10">
+                  <span className="text-red-600">
+                    <IconAlertTriangle size={20} />
+                  </span>
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1 relative z-10">
+                  Low SKUs
+                </p>
+                <p className="text-2xl font-black tracking-tight text-red-600 leading-none relative z-10">
+                  {summary.totalProducts.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 bg-orange-50">
+                  <span className="text-orange-600">
+                    <IconPackages size={20} />
+                  </span>
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  Items at Risk Count
+                </p>
+                <p className="text-2xl font-black tracking-tight text-orange-600 leading-none">
+                  {summary.totalQuantity.toLocaleString()}
+                </p>
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3 bg-gray-50">
+                  <span className="text-gray-700">
+                    <IconCoin size={20} />
+                  </span>
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  Locked Value Estimate
+                </p>
+                <p className="text-2xl font-black tracking-tight text-gray-900 leading-none">
+                  LKR {fmt(summary.totalValuation)}
+                </p>
+              </div>
             </div>
 
             {/* Table */}
-            <Table
-              columns={columns}
-              dataSource={stock}
-              rowKey={(record, index) => index as number}
-              pagination={{ pageSize: 15, position: ["bottomRight"] }}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
-              scroll={{ x: 1000 }}
-              bordered
-            />
+            {stock.length > 0 && (
+              <div className="bg-white border border-red-100 rounded-2xl overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b border-red-50 flex items-center justify-between bg-red-50/30">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-red-500">
+                      Critical Items
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                      {stock.length} SKUs require attention
+                    </p>
+                  </div>
+                </div>
+                <Table
+                  columns={columns}
+                  dataSource={stock}
+                  rowKey={(r) =>
+                    r.productId + r.variantId + r.stockId + Math.random()
+                  }
+                  pagination={{
+                    pageSize: 15,
+                    position: ["bottomRight"],
+                    showSizeChanger: true,
+                  }}
+                  size="small"
+                  scroll={{ x: "max-content" }}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

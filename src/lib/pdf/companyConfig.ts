@@ -22,9 +22,9 @@ export const companyConfig: CompanyConfig = {
   tagline: "Business Intelligence & ERP Platform",
   addressLine1: "330/4/10, New Kandy Road, Delgoda",
   addressLine2: "Gampaha, Sri Lanka",
-  phone: "+94 11 234 5678",
+  phone: "+94 70 520 8999",
   email: "info@neverbe.com",
-  website: "www.neverbe.com",
+  website: "www.neverbe.lk",
   primaryColor: "#111827", // gray-900
   accentColor: "#16a34a", // green-600
 };
