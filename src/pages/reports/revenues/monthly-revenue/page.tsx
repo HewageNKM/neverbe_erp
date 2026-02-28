@@ -16,12 +16,13 @@ import dayjs from "dayjs";
 import {
   IconFilter,
   IconFileTypePdf,
+  IconDownload,
   IconMinus,
   IconTrendingUp,
   IconTrendingDown,
   IconShoppingCart,
 } from "@tabler/icons-react";
-import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
+import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
   BarChart,
@@ -169,66 +170,35 @@ export default function MonthlyRevenuePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
-  const handleExportPDF = async () => {
+  const handleExportExcel = () => {
     if (!rows.length || !summary) {
       toast.error("No data to export");
       return;
     }
-    const toastId = toast.loading("Generating PDF…");
-    try {
-      await exportReportPDF({
-        title: "Monthly Revenue Report",
-        subtitle: "Monthly sales, revenue, gross profit & net profit",
-        period: `${from} – ${to}`,
-        summaryItems: [
-          { label: "Total Orders", value: String(summary.totalOrders ?? 0) },
-          { label: "Total Sales", value: `LKR ${fmt(summary.totalSales)}` },
-          {
-            label: "Gross Profit",
-            value: `LKR ${fmt(summary.grossProfit)}`,
-            sub: `${(summary.grossProfitMargin ?? 0).toFixed(1)}% margin`,
-          },
-          {
-            label: "Net Profit",
-            value: `LKR ${fmt(summary.netProfit)}`,
-            sub: `${(summary.netProfitMargin ?? 0).toFixed(1)}% margin`,
-          },
-        ],
-        chartSpecs: [
-          {
-            title: "Revenue vs Profit Trend",
-            elementId: "monthly-revenue-chart-1",
-          },
-          { title: "Cost Breakdown", elementId: "monthly-revenue-chart-2" },
-        ],
-        tables: [
-          {
-            title: "Monthly Revenue Breakdown",
-            columns: [
-              "Month",
-              "Orders",
-              "Total Sales",
-              "Net Sales",
-              "Gross Profit",
-              "Net Profit",
-            ],
-            rows: rows.map((r) => [
-              r.month ?? "",
-              r.totalOrders ?? 0,
-              `LKR ${fmt(r.totalSales)}`,
-              `LKR ${fmt(r.totalNetSales)}`,
-              `LKR ${fmt(r.grossProfit)}`,
-              `LKR ${fmt(r.netProfit)}`,
-            ]),
-            greenCols: [4, 5],
-          },
-        ],
-        filename: `monthly_revenue_${from}_${to}`,
-      });
-      toast.success("PDF exported!", { id: toastId });
-    } catch {
-      toast.error("PDF export failed", { id: toastId });
+    const exportData = rows.map((r) => ({
+      Month: r.month,
+      "Total Orders": r.totalOrders,
+      "Total Sales (LKR)": r.totalSales,
+      "Net Sales (LKR)": r.totalNetSales,
+      "COGS (LKR)": r.totalCOGS,
+      "Gross Profit (LKR)": r.grossProfit,
+      "Gross Margin (%)": r.grossProfitMargin?.toFixed(1),
+      "Net Profit (LKR)": r.netProfit,
+      "Net Margin (%)": r.netProfitMargin?.toFixed(1),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Monthly Revenue");
+    XLSX.writeFile(wb, `monthly_revenue_${from}_${to}.xlsx`);
+  };
+
+  const handleExportPDF = () => {
+    if (!rows.length || !summary) {
+      toast.error("No data to export");
+      return;
     }
+    window.print();
   };
 
   const columns: ColumnsType<MonthlyRow> = [
@@ -385,14 +355,23 @@ export default function MonthlyRevenuePage() {
                 </Form.Item>
               </Form>
             </Card>
-            <Button
-              onClick={handleExportPDF}
-              disabled={!rows.length}
-              icon={<IconFileTypePdf size={16} />}
-              danger
-            >
-              PDF
-            </Button>
+            <Space>
+              <Button
+                onClick={handleExportExcel}
+                disabled={!rows.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={handleExportPDF}
+                disabled={!rows.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 

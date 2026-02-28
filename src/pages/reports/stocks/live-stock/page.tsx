@@ -9,7 +9,6 @@ import {
   IconPackages,
   IconBox,
 } from "@tabler/icons-react";
-import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
@@ -103,46 +102,12 @@ const LiveStockPage = () => {
     toast.success("Excel exported!");
   };
 
-  const exportPDF = async () => {
+  const exportPDF = () => {
     if (!stock.length) {
       toast.error("No data to export");
       return;
     }
-    const toastId = toast.loading("Generating PDF…");
-    try {
-      await exportReportPDF({
-        title: "Live Stock Report",
-        subtitle: "Current inventory levels across all locations",
-        period: new Date().toLocaleDateString("en-GB", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        }),
-        summaryItems: [
-          { label: "Total SKUs", value: String(summary.totalProducts) },
-          { label: "Total Quantity", value: String(summary.totalQuantity) },
-        ],
-        tables: [
-          {
-            title: "Inventory Stock Levels",
-            columns: ["Product", "Variant", "Size", "Location", "Quantity"],
-            rows: stock.map((s) => [
-              s.productName,
-              s.variantName,
-              s.size || "-",
-              s.stockName,
-              s.quantity,
-            ]),
-            boldCols: [0],
-            greenCols: [],
-          },
-        ],
-        filename: "live_stock",
-      });
-      toast.success("PDF exported!", { id: toastId });
-    } catch {
-      toast.error("PDF export failed", { id: toastId });
-    }
+    window.print();
   };
 
   const columns: ColumnsType<LiveStockItem> = [

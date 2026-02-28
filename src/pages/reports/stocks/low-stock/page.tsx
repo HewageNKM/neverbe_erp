@@ -21,7 +21,6 @@ import {
   IconPackages,
   IconCoin,
 } from "@tabler/icons-react";
-import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
@@ -117,47 +116,12 @@ const LowStockPage = () => {
     toast.success("Excel exported!");
   };
 
-  const exportPDF = async () => {
+  const exportPDF = () => {
     if (!stock.length) {
       toast.error("No data to export");
       return;
     }
-    const toastId = toast.loading("Generating PDF…");
-    try {
-      await exportReportPDF({
-        title: "Low Stock Alerts",
-        subtitle: "Items currently below the mandated threshold",
-        period: new Date().toLocaleDateString("en-GB", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        }),
-        summaryItems: [
-          { label: "Low Stock SKUs", value: String(summary.totalProducts) },
-          { label: "Total Quantity", value: String(summary.totalQuantity) },
-          { label: "Est. Value", value: `LKR ${fmt(summary.totalValuation)}` },
-        ],
-        tables: [
-          {
-            title: "Items At Risk",
-            columns: ["Product", "Variant", "Location", "Qty", "Threshold"],
-            rows: stock.map((s) => [
-              s.productName,
-              s.variantName || s.size,
-              s.stockName,
-              s.quantity,
-              s.threshold,
-            ]),
-            boldCols: [0],
-            redCols: [3],
-          },
-        ],
-        filename: "low_stock_report",
-      });
-      toast.success("PDF exported!", { id: toastId });
-    } catch {
-      toast.error("PDF export failed", { id: toastId });
-    }
+    window.print();
   };
 
   const columns: ColumnsType<any> = [

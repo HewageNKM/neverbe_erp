@@ -10,7 +10,6 @@ import {
   IconPackages,
   IconBusinessplan,
 } from "@tabler/icons-react";
-import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
@@ -98,51 +97,12 @@ const StockValuationPage = () => {
     toast.success("Excel exported!");
   };
 
-  const exportPDF = async () => {
+  const exportPDF = () => {
     if (!stockList.length) {
       toast.error("No data to export");
       return;
     }
-    const toastId = toast.loading("Generating PDF…");
-    try {
-      await exportReportPDF({
-        title: "Inventory Valuation",
-        subtitle: "Total locked asset value at asset buying price",
-        period: new Date().toLocaleDateString("en-GB", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        }),
-        summaryItems: [
-          { label: "Total SKUs", value: String(summary.totalProducts) },
-          { label: "Total Quantity", value: String(summary.totalQuantity) },
-          {
-            label: "Total Valuation",
-            value: `LKR ${fmt(summary.totalValuation)}`,
-          },
-        ],
-        tables: [
-          {
-            title: "Asset Breakdown",
-            columns: ["Product", "Variant", "Location", "Qty", "Cost", "Value"],
-            rows: stockList.map((s) => [
-              s.productName,
-              s.variantName || s.size,
-              s.stockName,
-              s.quantity,
-              `LKR ${fmt(s.buyingPrice)}`,
-              `LKR ${fmt(s.valuation)}`,
-            ]),
-            boldCols: [0],
-            greenCols: [5],
-          },
-        ],
-        filename: "stock_valuation_report",
-      });
-      toast.success("PDF exported!", { id: toastId });
-    } catch {
-      toast.error("PDF export failed", { id: toastId });
-    }
+    window.print();
   };
 
   const columns: ColumnsType<any> = [

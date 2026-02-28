@@ -13,7 +13,6 @@ import {
   IconArrowUpRight,
   IconTrendingUp,
 } from "@tabler/icons-react";
-import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
@@ -121,69 +120,12 @@ const CashFlowPage = () => {
     toast.success("Excel exported successfully");
   };
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = () => {
     if (!report || !report.length) {
       toast("No data to export");
       return;
     }
-    const toastId = toast.loading("Generating PDF…");
-    try {
-      const totalCashIn =
-        summary?.totalCashIn ?? report.reduce((s, d) => s + d.cashIn, 0);
-      const totalFees =
-        summary?.totalTransactionFees ??
-        report.reduce((s, d) => s + d.transactionFees, 0);
-      const totalExpenses =
-        summary?.totalExpenses ?? report.reduce((s, d) => s + d.expenses, 0);
-      const totalNetCashFlow =
-        summary?.totalNetCashFlow ??
-        report.reduce((s, d) => s + d.netCashFlow, 0);
-      await exportReportPDF({
-        title: "Cashflow Report",
-        subtitle: "Daily cash in, fees, expenses & net cash flow",
-        period: `${from} – ${to}`,
-        summaryItems: [
-          { label: "Total Cash In", value: `LKR ${fmt(totalCashIn)}` },
-          { label: "Transaction Fees", value: `LKR ${fmt(totalFees)}` },
-          { label: "Total Expenses", value: `LKR ${fmt(totalExpenses)}` },
-          {
-            label: "Net Cash Flow",
-            value: `LKR ${fmt(totalNetCashFlow)}`,
-            sub: totalNetCashFlow >= 0 ? "Positive" : "Negative",
-          },
-        ],
-        chartSpecs: [
-          { title: "Net Cash Flow Trend", elementId: "cashflow-chart-1" },
-          { title: "Cost Breakdown", elementId: "cashflow-chart-2" },
-        ],
-        tables: [
-          {
-            title: "Daily Cashflow Breakdown",
-            columns: [
-              "Date",
-              "Orders",
-              "Cash In",
-              "Trans. Fee",
-              "Expenses",
-              "Net Cash Flow",
-            ],
-            rows: report.map((d) => [
-              d.date,
-              d.orders,
-              `LKR ${fmt(d.cashIn)}`,
-              `LKR ${fmt(d.transactionFees)}`,
-              `LKR ${fmt(d.expenses)}`,
-              `LKR ${fmt(d.netCashFlow)}`,
-            ]),
-            greenCols: [5],
-          },
-        ],
-        filename: `cashflow_${from}_${to}`,
-      });
-      toast.success("PDF exported!", { id: toastId });
-    } catch {
-      toast.error("PDF export failed", { id: toastId });
-    }
+    window.print();
   };
 
   const columns: ColumnsType<DailyCashFlow> = [

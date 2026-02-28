@@ -31,7 +31,6 @@ import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
-import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 
 interface TaxReportItem {
   date: string;
@@ -125,58 +124,12 @@ const TaxReportPage = () => {
     toast.success("Excel exported successfully");
   };
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = () => {
     if (!report || !report.transactions.length) {
       toast("No data to export");
       return;
     }
-    const toastId = toast.loading("Generating PDF…");
-    try {
-      await exportReportPDF({
-        title: "Tax Report",
-        subtitle: "Summary of tax collected on all transactions",
-        period: `${from} – ${to}`,
-        summaryItems: [
-          { label: "Total Orders", value: String(report.summary.totalOrders) },
-          {
-            label: "Total Sales",
-            value: `LKR ${fmt(report.summary.totalSales)}`,
-          },
-          {
-            label: "Total Tax Collected",
-            value: `LKR ${fmt(report.summary.totalTaxCollected)}`,
-          },
-          {
-            label: "Effective Tax Rate",
-            value: `${report.summary.effectiveTaxRate.toFixed(2)}%`,
-          },
-        ],
-        tables: [
-          {
-            title: "Tax Transactions",
-            columns: [
-              "Date",
-              "Order ID",
-              "Order Total",
-              "Taxable Amount",
-              "Tax Collected",
-            ],
-            rows: report.transactions.map((t) => [
-              t.date,
-              t.orderId,
-              `LKR ${fmt(t.orderTotal)}`,
-              `LKR ${fmt(t.taxableAmount)}`,
-              `LKR ${fmt(t.taxCollected)}`,
-            ]),
-            greenCols: [4],
-          },
-        ],
-        filename: `tax_report_${from}_${to}`,
-      });
-      toast.success("PDF exported!", { id: toastId });
-    } catch {
-      toast.error("PDF export failed", { id: toastId });
-    }
+    window.print();
   };
 
   const columns: ColumnsType<TaxReportItem> = [

@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import {
   IconFilter,
   IconDownload,
+  IconFileTypePdf,
   IconTrendingUp,
   IconShoppingCart,
   IconReceipt2,
@@ -268,17 +269,19 @@ const SalesByBrandPage = () => {
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-1 h-6 rounded-full bg-indigo-600" />
+              <div className="w-1 h-6 rounded-full bg-emerald-600" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-                Sales Reports
+                Sales Analysis
               </span>
             </div>
             <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
               Sales by Brand
             </h2>
-            <p className="text-xs text-gray-400 mt-1.5">
-              View comprehensive sales and profit metrics segmented by brand.
-            </p>
+            {from && to && (
+              <p className="text-xs text-gray-400 mt-1.5 font-mono">
+                {from} &nbsp;–&nbsp; {to}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full xl:w-auto">
@@ -303,14 +306,23 @@ const SalesByBrandPage = () => {
                 </Form.Item>
               </Form>
             </Card>
-            <Button
-              onClick={exportExcel}
-              disabled={!brands.length}
-              icon={<IconDownload size={16} />}
-              className="w-full sm:w-auto"
-            >
-              Excel
-            </Button>
+            <Space>
+              <Button
+                onClick={exportExcel}
+                disabled={!brands.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={() => window.print()}
+                disabled={!brands.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 

@@ -42,8 +42,6 @@ import {
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
-import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
-
 interface CustomerAnalytics {
   period: { from: string; to: string };
   overview: {
@@ -166,63 +164,12 @@ const CustomerAnalyticsPage = () => {
     toast.success("Excel exported successfully");
   };
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = () => {
     if (!report) {
       toast("No data to export");
       return;
     }
-    const toastId = toast.loading("Generating PDF…");
-    try {
-      await exportReportPDF({
-        title: "Customer Analytics",
-        subtitle: "Customer acquisition, retention & spending insights",
-        period: `${from} – ${to}`,
-        summaryItems: [
-          {
-            label: "Total Customers",
-            value: String(report.overview.totalCustomers),
-          },
-          {
-            label: "New Customers",
-            value: String(report.overview.newCustomers),
-          },
-          {
-            label: "Returning",
-            value: String(report.overview.returningCustomers),
-          },
-          {
-            label: "Avg. Order Value",
-            value: `LKR ${fmt(report.overview.averageOrderValue)}`,
-          },
-          {
-            label: "Orders / Customer",
-            value: String(report.overview.ordersPerCustomer),
-          },
-        ],
-        chartSpecs: [
-          { title: "Customer Trend", elementId: "customer-trend-chart" },
-        ],
-        tables: [
-          {
-            title: "Top Customers",
-            columns: ["#", "Name", "Contact", "Orders", "Total Spent"],
-            rows: report.topCustomers.map((c, i) => [
-              i + 1,
-              c.name,
-              c.email || c.phone || "—",
-              c.totalOrders,
-              `LKR ${fmt(c.totalSpent)}`,
-            ]),
-            greenCols: [4],
-            boldCols: [1],
-          },
-        ],
-        filename: `customer_analytics_${from}_${to}`,
-      });
-      toast.success("PDF exported!", { id: toastId });
-    } catch {
-      toast.error("PDF export failed", { id: toastId });
-    }
+    window.print();
   };
 
   const columns: ColumnsType<CustomerAnalytics["topCustomers"][0]> = [

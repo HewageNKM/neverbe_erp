@@ -1,9 +1,9 @@
 import api from "@/lib/api";
 
-import { Card, Form, Spin, Table } from "antd";
+import { Card, Form, Spin, Table, Button, Space, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import React, { useState } from "react";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
@@ -96,15 +96,21 @@ const SalesByPaymentMethod = () => {
         {/* Header & Controls */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
-            <h2 className="text-2xl font-bold  tracking-tight text-gray-900">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-6 rounded-full bg-emerald-600" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Sales Analysis
+              </span>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
               Sales by Payment Method
             </h2>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              Summary of sales grouped by payment method.
+            <p className="text-xs text-gray-400 mt-1.5 font-mono">
+              {from || "Start"} &nbsp;–&nbsp; {to || "End"}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
                 layout="inline"
@@ -142,14 +148,23 @@ const SalesByPaymentMethod = () => {
               </Form>
             </Card>
 
-            <button
-              onClick={exportExcel}
-              disabled={!rows.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
-            >
-              <IconDownload size={16} />
-              Export
-            </button>
+            <Space>
+              <Button
+                onClick={exportExcel}
+                disabled={!rows.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={() => window.print()}
+                disabled={!rows.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 
@@ -167,42 +182,42 @@ const SalesByPaymentMethod = () => {
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-                <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
+              <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+                <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-4">
                   Total Sales by Payment Method
-                </h3>
+                </p>
                 <div className="h-[300px] w-full text-xs font-semibold">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={rows}>
                       <CartesianGrid
                         strokeDasharray="3 3"
                         vertical={false}
-                        stroke="#E5E7EB"
+                        stroke="#f3f4f6"
                       />
                       <XAxis
                         dataKey="paymentMethod"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#6B7280", fontSize: 10 }}
+                        tick={{ fill: "#9ca3af", fontSize: 10 }}
                         tickMargin={10}
                       />
                       <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#6B7280", fontSize: 10 }}
+                        tick={{ fill: "#9ca3af", fontSize: 10 }}
                         width={60}
                       />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "#111827",
                           border: "none",
-                          borderRadius: "4px",
+                          borderRadius: "8px",
                           color: "#F9FAFB",
                           fontSize: "12px",
                           fontWeight: "bold",
                         }}
                         itemStyle={{ color: "#F9FAFB" }}
-                        cursor={{ fill: "#F3F4F6", opacity: 0.5 }}
+                        cursor={{ fill: "#f3f4f6", opacity: 0.5 }}
                       />
                       <Legend />
                       <Bar
@@ -216,10 +231,10 @@ const SalesByPaymentMethod = () => {
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-                <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
+              <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+                <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-4">
                   Order Distribution by Payment Method
-                </h3>
+                </p>
                 <div className="h-[300px] w-full text-xs font-semibold">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -240,7 +255,7 @@ const SalesByPaymentMethod = () => {
                         contentStyle={{
                           backgroundColor: "#111827",
                           border: "none",
-                          borderRadius: "4px",
+                          borderRadius: "8px",
                           color: "#F9FAFB",
                           fontSize: "12px",
                           fontWeight: "bold",
@@ -255,15 +270,36 @@ const SalesByPaymentMethod = () => {
             </div>
 
             {/* Table */}
-            <Table
-              columns={columns}
-              dataSource={rows}
-              rowKey={(record, index) => index as number}
-              pagination={{ pageSize: 15, position: ["bottomRight"] }}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
-              scroll={{ x: 1000 }}
-                      bordered
-            />
+            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    Payment Method Details
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                    {rows.length} methods used
+                  </p>
+                </div>
+                <Tag
+                  color="default"
+                  className="text-[10px] font-bold uppercase"
+                >
+                  LKR
+                </Tag>
+              </div>
+              <Table
+                columns={columns}
+                dataSource={rows}
+                rowKey={(record, index) => index as number}
+                pagination={{
+                  pageSize: 15,
+                  position: ["bottomRight"],
+                  showSizeChanger: true,
+                }}
+                size="small"
+                scroll={{ x: "max-content" }}
+              />
+            </div>
           </div>
         )}
       </div>

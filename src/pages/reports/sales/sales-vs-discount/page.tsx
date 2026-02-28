@@ -1,9 +1,9 @@
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 
-import { Card, Form, Spin, Table } from "antd";
+import { Card, Form, Spin, Table, Tag, Space, Button } from "antd";
 import React, { useState } from "react";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
@@ -116,15 +116,21 @@ const SalesVsDiscountPage = () => {
         {/* Header & Controls */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
-            <h2 className="text-2xl font-bold  tracking-tight text-gray-900">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-6 rounded-full bg-emerald-600" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Sales Analysis
+              </span>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
               Sales vs Discount
             </h2>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              Compare total sales and discounts over time.
+            <p className="text-xs text-gray-400 mt-1.5 font-mono">
+              {from || "Start"} &nbsp;–&nbsp; {to || "End"}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
                 layout="inline"
@@ -162,14 +168,23 @@ const SalesVsDiscountPage = () => {
               </Form>
             </Card>
 
-            <button
-              onClick={exportExcel}
-              disabled={!report.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
-            >
-              <IconDownload size={16} />
-              Export
-            </button>
+            <Space>
+              <Button
+                onClick={exportExcel}
+                disabled={!report.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={() => window.print()}
+                disabled={!report.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 
@@ -186,41 +201,43 @@ const SalesVsDiscountPage = () => {
         {!loading && report.length > 0 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Chart */}
-            <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-              <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
-                Sales vs Discount Chart
-              </h3>
+            <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+              <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-4">
+                Sales vs Discount Trend
+              </p>
               <div className="h-[350px] w-full text-xs font-semibold">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={report}>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
-                      stroke="#E5E7EB"
+                      stroke="#f3f4f6"
                     />
                     <XAxis
                       dataKey="period"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: "#6B7280", fontSize: 10 }}
+                      tick={{ fill: "#9ca3af", fontSize: 10 }}
                       tickMargin={10}
                     />
                     <YAxis
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: "#6B7280", fontSize: 10 }}
+                      tick={{ fill: "#9ca3af", fontSize: 10 }}
                       width={60}
                     />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "#111827",
                         border: "none",
-                        borderRadius: "4px",
+                        borderRadius: "8px",
                         color: "#F9FAFB",
                         fontSize: "12px",
                         fontWeight: "bold",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                       }}
                       itemStyle={{ color: "#F9FAFB" }}
+                      cursor={{ stroke: "#f3f4f6", strokeWidth: 1 }}
                     />
                     <Legend />
                     <Line
@@ -257,15 +274,36 @@ const SalesVsDiscountPage = () => {
             </div>
 
             {/* Table */}
-            <Table
-              columns={columns}
-              dataSource={report}
-              rowKey={(r: any) => r.period}
-              pagination={{ pageSize: 15, position: ["bottomRight"] }}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
-              scroll={{ x: 1000 }}
-                      bordered
-            />
+            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    Performance Data
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                    {report.length} entries recorded
+                  </p>
+                </div>
+                <Tag
+                  color="default"
+                  className="text-[10px] font-bold uppercase"
+                >
+                  LKR
+                </Tag>
+              </div>
+              <Table
+                columns={columns}
+                dataSource={report}
+                rowKey={(r: any) => r.period}
+                pagination={{
+                  pageSize: 15,
+                  position: ["bottomRight"],
+                  showSizeChanger: true,
+                }}
+                size="small"
+                scroll={{ x: "max-content" }}
+              />
+            </div>
           </div>
         )}
       </div>

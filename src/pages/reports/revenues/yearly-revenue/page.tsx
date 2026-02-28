@@ -1,9 +1,10 @@
 import api from "@/lib/api";
-import { Card, Form, Spin, Tag, Progress } from "antd";
+import { Card, Form, Spin, Tag, Progress, Button, Space } from "antd";
 import React, { useState } from "react";
 import {
   IconFilter,
   IconDownload,
+  IconFileTypePdf,
   IconMinus,
   IconTrendingUp,
   IconTrendingDown,
@@ -155,13 +156,23 @@ const YearRevenuePage = () => {
                 </button>
               </form>
             </Card>
-            <button
-              onClick={handleExportExcel}
-              disabled={!yearly?.length}
-              className="px-4 py-1.5 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50 h-[38px] w-full sm:w-auto shadow-sm"
-            >
-              <IconDownload size={16} /> Export
-            </button>
+            <Space>
+              <Button
+                onClick={handleExportExcel}
+                disabled={!yearly?.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={() => window.print()}
+                disabled={!yearly?.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 

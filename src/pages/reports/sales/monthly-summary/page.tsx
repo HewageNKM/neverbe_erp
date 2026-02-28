@@ -8,10 +8,11 @@ import {
   Select,
   Button,
   Space,
+  Tag,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
@@ -321,43 +322,43 @@ const MonthlySummaryPage = () => {
             {/* Charts Section */}
             {summary.monthly && summary.monthly.length > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-                  <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
+                <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+                  <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-4">
                     Monthly Sales Trend
-                  </h3>
+                  </p>
                   <div className="h-[300px] w-full text-xs font-semibold">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={summary.monthly}>
                         <CartesianGrid
                           strokeDasharray="3 3"
                           vertical={false}
-                          stroke="#E5E7EB"
+                          stroke="#f3f4f6"
                         />
                         <XAxis
                           dataKey="month"
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: "#6B7280", fontSize: 10 }}
+                          tick={{ fill: "#9ca3af", fontSize: 10 }}
                           tickMargin={10}
                         />
                         <YAxis
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: "#6B7280", fontSize: 10 }}
+                          tick={{ fill: "#9ca3af", fontSize: 10 }}
                           width={60}
                         />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "#111827",
                             border: "none",
-                            borderRadius: "4px",
+                            borderRadius: "8px",
                             color: "#F9FAFB",
                             fontSize: "12px",
                             fontWeight: "bold",
                             boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                           }}
                           itemStyle={{ color: "#F9FAFB" }}
-                          cursor={{ stroke: "#9CA3AF", strokeWidth: 1 }}
+                          cursor={{ stroke: "#f3f4f6", strokeWidth: 1 }}
                         />
                         <Line
                           type="monotone"
@@ -373,29 +374,29 @@ const MonthlySummaryPage = () => {
                   </div>
                 </div>
 
-                <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
-                  <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
+                <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+                  <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-4">
                     Monthly Items Sold
-                  </h3>
+                  </p>
                   <div className="h-[300px] w-full text-xs font-semibold">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={summary.monthly}>
                         <CartesianGrid
                           strokeDasharray="3 3"
                           vertical={false}
-                          stroke="#E5E7EB"
+                          stroke="#f3f4f6"
                         />
                         <XAxis
                           dataKey="month"
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: "#6B7280", fontSize: 10 }}
+                          tick={{ fill: "#9ca3af", fontSize: 10 }}
                           tickMargin={10}
                         />
                         <YAxis
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fill: "#6B7280", fontSize: 10 }}
+                          tick={{ fill: "#9ca3af", fontSize: 10 }}
                           allowDecimals={false}
                           width={40}
                         />
@@ -403,13 +404,13 @@ const MonthlySummaryPage = () => {
                           contentStyle={{
                             backgroundColor: "#111827",
                             border: "none",
-                            borderRadius: "4px",
+                            borderRadius: "8px",
                             color: "#F9FAFB",
                             fontSize: "12px",
                             fontWeight: "bold",
                           }}
                           itemStyle={{ color: "#F9FAFB" }}
-                          cursor={{ fill: "#F3F4F6", opacity: 0.5 }}
+                          cursor={{ fill: "#f3f4f6", opacity: 0.5 }}
                         />
                         <Bar
                           dataKey="itemsSold"
@@ -426,15 +427,36 @@ const MonthlySummaryPage = () => {
             )}
 
             {/* Detailed Table */}
-            <Table
-              columns={columns}
-              dataSource={summary.monthly || []}
-              rowKey={(record, index) => index as number}
-              pagination={{ pageSize: 15, position: ["bottomRight"] }}
-              className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
-              scroll={{ x: 1000 }}
-              bordered
-            />
+            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    Monthly Subtotals
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                    {summary.monthly?.length} entries
+                  </p>
+                </div>
+                <Tag
+                  color="default"
+                  className="text-[10px] font-bold uppercase"
+                >
+                  LKR
+                </Tag>
+              </div>
+              <Table
+                columns={columns}
+                dataSource={summary.monthly || []}
+                rowKey={(record, index) => index as number}
+                pagination={{
+                  pageSize: 15,
+                  position: ["bottomRight"],
+                  showSizeChanger: true,
+                }}
+                size="small"
+                scroll={{ x: "max-content" }}
+              />
+            </div>
           </div>
         )}
       </div>

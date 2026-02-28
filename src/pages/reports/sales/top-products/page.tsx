@@ -9,9 +9,10 @@ import {
   Select,
   Button,
   Space,
+  Tag,
 } from "antd";
 import React, { useState, useEffect } from "react";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
@@ -186,15 +187,21 @@ const TopSellingProductsPage = () => {
         {/* Header & Controls */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6">
           <div>
-            <h2 className="text-2xl font-bold  tracking-tight text-gray-900">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-6 rounded-full bg-emerald-600" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                Sales Analysis
+              </span>
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-gray-900 leading-none">
               Top Selling Products
             </h2>
-            <p className="text-sm text-gray-500 mt-1 font-medium">
-              View most sold products and export data.
+            <p className="text-xs text-gray-400 mt-1.5 font-mono">
+              {dateRange[0]} &nbsp;–&nbsp; {dateRange[1]}
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
+          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
                 form={form}
@@ -227,14 +234,23 @@ const TopSellingProductsPage = () => {
               </Form>
             </Card>
 
-            <button
-              onClick={exportExcel}
-              disabled={!products.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
-            >
-              <IconDownload size={16} />
-              Export
-            </button>
+            <Space>
+              <Button
+                onClick={exportExcel}
+                disabled={!products.length}
+                icon={<IconDownload size={16} />}
+              >
+                Excel
+              </Button>
+              <Button
+                onClick={() => window.print()}
+                disabled={!products.length}
+                icon={<IconFileTypePdf size={16} />}
+                danger
+              >
+                PDF
+              </Button>
+            </Space>
           </div>
         </div>
 
@@ -249,15 +265,33 @@ const TopSellingProductsPage = () => {
 
         {/* Content */}
         {!loading && (
-          <Table
-            columns={columns}
-            dataSource={products}
-            rowKey={(r: any) => r.productId + r.variantName}
-            pagination={{ pageSize: 15, position: ["bottomRight"] }}
-            className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
-            scroll={{ x: 1000 }}
-            bordered
-          />
+          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Top Products
+                </p>
+                <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                  {products.length} products found
+                </p>
+              </div>
+              <Tag color="default" className="text-[10px] font-bold uppercase">
+                LKR
+              </Tag>
+            </div>
+            <Table
+              columns={columns}
+              dataSource={products}
+              rowKey={(r: any) => r.productId + r.variantName}
+              pagination={{
+                pageSize: 15,
+                position: ["bottomRight"],
+                showSizeChanger: true,
+              }}
+              size="small"
+              scroll={{ x: "max-content" }}
+            />
+          </div>
         )}
       </div>
     </PageContainer>

@@ -24,7 +24,6 @@ import {
   IconChartBar,
 } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
-import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import {
   PieChart,
   Pie,
@@ -132,62 +131,12 @@ const ExpenseReportPage = () => {
     toast.success("Excel exported successfully");
   };
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = () => {
     if (!report || !report.expenses.length) {
       toast("No data to export");
       return;
     }
-    const toastId = toast.loading("Generating PDF…");
-    try {
-      await exportReportPDF({
-        title: "Expense Report",
-        subtitle: "Detailed breakdown of all expenses by category",
-        period: `${from} – ${to}`,
-        summaryItems: [
-          {
-            label: "Total Expenses",
-            value: `LKR ${fmt(report.summary.total)}`,
-          },
-          { label: "Transactions", value: String(report.summary.count) },
-          {
-            label: "Avg per Entry",
-            value: `LKR ${fmt(report.summary.count > 0 ? report.summary.total / report.summary.count : 0)}`,
-          },
-          ...report.summary.byCategory.slice(0, 2).map((c) => ({
-            label: c.category,
-            value: `LKR ${fmt(c.amount)}`,
-            sub: `${c.percentage.toFixed(1)}%`,
-          })),
-        ],
-        chartSpecs: [
-          { title: "Expenses by Category", elementId: "expense-pie-chart" },
-        ],
-        tables: [
-          {
-            title: "Expense Transactions",
-            columns: [
-              "Date",
-              "Category",
-              "Description",
-              "Amount (LKR)",
-              "Status",
-            ],
-            rows: report.expenses.map((e) => [
-              e.date,
-              e.category,
-              e.description,
-              `LKR ${fmt(e.amount)}`,
-              e.status,
-            ]),
-            redCols: [3],
-          },
-        ],
-        filename: `expense_report_${from}_${to}`,
-      });
-      toast.success("PDF exported!", { id: toastId });
-    } catch {
-      toast.error("PDF export failed", { id: toastId });
-    }
+    window.print();
   };
 
   const columns: ColumnsType<ExpenseItem> = [
