@@ -93,11 +93,24 @@ const SizePage: React.FC = () => {
     try {
       setSaving(true);
       if (editingSize) {
-        await api.put(`/api/v1/erp/master/sizes/${editingSize.id}`, values);
+        const res = await api.put(
+          `/api/v1/erp/master/sizes/${editingSize.id}`,
+          values,
+        );
+        const updated: Size = res.data || { ...editingSize, ...values };
+        setSizes((prev) =>
+          prev.map((s) => (s.id === updated.id ? updated : s)),
+        );
       } else {
-        await api.post("/api/v1/erp/master/sizes", values);
+        const res = await api.post("/api/v1/erp/master/sizes", values);
+        const created: Size = res.data;
+        if (created) {
+          setSizes((prev) => [created, ...prev]);
+          setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
+        } else {
+          await fetchSizes();
+        }
       }
-      await fetchSizes();
       setOpen(false);
       toast.success(editingSize ? "Size updated" : "Size added");
     } catch (e) {
@@ -116,7 +129,11 @@ const SizePage: React.FC = () => {
       onSuccess: async () => {
         try {
           await api.delete(`/api/v1/erp/master/sizes/${id}`);
-          await fetchSizes();
+          setSizes((prev) => prev.filter((s) => s.id !== id));
+          setPagination((prev) => ({
+            ...prev,
+            total: Math.max(0, prev.total - 1),
+          }));
           toast.success("Size deleted");
         } catch (e) {
           console.error("Failed to delete size", e);

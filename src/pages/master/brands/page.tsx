@@ -124,16 +124,30 @@ const BrandPage: React.FC = () => {
       if (logoFile) formData.append("logo", logoFile);
 
       if (editingBrand) {
-        await api.put(
+        const res = await api.put(
           `/api/v1/erp/master/brands/${editingBrand.id}`,
           formData,
         );
+        const updated: Brand = res.data || {
+          ...editingBrand,
+          ...values,
+          logoUrl: logoPreview,
+        };
+        setBrands((prev) =>
+          prev.map((b) => (b.id === updated.id ? updated : b)),
+        );
       } else {
-        await api.post("/api/v1/erp/master/brands", formData);
+        const res = await api.post("/api/v1/erp/master/brands", formData);
+        const created: Brand = res.data;
+        if (created) {
+          setBrands((prev) => [created, ...prev]);
+          setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
+        } else {
+          await fetchBrands();
+        }
       }
 
       toast.success(editingBrand ? "Brand updated" : "Brand added");
-      await fetchBrands();
       setOpen(false);
     } catch (e) {
       console.error("Failed to save brand", e);
@@ -151,8 +165,12 @@ const BrandPage: React.FC = () => {
       onSuccess: async () => {
         try {
           await api.delete(`/api/v1/erp/master/brands/${id}`);
+          setBrands((prev) => prev.filter((b) => b.id !== id));
+          setPagination((prev) => ({
+            ...prev,
+            total: Math.max(0, prev.total - 1),
+          }));
           toast.success("Brand deleted");
-          await fetchBrands();
         } catch (e) {
           console.error("Failed to delete brand", e);
           toast.error("Failed to delete brand");

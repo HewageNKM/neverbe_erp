@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import {
   IconFilter,
   IconDownload,
+  IconFileTypePdf,
   IconReceipt2,
   IconSettings,
   IconAlertCircle,
@@ -16,6 +17,7 @@ import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 
 interface TaxReportItem {
   date: string;
@@ -105,6 +107,60 @@ const TaxReportPage = () => {
     toast.success("Excel exported successfully");
   };
 
+  const handleExportPDF = async () => {
+    if (!report || !report.transactions.length) {
+      toast("No data to export");
+      return;
+    }
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      await exportReportPDF({
+        title: "Tax Report",
+        subtitle: "Summary of tax collected on all transactions",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          { label: "Total Orders", value: String(report.summary.totalOrders) },
+          {
+            label: "Total Sales",
+            value: `Rs ${report.summary.totalSales.toLocaleString()}`,
+          },
+          {
+            label: "Total Tax Collected",
+            value: `Rs ${report.summary.totalTaxCollected.toLocaleString()}`,
+          },
+          {
+            label: "Effective Tax Rate",
+            value: `${report.summary.effectiveTaxRate.toFixed(2)}%`,
+          },
+        ],
+        tables: [
+          {
+            title: "Tax Transactions",
+            columns: [
+              "Date",
+              "Order ID",
+              "Order Total",
+              "Taxable Amount",
+              "Tax Collected",
+            ],
+            rows: report.transactions.map((t) => [
+              t.date,
+              t.orderId,
+              `Rs ${t.orderTotal.toLocaleString()}`,
+              `Rs ${t.taxableAmount.toLocaleString()}`,
+              `Rs ${t.taxCollected.toLocaleString()}`,
+            ]),
+            greenCols: [4],
+          },
+        ],
+        filename: `tax_report_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
+  };
+
   const columns: ColumnsType<any> = [
     { title: "Date", key: "date", render: (_, t) => <>{t.date}</> },
     { title: "Order ID", key: "orderID", render: (_, t) => <>{t.orderId}</> },
@@ -164,14 +220,21 @@ const TaxReportPage = () => {
               </Form>
             </Card>
 
-            <button
+            <Button
               onClick={handleExportExcel}
               disabled={!report?.transactions.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              icon={<IconDownload size={16} />}
             >
-              <IconDownload size={16} />
-              Export
-            </button>
+              Excel
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              disabled={!report?.transactions.length}
+              icon={<IconFileTypePdf size={16} />}
+              danger
+            >
+              PDF
+            </Button>
           </div>
         </div>
 

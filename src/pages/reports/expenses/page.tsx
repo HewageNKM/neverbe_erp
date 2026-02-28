@@ -4,8 +4,9 @@ import { Button, Card, DatePicker, Form, Space, Spin, Table } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import {
   PieChart,
   Pie,
@@ -109,6 +110,54 @@ const ExpenseReportPage = () => {
     toast.success("Excel exported successfully");
   };
 
+  const handleExportPDF = async () => {
+    if (!report || !report.expenses.length) {
+      toast("No data to export");
+      return;
+    }
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      await exportReportPDF({
+        title: "Expense Report",
+        subtitle: "Detailed breakdown of all expenses by category",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          {
+            label: "Total Expenses",
+            value: `Rs ${report.summary.total.toLocaleString()}`,
+          },
+          { label: "Total Entries", value: String(report.summary.count) },
+          ...report.summary.byCategory.slice(0, 3).map((c) => ({
+            label: c.category,
+            value: `Rs ${c.amount.toLocaleString()}`,
+            sub: `${c.percentage.toFixed(1)}%`,
+          })),
+        ],
+        chartSpecs: [
+          { title: "Expenses by Category", elementId: "expense-pie-chart" },
+        ],
+        tables: [
+          {
+            title: "Expense Transactions",
+            columns: ["Date", "Category", "Description", "Amount", "Status"],
+            rows: report.expenses.map((e) => [
+              e.date,
+              e.category,
+              e.description,
+              `Rs ${e.amount.toLocaleString()}`,
+              e.status,
+            ]),
+            redCols: [3],
+          },
+        ],
+        filename: `expense_report_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
+  };
+
   const columns: ColumnsType<any> = [
     { title: "Date", key: "date", render: (_, exp) => <>{exp.date}</> },
     {
@@ -184,14 +233,21 @@ const ExpenseReportPage = () => {
               </Form>
             </Card>
 
-            <button
+            <Button
               onClick={handleExportExcel}
               disabled={!report?.expenses.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              icon={<IconDownload size={16} />}
             >
-              <IconDownload size={16} />
-              Export
-            </button>
+              Excel
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              disabled={!report?.expenses.length}
+              icon={<IconFileTypePdf size={16} />}
+              danger
+            >
+              PDF
+            </Button>
           </div>
         </div>
 
@@ -243,7 +299,10 @@ const ExpenseReportPage = () => {
             {/* Chart & Category Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Pie Chart */}
-              <div className="bg-white border border-gray-200 p-6">
+              <div
+                id="expense-pie-chart"
+                className="bg-white border border-gray-200 p-6"
+              >
                 <h3 className="text-sm font-bold   text-gray-900 mb-4">
                   By Category
                 </h3>

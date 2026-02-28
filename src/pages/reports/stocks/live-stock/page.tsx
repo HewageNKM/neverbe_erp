@@ -3,10 +3,12 @@ import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
+import toast from "react-hot-toast";
 
 export interface LiveStockItem {
   id: string;
@@ -97,6 +99,45 @@ const LiveStockPage = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Live Stock");
     XLSX.writeFile(wb, `live_stock.xlsx`);
+  };
+
+  const exportPDF = async () => {
+    if (!stock.length) return;
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      await exportReportPDF({
+        title: "Live Stock Report",
+        subtitle: "Current inventory levels across all stocks",
+        period: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        summaryItems: [
+          { label: "Total SKUs", value: String(summary.totalProducts) },
+          { label: "Total Quantity", value: String(summary.totalQuantity) },
+        ],
+        tables: [
+          {
+            title: "Inventory Stock Levels",
+            columns: ["Product", "Variant", "Size", "Stock", "Quantity"],
+            rows: stock.map((s) => [
+              s.productName,
+              s.variantName,
+              s.size,
+              s.stockName,
+              s.quantity,
+            ]),
+            boldCols: [0],
+            greenCols: [],
+          },
+        ],
+        filename: "live_stock",
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
   };
 
   const SummaryCard = ({
@@ -214,14 +255,21 @@ const LiveStockPage = () => {
               </Form>
             </Card>
 
-            <button
+            <Button
               onClick={exportExcel}
               disabled={!stock.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              icon={<IconDownload size={16} />}
             >
-              <IconDownload size={16} />
-              Export
-            </button>
+              Excel
+            </Button>
+            <Button
+              onClick={exportPDF}
+              disabled={!stock.length}
+              icon={<IconFileTypePdf size={16} />}
+              danger
+            >
+              PDF
+            </Button>
           </div>
         </div>
 

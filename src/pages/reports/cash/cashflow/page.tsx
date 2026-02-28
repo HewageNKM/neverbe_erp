@@ -4,7 +4,8 @@ import api from "@/lib/api";
 import { Button, Card, DatePicker, Form, Space, Spin, Table } from "antd";
 import React, { useState } from "react";
 import dayjs from "dayjs";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
@@ -99,6 +100,74 @@ const CashFlowPage = () => {
     toast.success("Excel exported successfully");
   };
 
+  const handleExportPDF = async () => {
+    if (!report || !report.length) {
+      toast("No data to export");
+      return;
+    }
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      const totalCashIn = report.reduce((s, d) => s + d.cashIn, 0);
+      const totalFees = report.reduce((s, d) => s + d.transactionFees, 0);
+      const totalExpenses = report.reduce((s, d) => s + d.expenses, 0);
+      const totalNetCashFlow = report.reduce((s, d) => s + d.netCashFlow, 0);
+      await exportReportPDF({
+        title: "Cashflow Report",
+        subtitle: "Daily cash in, fees, expenses, and net cash flow",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          {
+            label: "Total Cash In",
+            value: `Rs ${totalCashIn.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+          },
+          {
+            label: "Transaction Fees",
+            value: `Rs ${totalFees.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+          },
+          {
+            label: "Total Expenses",
+            value: `Rs ${totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+          },
+          {
+            label: "Net Cash Flow",
+            value: `Rs ${totalNetCashFlow.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+            sub: totalNetCashFlow >= 0 ? "Positive" : "Negative",
+          },
+        ],
+        chartSpecs: [
+          { title: "Net Cash Flow Trend", elementId: "cashflow-chart-1" },
+          { title: "Cost Breakdown", elementId: "cashflow-chart-2" },
+        ],
+        tables: [
+          {
+            title: "Daily Cashflow Breakdown",
+            columns: [
+              "Date",
+              "Orders",
+              "Cash In",
+              "Trans. Fee",
+              "Expenses",
+              "Net Cash Flow",
+            ],
+            rows: report.map((d) => [
+              d.date,
+              d.orders,
+              `Rs ${d.cashIn.toFixed(2)}`,
+              `Rs ${d.transactionFees.toFixed(2)}`,
+              `Rs ${d.expenses.toFixed(2)}`,
+              `Rs ${d.netCashFlow.toFixed(2)}`,
+            ]),
+            greenCols: [5],
+          },
+        ],
+        filename: `cashflow_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
+  };
+
   const SummaryCard = ({
     title,
     value,
@@ -181,14 +250,21 @@ const CashFlowPage = () => {
               </Form>
             </Card>
 
-            <button
+            <Button
               onClick={handleExportExcel}
               disabled={!report.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              icon={<IconDownload size={16} />}
             >
-              <IconDownload size={16} />
-              Export
-            </button>
+              Excel
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              disabled={!report.length}
+              icon={<IconFileTypePdf size={16} />}
+              danger
+            >
+              PDF
+            </Button>
           </div>
         </div>
 
@@ -228,7 +304,10 @@ const CashFlowPage = () => {
             {/* Charts */}
             {report.length > 0 && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+                <div
+                  id="cashflow-chart-1"
+                  className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm"
+                >
                   <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
                     Cash Flow Trend
                   </h3>

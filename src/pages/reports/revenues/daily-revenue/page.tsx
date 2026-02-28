@@ -5,7 +5,8 @@ import { Button, Card, DatePicker, Form, Space, Spin, Table } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
   LineChart,
@@ -126,6 +127,83 @@ const DailyRevenuePage = () => {
     toast.success("Excel exported successfully");
   };
 
+  const handleExportPDF = async () => {
+    if (!report || !report.length) {
+      toast("No data to export");
+      return;
+    }
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      const totals = report.reduce(
+        (acc, d) => ({
+          totalOrders: acc.totalOrders + (d.totalOrders || 0),
+          totalSales: acc.totalSales + (d.totalSales || 0),
+          totalNetSales: acc.totalNetSales + (d.totalNetSales || 0),
+          grossProfit: acc.grossProfit + (d.grossProfit || 0),
+          netProfit: acc.netProfit + (d.netProfit || 0),
+        }),
+        {
+          totalOrders: 0,
+          totalSales: 0,
+          totalNetSales: 0,
+          grossProfit: 0,
+          netProfit: 0,
+        },
+      );
+      await exportReportPDF({
+        title: "Daily Revenue Report",
+        subtitle: "Daily sales, revenue, profit, and cost breakdown",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          { label: "Total Orders", value: String(totals.totalOrders) },
+          { label: "Total Sales", value: `Rs ${totals.totalSales.toFixed(2)}` },
+          {
+            label: "Net Sales",
+            value: `Rs ${totals.totalNetSales.toFixed(2)}`,
+          },
+          {
+            label: "Gross Profit",
+            value: `Rs ${totals.grossProfit.toFixed(2)}`,
+          },
+          { label: "Net Profit", value: `Rs ${totals.netProfit.toFixed(2)}` },
+        ],
+        chartSpecs: [
+          {
+            title: "Revenue vs Profit Trend",
+            elementId: "daily-revenue-chart-1",
+          },
+          { title: "Cost Breakdown", elementId: "daily-revenue-chart-2" },
+        ],
+        tables: [
+          {
+            title: "Daily Revenue Breakdown",
+            columns: [
+              "Date",
+              "Orders",
+              "Total Sales",
+              "Net Sales",
+              "Gross Profit",
+              "Net Profit",
+            ],
+            rows: report.map((d) => [
+              d.date,
+              d.totalOrders || 0,
+              `Rs ${(d.totalSales || 0).toFixed(2)}`,
+              `Rs ${(d.totalNetSales || 0).toFixed(2)}`,
+              `Rs ${(d.grossProfit || 0).toFixed(2)}`,
+              `Rs ${(d.netProfit || 0).toFixed(2)}`,
+            ]),
+            greenCols: [4, 5],
+          },
+        ],
+        filename: `daily_revenue_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
+  };
+
   const SummaryCard = ({
     label,
     value,
@@ -228,14 +306,21 @@ const DailyRevenuePage = () => {
               </Form>
             </Card>
 
-            <button
+            <Button
               onClick={handleExportExcel}
               disabled={!report.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              icon={<IconDownload size={16} />}
             >
-              <IconDownload size={16} />
-              Export
-            </button>
+              Excel
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              disabled={!report.length}
+              icon={<IconFileTypePdf size={16} />}
+              danger
+            >
+              PDF
+            </Button>
           </div>
         </div>
 
@@ -305,7 +390,10 @@ const DailyRevenuePage = () => {
             {/* Charts Section */}
             {report.length > 0 && (
               <div className="space-y-6">
-                <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+                <div
+                  id="daily-revenue-chart-1"
+                  className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm"
+                >
                   <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
                     Revenue vs Profit
                   </h3>

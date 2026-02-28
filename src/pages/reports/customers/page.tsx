@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import {
   IconFilter,
   IconDownload,
+  IconFileTypePdf,
   IconUsers,
   IconUserPlus,
   IconRepeat,
@@ -29,6 +30,7 @@ import {
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 
 interface CustomerAnalytics {
   period: { from: string; to: string };
@@ -137,6 +139,65 @@ const CustomerAnalyticsPage = () => {
     XLSX.writeFile(wb, `customer_analytics_${from}_${to}.xlsx`);
     toast.success("Excel exported successfully");
   };
+
+  const handleExportPDF = async () => {
+    if (!report) {
+      toast("No data to export");
+      return;
+    }
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      await exportReportPDF({
+        title: "Customer Analytics",
+        subtitle: "Customer acquisition, retention, and spending insights",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          {
+            label: "Total Customers",
+            value: String(report.overview.totalCustomers),
+          },
+          {
+            label: "New Customers",
+            value: String(report.overview.newCustomers),
+          },
+          {
+            label: "Returning Customers",
+            value: String(report.overview.returningCustomers),
+          },
+          {
+            label: "Avg. Order Value",
+            value: `Rs ${report.overview.averageOrderValue.toLocaleString()}`,
+          },
+          {
+            label: "Orders / Customer",
+            value: String(report.overview.ordersPerCustomer),
+          },
+        ],
+        chartSpecs: [
+          { title: "Customer Trend", elementId: "customer-trend-chart" },
+        ],
+        tables: [
+          {
+            title: "Top Customers",
+            columns: ["#", "Name", "Contact", "Orders", "Total Spent"],
+            rows: report.topCustomers.map((c, i) => [
+              i + 1,
+              c.name,
+              c.email || c.phone || "-",
+              c.totalOrders,
+              `Rs ${c.totalSpent.toLocaleString()}`,
+            ]),
+            greenCols: [4],
+            boldCols: [1],
+          },
+        ],
+        filename: `customer_analytics_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
+  };
   const columns: ColumnsType<any> = [
     {
       title: "#",
@@ -205,14 +266,21 @@ const CustomerAnalyticsPage = () => {
               </Form>
             </Card>
 
-            <button
+            <Button
               onClick={handleExportExcel}
               disabled={!report}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              icon={<IconDownload size={16} />}
             >
-              <IconDownload size={16} />
-              Export
-            </button>
+              Excel
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              disabled={!report}
+              icon={<IconFileTypePdf size={16} />}
+              danger
+            >
+              PDF
+            </Button>
           </div>
         </div>
 
@@ -282,7 +350,10 @@ const CustomerAnalyticsPage = () => {
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* New vs Returning */}
-              <div className="bg-white border border-gray-200 p-6">
+              <div
+                id="customer-trend-chart"
+                className="bg-white border border-gray-200 p-6"
+              >
                 <h3 className="text-sm font-bold   text-gray-900 mb-4">
                   New vs Returning Customers
                 </h3>

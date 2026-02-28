@@ -4,7 +4,8 @@ import api from "@/lib/api";
 import { Button, Card, DatePicker, Form, Space, Spin, Table } from "antd";
 import React, { useState, useEffect } from "react";
 import dayjs from "dayjs";
-import { IconFilter } from "@tabler/icons-react";
+import { IconFilter, IconFileTypePdf } from "@tabler/icons-react";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
   BarChart,
@@ -148,6 +149,71 @@ export default function MonthlyRevenuePage() {
   const safeMoney = (v?: number) => `Rs ${Number(v ?? 0).toFixed(2)}`;
   const safePercent = (v?: number) => `${Number(v ?? 0).toFixed(2)}%`;
 
+  const handleExportPDF = async () => {
+    if (!rows.length || !summary) {
+      toast.error("No data to export");
+      return;
+    }
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      await exportReportPDF({
+        title: "Monthly Revenue Report",
+        subtitle: "Monthly sales, revenue, gross profit, and net profit",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          { label: "Total Orders", value: String(summary.totalOrders ?? 0) },
+          { label: "Total Sales", value: safeMoney(summary.totalSales) },
+          { label: "Net Sales", value: safeMoney(summary.totalNetSales) },
+          {
+            label: "Gross Profit",
+            value: safeMoney(summary.grossProfit),
+            sub: safePercent(summary.grossProfitMargin),
+          },
+          {
+            label: "Net Profit",
+            value: safeMoney(summary.netProfit),
+            sub: safePercent(summary.netProfitMargin),
+          },
+        ],
+        chartSpecs: [
+          {
+            title: "Revenue vs Profit Trend",
+            elementId: "monthly-revenue-chart-1",
+          },
+          { title: "Cost Breakdown", elementId: "monthly-revenue-chart-2" },
+        ],
+        tables: [
+          {
+            title: "Monthly Revenue Breakdown",
+            columns: [
+              "Month",
+              "Orders",
+              "Total Sales",
+              "Net Sales",
+              "Gross Profit",
+              "Net Profit",
+              "Net Margin",
+            ],
+            rows: rows.map((r) => [
+              r.month ?? "",
+              r.totalOrders ?? 0,
+              safeMoney(r.totalSales),
+              safeMoney(r.totalNetSales),
+              safeMoney(r.grossProfit),
+              safeMoney(r.netProfit),
+              safePercent(r.netProfitMargin),
+            ]),
+            greenCols: [4, 5],
+          },
+        ],
+        filename: `monthly_revenue_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
+  };
+
   const SummaryCard = ({
     label,
     value,
@@ -262,6 +328,14 @@ export default function MonthlyRevenuePage() {
                 </Form.Item>
               </Form>
             </Card>
+            <Button
+              onClick={handleExportPDF}
+              disabled={!rows.length}
+              icon={<IconFileTypePdf size={16} />}
+              danger
+            >
+              PDF
+            </Button>
           </div>
         </div>
 
@@ -329,7 +403,10 @@ export default function MonthlyRevenuePage() {
             {/* Charts Section */}
             {rows.length > 0 && (
               <div className="space-y-6">
-                <div className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+                <div
+                  id="monthly-revenue-chart-1"
+                  className="bg-white border border-gray-200 p-6 rounded-lg shadow-sm"
+                >
                   <h3 className="text-sm font-bold   text-gray-900 mb-6 border-b border-gray-100 pb-2">
                     Revenue vs Profit
                   </h3>

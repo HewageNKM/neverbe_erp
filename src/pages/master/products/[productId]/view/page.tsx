@@ -5,7 +5,7 @@ import {
   Tag,
   Table,
   Image,
-  Skeleton,
+  Spin,
   Badge,
   Button,
   Empty,
@@ -139,16 +139,8 @@ const ProductViewPage = () => {
   if (loading) {
     return (
       <PageContainer title="Loading Product...">
-        <div className="space-y-6">
-          <Skeleton active paragraph={{ rows: 1 }} />
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-5">
-              <Skeleton.Image active className="!w-full !h-96 rounded-xl" />
-            </div>
-            <div className="lg:col-span-7">
-              <Skeleton active paragraph={{ rows: 10 }} />
-            </div>
-          </div>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <Spin size="large" tip="Loading product details..." />
         </div>
       </PageContainer>
     );

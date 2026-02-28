@@ -111,15 +111,28 @@ const CategoryPage: React.FC = () => {
       };
 
       if (editingCategory) {
-        await api.put(
+        const res = await api.put(
           `/api/v1/erp/master/categories/${editingCategory.id}`,
           payload,
         );
+        const updated: Category = res.data || {
+          ...editingCategory,
+          ...payload,
+        };
+        setCategories((prev) =>
+          prev.map((c) => (c.id === updated.id ? updated : c)),
+        );
       } else {
-        await api.post("/api/v1/erp/master/categories", payload);
+        const res = await api.post("/api/v1/erp/master/categories", payload);
+        const created: Category = res.data;
+        if (created) {
+          setCategories((prev) => [created, ...prev]);
+          setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
+        } else {
+          await fetchCategories();
+        }
       }
 
-      await fetchCategories();
       setOpen(false);
       toast.success(editingCategory ? "Category updated" : "Category added");
     } catch (e: unknown) {
@@ -142,7 +155,11 @@ const CategoryPage: React.FC = () => {
       onSuccess: async () => {
         try {
           await api.delete(`/api/v1/erp/master/categories/${id}`);
-          await fetchCategories();
+          setCategories((prev) => prev.filter((c) => c.id !== id));
+          setPagination((prev) => ({
+            ...prev,
+            total: Math.max(0, prev.total - 1),
+          }));
           toast.success("Category deleted");
         } catch {
           toast.error("Failed to delete category");

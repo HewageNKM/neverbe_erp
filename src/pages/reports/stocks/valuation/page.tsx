@@ -3,10 +3,12 @@ import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
+import toast from "react-hot-toast";
 
 const StockValuationPage = () => {
   const [form] = Form.useForm();
@@ -81,6 +83,60 @@ const StockValuationPage = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Stock Valuation");
     XLSX.writeFile(wb, `stock_valuation.xlsx`);
+    toast.success("Excel exported!");
+  };
+
+  const exportPDF = async () => {
+    if (!stockList.length) return;
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      await exportReportPDF({
+        title: "Stock Valuation Report",
+        subtitle: "Total inventory value at buying price",
+        period: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        summaryItems: [
+          { label: "Total SKUs", value: String(summary.totalProducts) },
+          { label: "Total Quantity", value: String(summary.totalQuantity) },
+          {
+            label: "Total Valuation",
+            value: `Rs ${summary.totalValuation.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+          },
+        ],
+        tables: [
+          {
+            title: "Stock Valuation by Product",
+            columns: [
+              "Product",
+              "Variant",
+              "Size",
+              "Stock",
+              "Qty",
+              "Buy Price",
+              "Valuation",
+            ],
+            rows: stockList.map((s) => [
+              s.productName,
+              s.variantName,
+              s.size,
+              s.stockName,
+              s.quantity,
+              `Rs ${s.buyingPrice.toFixed(2)}`,
+              `Rs ${s.valuation.toFixed(2)}`,
+            ]),
+            boldCols: [0],
+            greenCols: [6],
+          },
+        ],
+        filename: "stock_valuation_report",
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
   };
 
   const SummaryCard = ({
@@ -220,14 +276,21 @@ const StockValuationPage = () => {
               </Form>
             </Card>
 
-            <button
+            <Button
               onClick={exportExcel}
               disabled={!stockList.length}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              icon={<IconDownload size={16} />}
             >
-              <IconDownload size={16} />
-              Export
-            </button>
+              Excel
+            </Button>
+            <Button
+              onClick={exportPDF}
+              disabled={!stockList.length}
+              icon={<IconFileTypePdf size={16} />}
+              danger
+            >
+              PDF
+            </Button>
           </div>
         </div>
 

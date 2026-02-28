@@ -4,11 +4,12 @@ import { Button, Card, DatePicker, Form, Space, Spin } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
-import { IconFilter, IconDownload } from "@tabler/icons-react";
+import { IconFilter, IconDownload, IconFileTypePdf } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
 
 interface ProfitLossStatement {
   period: { from: string; to: string };
@@ -137,6 +138,104 @@ const ProfitLossPage = () => {
     toast.success("Excel exported successfully");
   };
 
+  const handleExportPDF = async () => {
+    if (!report) {
+      toast("No data to export");
+      return;
+    }
+    const toastId = toast.loading("Generating PDF…");
+    try {
+      await exportReportPDF({
+        title: "Profit & Loss Statement",
+        subtitle: "Financial performance summary",
+        period: `${from} – ${to}`,
+        summaryItems: [
+          {
+            label: "Total Revenue",
+            value: `Rs ${report.revenue.totalRevenue.toLocaleString()}`,
+          },
+          {
+            label: "Gross Profit",
+            value: `Rs ${report.grossProfit.toLocaleString()}`,
+            sub: `${report.grossProfitMargin.toFixed(1)}% margin`,
+          },
+          {
+            label: "Net Profit",
+            value: `Rs ${report.netProfit.toLocaleString()}`,
+            sub: `${report.netProfitMargin.toFixed(1)}% margin`,
+          },
+          {
+            label: "Operating Expenses",
+            value: `Rs ${report.operatingExpenses.totalExpenses.toLocaleString()}`,
+          },
+        ],
+        tables: [
+          {
+            title: "Profit & Loss Summary",
+            columns: ["Line Item", "Amount (Rs)"],
+            boldCols: [0],
+            rows: [
+              ["REVENUE", ""],
+              ["Gross Sales", report.revenue.grossSales.toLocaleString()],
+              [
+                "Less: Discounts",
+                `-${report.revenue.discounts.toLocaleString()}`,
+              ],
+              ["Net Sales", report.revenue.netSales.toLocaleString()],
+              [
+                "Shipping Income",
+                report.revenue.shippingIncome.toLocaleString(),
+              ],
+              ["Total Revenue", report.revenue.totalRevenue.toLocaleString()],
+              ["", ""],
+              ["COST OF GOODS SOLD", ""],
+              [
+                "Product Cost",
+                report.costOfGoodsSold.productCost.toLocaleString(),
+              ],
+              ["Total COGS", report.costOfGoodsSold.totalCOGS.toLocaleString()],
+              ["", ""],
+              [
+                "GROSS PROFIT",
+                `Rs ${report.grossProfit.toLocaleString()} (${report.grossProfitMargin.toFixed(1)}%)`,
+              ],
+              ["", ""],
+              ["OPERATING EXPENSES", ""],
+              ...report.operatingExpenses.byCategory.map((e) => [
+                e.category,
+                e.amount.toLocaleString(),
+              ]),
+              [
+                "Total Operating Expenses",
+                report.operatingExpenses.totalExpenses.toLocaleString(),
+              ],
+              ["", ""],
+              ["OPERATING INCOME", report.operatingIncome.toLocaleString()],
+              ["", ""],
+              [
+                "Transaction Fees",
+                report.otherExpenses.transactionFees.toLocaleString(),
+              ],
+              [
+                "Total Other Expenses",
+                report.otherExpenses.totalOther.toLocaleString(),
+              ],
+              ["", ""],
+              [
+                "NET PROFIT",
+                `Rs ${report.netProfit.toLocaleString()} (${report.netProfitMargin.toFixed(1)}%)`,
+              ],
+            ],
+          },
+        ],
+        filename: `pnl_statement_${from}_${to}`,
+      });
+      toast.success("PDF exported!", { id: toastId });
+    } catch {
+      toast.error("PDF export failed", { id: toastId });
+    }
+  };
+
   const LineItem = ({
     label,
     value,
@@ -225,14 +324,21 @@ const ProfitLossPage = () => {
               </Form>
             </Card>
 
-            <button
+            <Button
               onClick={handleExportExcel}
               disabled={!report}
-              className="px-6 py-2 bg-white border border-gray-300 text-gray-900 text-xs font-bold   rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              icon={<IconDownload size={16} />}
             >
-              <IconDownload size={16} />
-              Export
-            </button>
+              Excel
+            </Button>
+            <Button
+              onClick={handleExportPDF}
+              disabled={!report}
+              icon={<IconFileTypePdf size={16} />}
+              danger
+            >
+              PDF
+            </Button>
           </div>
         </div>
 

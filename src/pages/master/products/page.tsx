@@ -177,14 +177,20 @@ const ProductPage = () => {
       }
 
       if (isEditing) {
-        await api.put(url, formData);
+        const res = await api.put(url, formData);
+        const updated: Product = res.data || productData;
+        setProducts((prev) =>
+          prev.map((p) => (p.productId === updated.productId ? updated : p)),
+        );
       } else {
-        await api.post(url, formData);
+        const res = await api.post(url, formData);
+        const created: Product = res.data || productData;
+        setProducts((prev) => [created, ...prev]);
+        setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
       }
 
       toast.success(isEditing ? "Product updated" : "Product created");
       handleCloseModal();
-      fetchProducts();
     } catch (error: unknown) {
       const err = error as Error;
       toast.error(err.message || "Error saving product");
@@ -202,8 +208,12 @@ const ProductPage = () => {
         setLoading(true);
         try {
           await api.delete(`/api/v1/erp/master/products/${itemId}`);
+          setProducts((prev) => prev.filter((p) => p.productId !== itemId));
+          setPagination((prev) => ({
+            ...prev,
+            total: Math.max(0, prev.total - 1),
+          }));
           toast.success("Product deleted");
-          fetchProducts();
         } catch (error: unknown) {
           const err = error as Error;
           toast.error(err.message || "Error deleting product");
