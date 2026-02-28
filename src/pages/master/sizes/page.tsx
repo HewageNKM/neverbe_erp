@@ -62,7 +62,7 @@ const SizePage: React.FC = () => {
       };
       if (search) params.search = search;
       if (status !== "all") params.status = status;
-      const { data } = await api.get("/api/v1/erp/catalog/sizes", { params });
+      const { data } = await api.get("/api/v1/erp/master/sizes", { params });
       setSizes(data.dataList || []);
       setPagination((prev) => ({ ...prev, total: data.rowCount }));
     } catch (e) {
@@ -93,9 +93,9 @@ const SizePage: React.FC = () => {
     try {
       setSaving(true);
       if (editingSize) {
-        await api.put(`/api/v1/erp/catalog/sizes/${editingSize.id}`, values);
+        await api.put(`/api/v1/erp/master/sizes/${editingSize.id}`, values);
       } else {
-        await api.post("/api/v1/erp/catalog/sizes", values);
+        await api.post("/api/v1/erp/master/sizes", values);
       }
       await fetchSizes();
       setOpen(false);
@@ -115,7 +115,7 @@ const SizePage: React.FC = () => {
       variant: "danger",
       onSuccess: async () => {
         try {
-          await api.delete(`/api/v1/erp/catalog/sizes/${id}`);
+          await api.delete(`/api/v1/erp/master/sizes/${id}`);
           await fetchSizes();
           toast.success("Size deleted");
         } catch (e) {

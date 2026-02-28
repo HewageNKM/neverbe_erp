@@ -48,7 +48,7 @@ const ProductViewPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await api.get(`/api/v1/erp/catalog/products/${id}`);
+        const response = await api.get(`/api/v1/erp/master/products/${id}`);
         if (response.data) {
           const prod: Product = response.data;
           setProduct(prod);
@@ -172,27 +172,7 @@ const ProductViewPage = () => {
       description={`Details for ${product.name}`}
     >
       <div className="space-y-8">
-        {/* Breadcrumb Navigation */}
-        <div className="flex items-center gap-2 text-gray-500 text-sm">
-          <Link
-            to="/master/products"
-            className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
-          >
-            Catalog
-          </Link>
-          <span className="text-gray-300">/</span>
-          <Link
-            to="/master/products"
-            className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
-          >
-            Products
-          </Link>
-          <span className="text-gray-300">/</span>
-          <Text strong className="text-gray-700">
-            {product.name}
-          </Text>
-        </div>
-
+        {" "}
         {/* Header & Main Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
           <div className="flex items-center gap-4">
@@ -238,7 +218,6 @@ const ProductViewPage = () => {
             </Button>
           </div>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column: Media & Primary Info (Lg: 5/12) */}
           <div className="lg:col-span-5 space-y-8">

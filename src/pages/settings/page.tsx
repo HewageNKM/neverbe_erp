@@ -58,7 +58,7 @@ const SettingPage = () => {
       setLoading(true);
       const [settingsRes, stocksRes] = await Promise.all([
         api.get("/api/v1/erp/settings/erp"),
-        api.get("/api/v1/erp/catalog/stocks/dropdown"),
+        api.get("/api/v1/erp/master/stocks/dropdown"),
       ]);
       const settingsData = settingsRes.data;
       const stocksData = stocksRes.data;

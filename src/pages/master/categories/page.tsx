@@ -66,7 +66,7 @@ const CategoryPage: React.FC = () => {
       if (search) params.search = search;
       if (status !== "all") params.status = status;
 
-      const { data } = await api.get("/api/v1/erp/catalog/categories", {
+      const { data } = await api.get("/api/v1/erp/master/categories", {
         params,
       });
       setCategories(data.dataList || []);
@@ -112,11 +112,11 @@ const CategoryPage: React.FC = () => {
 
       if (editingCategory) {
         await api.put(
-          `/api/v1/erp/catalog/categories/${editingCategory.id}`,
+          `/api/v1/erp/master/categories/${editingCategory.id}`,
           payload,
         );
       } else {
-        await api.post("/api/v1/erp/catalog/categories", payload);
+        await api.post("/api/v1/erp/master/categories", payload);
       }
 
       await fetchCategories();
@@ -141,7 +141,7 @@ const CategoryPage: React.FC = () => {
       variant: "danger",
       onSuccess: async () => {
         try {
-          await api.delete(`/api/v1/erp/catalog/categories/${id}`);
+          await api.delete(`/api/v1/erp/master/categories/${id}`);
           await fetchCategories();
           toast.success("Category deleted");
         } catch {
@@ -225,7 +225,7 @@ const CategoryPage: React.FC = () => {
             <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
-                Catalog Configuration
+                Master Data Configuration
               </span>
               <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
                 Categories

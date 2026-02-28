@@ -103,10 +103,10 @@ const NewPOModal: React.FC<NewPOModalProps> = ({
           api.get<Supplier[]>(
             "/api/v1/erp/procurement/suppliers?dropdown=true",
           ),
-          api.get<Product[]>("/api/v1/erp/catalog/products/dropdown"),
-          api.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown"),
+          api.get<Product[]>("/api/v1/erp/master/products/dropdown"),
+          api.get<Stock[]>("/api/v1/erp/master/stocks/dropdown"),
           api.get<{ id: string; label: string }[]>(
-            "/api/v1/erp/catalog/sizes/dropdown",
+            "/api/v1/erp/master/sizes/dropdown",
           ),
         ]);
       setSuppliers(suppliersRes.data);
@@ -158,7 +158,7 @@ const NewPOModal: React.FC<NewPOModalProps> = ({
       if (selectedProduct) {
         try {
           const variantsRes = await api.get<Variant[]>(
-            `/api/v1/erp/catalog/products/${selectedProduct}/variants/dropdown`,
+            `/api/v1/erp/master/products/${selectedProduct}/variants/dropdown`,
           );
           setAvailableVariants(variantsRes.data || []);
         } catch (e) {

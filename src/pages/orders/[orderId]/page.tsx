@@ -40,19 +40,6 @@ const OrderEditPage = () => {
     }
   };
 
-  // Breadcrumb Component
-  const BreadcrumbNav = () => (
-    <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 font-medium  tracking-wide">
-      <Link to="/orders" className="hover:text-black transition-colors">
-        Orders
-      </Link>
-      <span>/</span>
-      <span className="text-black font-bold">
-        Edit Order #{order?.orderId || param.orderId}
-      </span>
-    </div>
-  );
-
   if (!order) {
     return (
       <PageContainer title="Edit Order">
@@ -80,7 +67,6 @@ const OrderEditPage = () => {
 
   return (
     <PageContainer title={`Edit Order #${order.orderId}`} loading={loading}>
-      <BreadcrumbNav />
       <div className="w-full flex flex-col gap-8">
         <OrderEditForm order={order} onRefresh={fetchOrder} />
         <OrderExchangeHistory orderId={order.orderId} />

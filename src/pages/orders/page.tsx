@@ -56,7 +56,7 @@ const OrdersPage = () => {
   const fetchDropdownData = async () => {
     try {
       const [stocksRes, pmRes] = await Promise.all([
-        api.get("/api/v1/erp/catalog/stocks/dropdown"),
+        api.get("/api/v1/erp/master/stocks/dropdown"),
         api.get("/api/v1/erp/finance/payment-methods"),
       ]);
       setStocks(stocksRes.data);

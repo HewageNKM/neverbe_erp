@@ -123,7 +123,7 @@ const NewGRNModal: React.FC<NewGRNModalProps> = ({
         api.get<PurchaseOrder[]>(
           "/api/v1/erp/procurement/purchase-orders?pending=true",
         ),
-        api.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown"),
+        api.get<Stock[]>("/api/v1/erp/master/stocks/dropdown"),
       ]);
       setPendingPOs(posRes.data);
       setStocks(stocksRes.data);

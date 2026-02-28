@@ -111,10 +111,10 @@ const CouponFormModal: React.FC<Props> = ({
       };
 
       if (isEditing && coupon) {
-        await api.put(`/api/v1/erp/catalog/coupons/${coupon.id}`, payload);
+        await api.put(`/api/v1/erp/master/coupons/${coupon.id}`, payload);
         toast.success("COUPON UPDATED");
       } else {
-        await api.post("/api/v1/erp/catalog/coupons", payload);
+        await api.post("/api/v1/erp/master/coupons", payload);
         toast.success("COUPON CREATED");
       }
       onSave();

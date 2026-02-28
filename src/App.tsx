@@ -17,7 +17,7 @@ const OrderInvoice = lazy(
   () => import("@/pages/orders/[orderId]/invoice/page"),
 );
 
-// Master / Catalog
+// Master Data
 const Products = lazy(() => import("@/pages/master/products/page"));
 const ProductView = lazy(
   () => import("@/pages/master/products/[productId]/view/page"),
@@ -161,7 +161,7 @@ export default function App() {
           <Route path="orders/:orderId/view" element={<OrderView />} />
           <Route path="orders/:orderId/invoice" element={<OrderInvoice />} />
 
-          {/* Master / Catalog */}
+          {/* Master Data */}
           <Route path="master/products" element={<Products />} />
           <Route
             path="master/products/:productId/view"

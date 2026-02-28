@@ -34,7 +34,7 @@ const StockValuationPage = () => {
   // Fetch stock options for dropdown
   const fetchStocksDropdown = async () => {
     try {
-      const res = await api.get("/api/v1/erp/catalog/stocks/dropdown");
+      const res = await api.get("/api/v1/erp/master/stocks/dropdown");
       setStocksDropdown(res.data || []);
     } catch (err) {
       console.error(err);

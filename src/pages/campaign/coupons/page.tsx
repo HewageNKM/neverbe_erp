@@ -1,13 +1,9 @@
-import { Button } from "antd";
+import { Button, Form, Card, Input, Select, Space } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import PageContainer from "../../components/container/PageContainer";
-import {
-  IconPlus,
-  IconChevronLeft,
-  IconChevronRight,
-} from "@tabler/icons-react";
+import { IconPlus, IconX, IconFilter, IconSearch } from "@tabler/icons-react";
 import { Coupon } from "@/model/Coupon";
 import CouponListTable from "./components/CouponListTable";
 import CouponFormModal from "./components/CouponFormModal"; // Will create next
@@ -18,35 +14,66 @@ import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 const CouponsPage = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({ page: 1, size: 20, total: 0 });
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 20,
+    total: 0,
+  });
+  const [form] = Form.useForm();
   const { currentUser } = useAppSelector((state) => state.authSlice);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Coupon | null>(null);
   const { showConfirmation } = useConfirmationDialog();
 
+  const fetchCoupons = React.useCallback(
+    async (filters: any = {}) => {
+      setLoading(true);
+      try {
+        const params: any = {
+          page: pagination.current,
+          size: pagination.pageSize,
+          ...filters,
+        };
+
+        const response = await api.get("/api/v1/erp/master/coupons", {
+          params,
+        });
+
+        setCoupons(response.data.dataList || []);
+        setPagination((prev) => ({
+          ...prev,
+          total: response.data.rowCount || 0,
+        }));
+      } catch (e: any) {
+        console.error("Failed to fetch coupons", e);
+        toast.error("Failed to fetch coupons");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [pagination.current, pagination.pageSize],
+  );
+
   useEffect(() => {
     if (!currentUser) return;
-    fetchCoupons();
-  }, [pagination.page, currentUser]);
+    fetchCoupons(form.getFieldsValue());
+  }, [currentUser, pagination.current, pagination.pageSize, fetchCoupons]);
 
-  const fetchCoupons = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get("/api/v1/erp/catalog/coupons", {
-        params: { page: pagination.page, size: pagination.size },
-      });
-
-      setCoupons(response.data.dataList || []);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.data.rowCount || 0,
-      }));
-    } catch (e: any) {
-      console.error("Failed to fetch coupons", e);
-      toast.error("Failed to fetch coupons");
-    } finally {
-      setLoading(false);
+  const handleFilterSubmit = (values: any) => {
+    if (pagination.current === 1) {
+      fetchCoupons(values);
+    } else {
+      setPagination((prev) => ({ ...prev, current: 1 }));
     }
+  };
+
+  const handleClearFilters = () => {
+    form.resetFields();
+    handleFilterSubmit({});
+  };
+
+  const handleTableChange = (newPagination: any) => {
+    setPagination(newPagination);
   };
 
   const handleOpenCreateModal = () => {
@@ -77,7 +104,7 @@ const CouponsPage = () => {
       confirmText: "Delete",
       onSuccess: async () => {
         try {
-          await api.delete(`/api/v1/erp/catalog/coupons/${item.id}`);
+          await api.delete(`/api/v1/erp/master/coupons/${item.id}`);
           toast.success("Coupon deleted");
           fetchCoupons();
         } catch (e) {
@@ -115,46 +142,59 @@ const CouponsPage = () => {
           </Button>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-transparent space-y-4">
+          <Card size="small" className="shadow-sm mb-4!">
+            <Form
+              form={form}
+              layout="inline"
+              onFinish={handleFilterSubmit}
+              initialValues={{
+                status: "all",
+              }}
+              className="flex flex-wrap gap-2 w-full"
+            >
+              <Form.Item name="search" className="mb-0! flex-1 min-w-[160px]">
+                <Input
+                  prefix={<IconSearch size={15} className="text-gray-400" />}
+                  placeholder="Search coupons..."
+                  allowClear
+                />
+              </Form.Item>
+              <Form.Item name="status" className="mb-0! w-32">
+                <Select>
+                  <Select.Option value="all">All Status</Select.Option>
+                  <Select.Option value="true">Active</Select.Option>
+                  <Select.Option value="false">Inactive</Select.Option>
+                </Select>
+              </Form.Item>
+              <Form.Item className="mb-0!">
+                <Space>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    icon={<IconFilter size={15} />}
+                  >
+                    Filter
+                  </Button>
+                  <Button
+                    icon={<IconX size={15} />}
+                    onClick={handleClearFilters}
+                  >
+                    Clear
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Card>
+
           <CouponListTable
             items={coupons}
             loading={loading}
+            pagination={pagination}
+            onChange={handleTableChange}
             onEdit={handleOpenEditModal}
             onDelete={handleDelete}
           />
-
-          {/* Pagination */}
-          <div className="flex justify-end mt-6">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() =>
-                  setPagination((prev) => ({
-                    ...prev,
-                    page: Math.max(1, prev.page - 1),
-                  }))
-                }
-                disabled={pagination.page === 1 || loading}
-                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
-              >
-                <IconChevronLeft size={18} />
-              </button>
-              <span className="text-sm font-bold text-gray-700 px-4">
-                Page {pagination.page}
-              </span>
-              <button
-                onClick={() =>
-                  setPagination((prev) => ({
-                    ...prev,
-                    page: prev.page + 1,
-                  }))
-                }
-                disabled={loading || coupons.length < pagination.size}
-                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
-              >
-                <IconChevronRight size={18} />
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 

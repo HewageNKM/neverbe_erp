@@ -70,7 +70,7 @@ const BrandPage: React.FC = () => {
       if (search) params.search = search;
       if (status !== "all") params.status = status;
 
-      const { data } = await api.get("/api/v1/erp/catalog/brands", { params });
+      const { data } = await api.get("/api/v1/erp/master/brands", { params });
       setBrands(data.dataList || []);
       setPagination((prev) => ({ ...prev, total: data.rowCount }));
     } catch (e) {
@@ -125,11 +125,11 @@ const BrandPage: React.FC = () => {
 
       if (editingBrand) {
         await api.put(
-          `/api/v1/erp/catalog/brands/${editingBrand.id}`,
+          `/api/v1/erp/master/brands/${editingBrand.id}`,
           formData,
         );
       } else {
-        await api.post("/api/v1/erp/catalog/brands", formData);
+        await api.post("/api/v1/erp/master/brands", formData);
       }
 
       toast.success(editingBrand ? "Brand updated" : "Brand added");
@@ -150,7 +150,7 @@ const BrandPage: React.FC = () => {
       variant: "danger",
       onSuccess: async () => {
         try {
-          await api.delete(`/api/v1/erp/catalog/brands/${id}`);
+          await api.delete(`/api/v1/erp/master/brands/${id}`);
           toast.success("Brand deleted");
           await fetchBrands();
         } catch (e) {

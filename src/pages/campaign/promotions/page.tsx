@@ -1,15 +1,9 @@
-import { Button } from "antd";
+import { Button, Form, Card, Input, Select, Space } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect } from "react";
 import PageContainer from "../../components/container/PageContainer";
-import {
-  IconPlus,
-  IconChevronLeft,
-  IconChevronRight,
-  IconX,
-  IconFilter,
-} from "@tabler/icons-react";
+import { IconPlus, IconX, IconFilter, IconSearch } from "@tabler/icons-react";
 import { Promotion } from "@/model/Promotion";
 import PromotionListTable from "./components/PromotionListTable";
 import PromotionFormModal from "./components/PromotionFormModal"; // Will create next
@@ -20,44 +14,68 @@ import { useConfirmationDialog } from "@/contexts/ConfirmationDialogContext";
 const PromotionsPage = () => {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({ page: 1, size: 20, total: 0 });
-  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 20,
+    total: 0,
+  });
+  const [form] = Form.useForm();
   const { currentUser } = useAppSelector((state) => state.authSlice);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Promotion | null>(null);
   const { showConfirmation } = useConfirmationDialog();
 
-  const fetchPromotions = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: any = {
-        page: pagination.page,
-        size: pagination.size,
-      };
-      if (filterStatus) params.status = filterStatus;
+  const fetchPromotions = React.useCallback(
+    async (filters: any = {}) => {
+      setLoading(true);
+      try {
+        const params: any = {
+          page: pagination.current,
+          size: pagination.pageSize,
+          ...filters,
+        };
 
-      const response = await api.get("/api/v1/erp/catalog/promotions", {
-        params,
-      });
+        const response = await api.get("/api/v1/erp/master/promotions", {
+          params,
+        });
 
-      setPromotions(response.data.dataList || []);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.data.rowCount || 0,
-      }));
-    } catch (e: any) {
-      console.error("Failed to fetch promotions", e);
-      toast.error("Failed to fetch promotions");
-    } finally {
-      setLoading(false);
-    }
-  }, [pagination.page, pagination.size, filterStatus]);
+        setPromotions(response.data.dataList || []);
+        setPagination((prev) => ({
+          ...prev,
+          total: response.data.rowCount || 0,
+        }));
+      } catch (e: any) {
+        console.error("Failed to fetch promotions", e);
+        toast.error("Failed to fetch promotions");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [pagination.current, pagination.pageSize],
+  );
 
   useEffect(() => {
     if (!currentUser) return;
-    fetchPromotions();
-  }, [currentUser, fetchPromotions]);
+    fetchPromotions(form.getFieldsValue());
+  }, [currentUser, pagination.current, pagination.pageSize, fetchPromotions]);
+
+  const handleFilterSubmit = (values: any) => {
+    if (pagination.current === 1) {
+      fetchPromotions(values);
+    } else {
+      setPagination((prev) => ({ ...prev, current: 1 }));
+    }
+  };
+
+  const handleClearFilters = () => {
+    form.resetFields();
+    handleFilterSubmit({});
+  };
+
+  const handleTableChange = (newPagination: any) => {
+    setPagination(newPagination);
+  };
 
   const handleOpenCreateModal = () => {
     setEditingItem(null);
@@ -87,7 +105,7 @@ const PromotionsPage = () => {
       confirmText: "Delete",
       onSuccess: async () => {
         try {
-          await api.delete(`/api/v1/erp/catalog/promotions/${item.id}`);
+          await api.delete(`/api/v1/erp/master/promotions/${item.id}`);
           toast.success("Promotion deleted");
           fetchPromotions();
         } catch (e) {
@@ -99,7 +117,10 @@ const PromotionsPage = () => {
   };
 
   return (
-    <PageContainer title="Promotions" description="Catalog Sales & Discounts">
+    <PageContainer
+      title="Promotions"
+      description="Master Data Sales & Discounts"
+    >
       <div className="space-y-6">
         {/* PREMIUM HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
@@ -125,66 +146,72 @@ const PromotionsPage = () => {
           </Button>
         </div>
 
-        <div className="bg-transparent space-y-6">
-          {/* Filters */}
-          <div className="flex items-center gap-3">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 h-11 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 bg-white min-w-[150px]"
+        <div className="bg-transparent space-y-4">
+          {/* Filter bar */}
+          <Card size="small" className="shadow-sm mb-4!">
+            <Form
+              form={form}
+              layout="inline"
+              onFinish={handleFilterSubmit}
+              initialValues={{
+                status: "all",
+                type: "all",
+              }}
+              className="flex flex-wrap gap-2 w-full"
             >
-              <option value="">All Statuses</option>
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
-            </select>
-            <Button
-              icon={<IconX size={18} />}
-              onClick={() => setFilterStatus("")}
-              className="rounded-xl h-11 px-4 flex items-center gap-2"
-            >
-              Clear
-            </Button>
-          </div>
+              <Form.Item name="search" className="mb-0! flex-1 min-w-[160px]">
+                <Input
+                  prefix={<IconSearch size={15} className="text-gray-400" />}
+                  placeholder="Search promotions..."
+                  allowClear
+                />
+              </Form.Item>
+              <Form.Item name="type" className="mb-0! w-40">
+                <Select>
+                  <Select.Option value="all">All Types</Select.Option>
+                  <Select.Option value="BOGO">BOGO</Select.Option>
+                  <Select.Option value="FIXED">Fixed</Select.Option>
+                  <Select.Option value="PERCENTAGE">Percentage</Select.Option>
+                  <Select.Option value="FREE_SHIPPING">
+                    Free Shipping
+                  </Select.Option>
+                </Select>
+              </Form.Item>
+              <Form.Item name="status" className="mb-0! w-32">
+                <Select>
+                  <Select.Option value="all">All Status</Select.Option>
+                  <Select.Option value="true">Active</Select.Option>
+                  <Select.Option value="false">Inactive</Select.Option>
+                </Select>
+              </Form.Item>
+              <Form.Item className="mb-0!">
+                <Space>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    icon={<IconFilter size={15} />}
+                  >
+                    Filter
+                  </Button>
+                  <Button
+                    icon={<IconX size={15} />}
+                    onClick={handleClearFilters}
+                  >
+                    Clear
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Card>
 
           <PromotionListTable
             items={promotions}
             loading={loading}
+            pagination={pagination}
+            onChange={handleTableChange}
             onEdit={handleOpenEditModal}
             onDelete={handleDelete}
           />
-
-          {/* Pagination */}
-          <div className="flex justify-end mt-6">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() =>
-                  setPagination((prev) => ({
-                    ...prev,
-                    page: Math.max(1, prev.page - 1),
-                  }))
-                }
-                disabled={pagination.page === 1 || loading}
-                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
-              >
-                <IconChevronLeft size={18} />
-              </button>
-              <span className="text-sm font-bold text-gray-700 px-4">
-                Page {pagination.page}
-              </span>
-              <button
-                onClick={() =>
-                  setPagination((prev) => ({
-                    ...prev,
-                    page: prev.page + 1,
-                  }))
-                }
-                disabled={loading || promotions.length < pagination.size} // Simple check
-                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:hover:bg-white transition-colors"
-              >
-                <IconChevronRight size={18} />
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 

@@ -65,9 +65,9 @@ const ProductPage = () => {
   useEffect(() => {
     if (currentUser && !authLoading) {
       fetchProducts();
-      fetchDropdown("/api/v1/erp/catalog/brands/dropdown", setBrands);
-      fetchDropdown("/api/v1/erp/catalog/categories/dropdown", setCategories);
-      fetchDropdown("/api/v1/erp/catalog/sizes/dropdown", setSizes);
+      fetchDropdown("/api/v1/erp/master/brands/dropdown", setBrands);
+      fetchDropdown("/api/v1/erp/master/categories/dropdown", setCategories);
+      fetchDropdown("/api/v1/erp/master/sizes/dropdown", setSizes);
     }
   }, [currentUser, authLoading]);
 
@@ -93,7 +93,7 @@ const ProductPage = () => {
       if (filters.listing && filters.listing !== "all")
         params.listing = filters.listing;
 
-      const response = await api.get("/api/v1/erp/catalog/products", {
+      const response = await api.get("/api/v1/erp/master/products", {
         params,
       });
       setProducts(response.data.dataList || []);
@@ -159,8 +159,8 @@ const ProductPage = () => {
     setIsSaving(true);
     const isEditing = !!productData.productId;
     const url = isEditing
-      ? `/api/v1/erp/catalog/products/${productData.productId}`
-      : "/api/v1/erp/catalog/products";
+      ? `/api/v1/erp/master/products/${productData.productId}`
+      : "/api/v1/erp/master/products";
 
     try {
       const formData = new FormData();
@@ -201,7 +201,7 @@ const ProductPage = () => {
       onSuccess: async () => {
         setLoading(true);
         try {
-          await api.delete(`/api/v1/erp/catalog/products/${itemId}`);
+          await api.delete(`/api/v1/erp/master/products/${itemId}`);
           toast.success("Product deleted");
           fetchProducts();
         } catch (error: unknown) {
@@ -318,7 +318,7 @@ const ProductPage = () => {
             <div className="w-1.5 h-10 bg-green-600 rounded-full" />
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
-                Catalog Management
+                Master Data Management
               </span>
               <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
                 Products

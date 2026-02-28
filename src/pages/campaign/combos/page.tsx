@@ -27,7 +27,7 @@ const CombosPage = () => {
   const fetchCombos = React.useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get("/api/v1/erp/catalog/combos", {
+      const response = await api.get("/api/v1/erp/master/combos", {
         params: { page: pagination.page, size: pagination.size },
       });
 
@@ -77,7 +77,7 @@ const CombosPage = () => {
       confirmText: "Delete",
       onSuccess: async () => {
         try {
-          await api.delete(`/api/v1/erp/catalog/combos/${item.id}`);
+          await api.delete(`/api/v1/erp/master/combos/${item.id}`);
           toast.success("Combo deleted");
           fetchCombos();
         } catch (e) {

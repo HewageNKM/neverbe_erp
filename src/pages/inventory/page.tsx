@@ -63,9 +63,9 @@ const InventoryPage = () => {
   useEffect(() => {
     if (currentUser) {
       fetchInventory(); // Initial fetch
-      fetchDropdown("/api/v1/erp/catalog/products/dropdown", setProducts);
-      fetchDropdown("/api/v1/erp/catalog/sizes/dropdown", setSizes);
-      fetchDropdown("/api/v1/erp/catalog/stocks/dropdown", setStockLocations);
+      fetchDropdown("/api/v1/erp/master/products/dropdown", setProducts);
+      fetchDropdown("/api/v1/erp/master/sizes/dropdown", setSizes);
+      fetchDropdown("/api/v1/erp/master/stocks/dropdown", setStockLocations);
     }
   }, [currentUser]);
 
@@ -121,7 +121,7 @@ const InventoryPage = () => {
     setVariants([]);
     try {
       const response = await api.get(
-        `/api/v1/erp/catalog/products/${productId}/variants/dropdown`,
+        `/api/v1/erp/master/products/${productId}/variants/dropdown`,
       );
       setVariants(response.data || []);
     } catch {

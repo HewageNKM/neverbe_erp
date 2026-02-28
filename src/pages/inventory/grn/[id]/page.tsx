@@ -3,7 +3,7 @@ import { Spin, Table, Card, Descriptions, Tag, Typography } from "antd";
 import api from "@/lib/api";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { IconCheck } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
@@ -122,20 +122,6 @@ const ViewGRNPage = () => {
   return (
     <PageContainer title={grn.grnNumber}>
       <div className="space-y-8">
-        {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-gray-500 text-sm">
-          <Link
-            to="/inventory/grn"
-            className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
-          >
-            Goods Received
-          </Link>
-          <span className="text-gray-300">/</span>
-          <Text strong className="text-gray-700">
-            GRN #{grn.grnNumber}
-          </Text>
-        </div>
-
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
           <div>

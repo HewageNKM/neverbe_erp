@@ -1,6 +1,5 @@
 import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { Order } from "@/model/Order";
 import toast from "react-hot-toast";
 import { useAppSelector } from "@/lib/hooks";
@@ -178,20 +177,6 @@ const OrderView = ({
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-gray-500 text-sm">
-        <Link
-          to="/orders"
-          className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
-        >
-          Orders
-        </Link>
-        <span className="text-gray-300">/</span>
-        <Text strong className="text-gray-700">
-          Order #{order?.orderId}
-        </Text>
-      </div>
-
       {/* Integrity Alert */}
       {order && order.integrity === false && (
         <Alert

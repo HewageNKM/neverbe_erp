@@ -45,7 +45,7 @@ const LiveStockPage = () => {
   // Fetch stock dropdown
   const fetchStocksDropdown = async () => {
     try {
-      const res = await api.get("/api/v1/erp/catalog/stocks/dropdown");
+      const res = await api.get("/api/v1/erp/master/stocks/dropdown");
       setStocksDropdown([
         { id: "all", label: "All Stocks" },
         ...(res.data || []),

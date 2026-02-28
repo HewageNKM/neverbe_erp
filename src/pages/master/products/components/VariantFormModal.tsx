@@ -126,8 +126,8 @@ const VariantFormModal: React.FC<VariantFormModalProps> = ({
 
       const varId = String(values.variantId || variant?.variantId);
       const url = isNewVariant
-        ? `/api/v1/erp/catalog/products/${productId}/variants`
-        : `/api/v1/erp/catalog/products/${productId}/variants/${varId}`;
+        ? `/api/v1/erp/master/products/${productId}/variants`
+        : `/api/v1/erp/master/products/${productId}/variants/${varId}`;
 
       const response = isNewVariant
         ? await api.post(url, formDataPayload)

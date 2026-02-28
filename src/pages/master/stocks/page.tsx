@@ -64,7 +64,7 @@ const StockPage: React.FC = () => {
       if (search) params.search = search;
       if (status !== "all") params.status = status === "active";
 
-      const response = await api.get("/api/v1/erp/catalog/stocks", { params });
+      const response = await api.get("/api/v1/erp/master/stocks", { params });
       setLocations(response.data.dataList || []);
       setPagination((prev) => ({
         ...prev,
@@ -126,11 +126,11 @@ const StockPage: React.FC = () => {
     try {
       if (isEditing) {
         await api.put(
-          `/api/v1/erp/catalog/stocks/${editingLocation!.id}`,
+          `/api/v1/erp/master/stocks/${editingLocation!.id}`,
           values,
         );
       } else {
-        await api.post("/api/v1/erp/catalog/stocks", values);
+        await api.post("/api/v1/erp/master/stocks", values);
       }
       toast.success(`Location ${isEditing ? "updated" : "added"}`);
       handleCloseModal();
@@ -153,7 +153,7 @@ const StockPage: React.FC = () => {
       variant: "danger",
       onSuccess: async () => {
         try {
-          await api.delete(`/api/v1/erp/catalog/stocks/${id}`);
+          await api.delete(`/api/v1/erp/master/stocks/${id}`);
           toast.success("Location deleted");
           fetchLocations();
         } catch (error: unknown) {

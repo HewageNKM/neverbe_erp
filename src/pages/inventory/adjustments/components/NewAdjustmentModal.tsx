@@ -90,8 +90,8 @@ const NewAdjustmentModal: React.FC<NewAdjustmentModalProps> = ({
     setLoading(true);
     try {
       const [productsRes, stocksRes] = await Promise.all([
-        api.get<Product[]>("/api/v1/erp/catalog/products/dropdown"),
-        api.get<Stock[]>("/api/v1/erp/catalog/stocks/dropdown"),
+        api.get<Product[]>("/api/v1/erp/master/products/dropdown"),
+        api.get<Stock[]>("/api/v1/erp/master/stocks/dropdown"),
       ]);
       setProducts(productsRes.data);
       setStocks(stocksRes.data);

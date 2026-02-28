@@ -83,7 +83,7 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
   // -- Data Fetching --
   const fetchProducts = async () => {
     try {
-      const res = await api.get("/api/v1/erp/catalog/products/dropdown");
+      const res = await api.get("/api/v1/erp/master/products/dropdown");
       setProducts(res.data || []);
     } catch (e) {
       console.error("Failed to fetch products", e);
@@ -93,7 +93,7 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
   const fetchVariantsForProduct = async (productId: string) => {
     if (!productId || productVariants[productId]) return;
     try {
-      const res = await api.get(`/api/v1/erp/catalog/products/${productId}`);
+      const res = await api.get(`/api/v1/erp/master/products/${productId}`);
       const product = res.data;
       const variants = (product?.variants || []).map((v: any) => ({
         variantId: v.variantId,
@@ -218,8 +218,8 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
 
       const url =
         isEditing && combo
-          ? `/api/v1/erp/catalog/combos/${combo.id}`
-          : "/api/v1/erp/catalog/combos";
+          ? `/api/v1/erp/master/combos/${combo.id}`
+          : "/api/v1/erp/master/combos";
       const method = isEditing && combo ? "PUT" : "POST";
 
       await api({

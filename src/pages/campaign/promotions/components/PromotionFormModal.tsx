@@ -75,7 +75,7 @@ const PromotionFormModal: React.FC<Props> = ({
   // -- Data Fetching --
   const fetchProducts = async () => {
     try {
-      const res = await api.get("/api/v1/erp/catalog/products/dropdown");
+      const res = await api.get("/api/v1/erp/master/products/dropdown");
       setProducts(res.data || []);
     } catch (e) {
       console.error("Failed to fetch products", e);
@@ -85,7 +85,7 @@ const PromotionFormModal: React.FC<Props> = ({
   const fetchVariantsForProduct = async (productId: string) => {
     if (!productId || productVariants[productId]) return;
     try {
-      const res = await api.get(`/api/v1/erp/catalog/products/${productId}`);
+      const res = await api.get(`/api/v1/erp/master/products/${productId}`);
       const product = res.data;
       const variants = (product?.variants || []).map((v: any) => ({
         variantId: v.variantId,
@@ -233,12 +233,12 @@ const PromotionFormModal: React.FC<Props> = ({
 
       if (isEditing && promotion) {
         await api.put(
-          `/api/v1/erp/catalog/promotions/${promotion.id}`,
+          `/api/v1/erp/master/promotions/${promotion.id}`,
           formDataToSend,
         );
         toast.success("PROMOTION UPDATED");
       } else {
-        await api.post("/api/v1/erp/catalog/promotions", formDataToSend);
+        await api.post("/api/v1/erp/master/promotions", formDataToSend);
         toast.success("PROMOTION CREATED");
       }
       onSave();

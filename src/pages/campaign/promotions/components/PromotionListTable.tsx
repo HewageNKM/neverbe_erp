@@ -3,12 +3,17 @@ import { Promotion } from "@/model/Promotion";
 import { Table, Button, Tag, Space, Typography, Tooltip } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(customParseFormat);
 
 const { Text } = Typography;
 
 interface Props {
   items: Promotion[];
   loading: boolean;
+  pagination: any;
+  onChange: (pagination: any) => void;
   onEdit: (promotion: Promotion) => void;
   onDelete?: (promotion: Promotion) => void;
 }
@@ -16,6 +21,8 @@ interface Props {
 const PromotionListTable: React.FC<Props> = ({
   items,
   loading,
+  pagination,
+  onChange,
   onEdit,
   onDelete,
 }) => {
@@ -45,18 +52,18 @@ const PromotionListTable: React.FC<Props> = ({
       title: "Timeline",
       key: "timeline",
       render: (_: any, record: Promotion) => {
-        const sRaw: any = record.startDate;
-        const eRaw: any = record.endDate;
-        const start = sRaw
-          ? sRaw.seconds
-            ? dayjs(sRaw.toDate())
-            : dayjs(sRaw)
-          : null;
-        const end = eRaw
-          ? eRaw.seconds
-            ? dayjs(eRaw.toDate())
-            : dayjs(eRaw)
-          : null;
+        const parseDate = (d: any) => {
+          if (!d) return null;
+          if (d.seconds) return dayjs(d.toDate());
+          if (typeof d === "string" && d.includes("/")) {
+            const parsed = dayjs(d, "DD/MM/YYYY, hh:mm:ss a");
+            if (parsed.isValid()) return parsed;
+          }
+          return dayjs(d);
+        };
+
+        const start = parseDate(record.startDate);
+        const end = parseDate(record.endDate);
 
         return (
           <div className="flex flex-col">
@@ -134,7 +141,8 @@ const PromotionListTable: React.FC<Props> = ({
       dataSource={items}
       loading={loading}
       rowKey="id"
-      pagination={{ pageSize: 10, position: ["bottomRight"] }}
+      pagination={{ ...pagination, position: ["bottomRight"] }}
+      onChange={onChange}
     />
   );
 };

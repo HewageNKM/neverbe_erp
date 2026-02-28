@@ -202,19 +202,6 @@ const ViewAdjustmentPage = () => {
   return (
     <PageContainer title={adjustment.adjustmentNumber}>
       <div className="space-y-8">
-        {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-gray-500 text-sm">
-          <Link
-            to="/inventory/adjustments"
-            className="!text-green-600 hover:!text-green-700 font-medium transition-colors"
-          >
-            Adjustments
-          </Link>
-          <span className="text-gray-300">/</span>
-          <Text strong className="text-gray-700">
-            Adjustment #{adjustment.adjustmentNumber}
-          </Text>
-        </div>
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start md:items-center gap-6 border-b border-gray-100 pb-8">
           <div>

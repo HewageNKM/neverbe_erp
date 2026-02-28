@@ -8,7 +8,6 @@ import {
   Checkbox,
   Row,
   Col,
-  Breadcrumb,
 } from "antd";
 import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
@@ -101,42 +100,6 @@ const EditRolePage = () => {
   return (
     <PageContainer title="Edit Role" description={`Editing role: ${roleId}`}>
       <div className="w-full max-w-5xl mx-auto space-y-8 py-4">
-        {/* Breadcrumbs */}
-        <div className="mb-4">
-          <Breadcrumb
-            separator={<span className="text-gray-300 mx-1">/</span>}
-            items={[
-              {
-                title: (
-                  <Link
-                    to="/settings"
-                    className="text-gray-400 hover:text-green-600 transition-colors font-bold text-[10px] uppercase tracking-widest"
-                  >
-                    Settings
-                  </Link>
-                ),
-              },
-              {
-                title: (
-                  <Link
-                    to="/roles"
-                    className="text-gray-400 hover:text-green-600 transition-colors font-bold text-[10px] uppercase tracking-widest"
-                  >
-                    Roles
-                  </Link>
-                ),
-              },
-              {
-                title: (
-                  <span className="text-gray-900 font-bold text-[10px] uppercase tracking-widest">
-                    {roleId}
-                  </span>
-                ),
-              },
-            ]}
-          />
-        </div>
-
         <div className="flex justify-between items-end mb-8">
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-10 bg-green-600 rounded-full" />

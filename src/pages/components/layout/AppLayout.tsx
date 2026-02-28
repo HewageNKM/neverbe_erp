@@ -3,6 +3,7 @@ import Sidebar from "./header/Sidebar";
 import { Layout, Button, Drawer } from "antd";
 import { IconMenu2 } from "@tabler/icons-react";
 import { useState } from "react";
+import AppBreadcrumb from "./AppBreadcrumb";
 
 const { Content } = Layout;
 
@@ -96,8 +97,11 @@ export default function AppLayout() {
 
         <Content className="flex-grow flex flex-col pt-4 lg:pt-[40px]">
           {/* Global Padding Container matched to old ERP */}
-          <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-8 lg:px-12 pb-12">
-            <Outlet />
+          <div className="w-full max-w-[1800px] mx-auto pb-12">
+            <AppBreadcrumb />
+            <div className="px-4 sm:px-8 lg:px-12">
+              <Outlet />
+            </div>
           </div>
         </Content>
 

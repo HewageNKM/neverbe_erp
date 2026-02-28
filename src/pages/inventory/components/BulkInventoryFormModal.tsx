@@ -84,7 +84,7 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
     setSelectedVariant(null);
     try {
       const response = await api.get(
-        `/api/v1/erp/catalog/products/${pid}/variants/dropdown`,
+        `/api/v1/erp/master/products/${pid}/variants/dropdown`,
       );
       setVariants(response.data || []);
     } catch {
