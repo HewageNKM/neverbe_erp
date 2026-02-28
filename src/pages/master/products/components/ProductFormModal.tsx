@@ -128,6 +128,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
     }
 
     const finalProductData = {
+      ...(product || {}),
       ...values,
       variants: variants || [],
     };
