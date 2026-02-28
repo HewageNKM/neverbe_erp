@@ -124,7 +124,6 @@ const DailyRevenuePage = () => {
   useEffect(() => {
     if (currentUser) {
       form.setFieldsValue({ dateRange: [dayjs(), dayjs()] });
-      fetchReport();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);

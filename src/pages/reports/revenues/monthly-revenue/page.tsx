@@ -167,7 +167,6 @@ export default function MonthlyRevenuePage() {
   useEffect(() => {
     if (currentUser) {
       form.setFieldsValue({ monthRange: [dayjs(), dayjs()] });
-      fetchReport();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);

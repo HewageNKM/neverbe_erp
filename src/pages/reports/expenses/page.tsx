@@ -108,7 +108,6 @@ const ExpenseReportPage = () => {
   useEffect(() => {
     if (currentUser) {
       form.setFieldsValue({ dateRange: [dayjs().startOf("month"), dayjs()] });
-      fetchReport();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);

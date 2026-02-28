@@ -121,7 +121,6 @@ const MonthlySummaryPage = () => {
         ],
         status: "Paid",
       });
-      fetchReport(form.getFieldsValue());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);

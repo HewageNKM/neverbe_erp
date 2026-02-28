@@ -93,7 +93,6 @@ const SalesVsDiscountPage = () => {
       form.setFieldsValue({
         dateRange: [dayjs(from), dayjs(to)],
       });
-      fetchReport(form.getFieldsValue());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);

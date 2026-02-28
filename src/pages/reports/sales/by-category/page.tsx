@@ -119,7 +119,6 @@ const SalesByCategoryPage = () => {
         dateRange: [dayjs(dateRange[0]), dayjs(dateRange[1])],
         status: "Paid",
       });
-      fetchReport(form.getFieldsValue());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
