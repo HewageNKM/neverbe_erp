@@ -3,7 +3,7 @@ import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
 import toast from "react-hot-toast";
 import { exportReportPDF } from "@/lib/pdf/exportReportPDF";
-import { Card, Spin, Tag, Progress, Button, Space, Table } from "antd";
+import { Card, Spin, Tag, Progress, Button, Space, Table, Tooltip } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import React, { useState } from "react";
 import {
@@ -191,7 +191,7 @@ const YearRevenuePage = () => {
     const data = yearly.map((y: any) => ({
       Year: y.year,
       "Total Orders": y.totalOrders,
-      "Total Sales (LKR)": y.totalSales,
+      "Total Revenue (LKR)": y.totalSales,
       "Net Sales (LKR)": y.totalNetSales,
       "COGS (LKR)": y.totalCOGS,
       "Gross Profit (LKR)": y.grossProfit,
@@ -224,7 +224,11 @@ const YearRevenuePage = () => {
       render: (v) => <Tag className="m-0 font-bold text-[9px]">{v}</Tag>,
     },
     {
-      title: "Total Sales",
+      title: (
+        <Tooltip title="Total cash received from orders (including shipping charges)">
+          <span>Total Revenue</span>
+        </Tooltip>
+      ),
       dataIndex: "totalSales",
       key: "totalSales",
       align: "right",
@@ -408,7 +412,7 @@ const YearRevenuePage = () => {
                 bg="bg-blue-50"
               />
               <SummaryCard
-                label="Total Sales"
+                label="Total Revenue"
                 value={`LKR ${fmt(summary.totalSales)}`}
                 icon={<IconTrendingUp size={20} />}
                 color="text-blue-700"
@@ -520,7 +524,7 @@ const YearRevenuePage = () => {
                         <Line
                           type="monotone"
                           dataKey="totalSales"
-                          name="Total Sales"
+                          name="Total Revenue"
                           stroke="#111827"
                           strokeWidth={3}
                           dot={{ r: 4 }}

@@ -10,6 +10,7 @@ import {
   Table,
   Tag,
   Progress,
+  Tooltip,
 } from "antd";
 import React, { useState, useEffect } from "react";
 import dayjs from "dayjs";
@@ -241,7 +242,7 @@ export default function MonthlyRevenuePage() {
     const data = rows.map((r) => ({
       Month: r.month,
       Orders: r.totalOrders,
-      Sales: r.totalSales,
+      "Total Revenue": r.totalSales,
       "Net Sales": r.totalNetSales,
       COGS: r.totalCOGS,
       "Gross Profit": r.grossProfit,
@@ -276,7 +277,11 @@ export default function MonthlyRevenuePage() {
       render: (v) => <Tag className="font-mono font-bold text-[10px]">{v}</Tag>,
     },
     {
-      title: "Total Sales",
+      title: (
+        <Tooltip title="Total cash received from orders (including shipping charges)">
+          <span>Total Revenue</span>
+        </Tooltip>
+      ),
       dataIndex: "totalSales",
       key: "totalSales",
       align: "right",
@@ -450,7 +455,7 @@ export default function MonthlyRevenuePage() {
                   bar: null,
                 },
                 {
-                  label: "Total Sales",
+                  label: "Total Revenue",
                   value: `LKR ${fmt(summary.totalSales)}`,
                   icon: <IconTrendingUp size={20} />,
                   color: "text-blue-700",
@@ -630,7 +635,7 @@ export default function MonthlyRevenuePage() {
                         <Line
                           type="monotone"
                           dataKey="totalSales"
-                          name="Total Sales"
+                          name="Total Revenue"
                           stroke="#2563EB"
                           strokeWidth={3}
                           dot={{ r: 4 }}

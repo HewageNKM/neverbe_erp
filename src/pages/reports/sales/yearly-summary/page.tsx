@@ -9,6 +9,7 @@ import {
   Button,
   Space,
   Tag,
+  Tooltip as AntdTooltip,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
@@ -106,7 +107,7 @@ const Page = () => {
       exportData.push({
         Year: y.year,
         "Total Orders": y.orders,
-        "Total Sales (Rs)": y.sales.toFixed(2),
+        "Total Revenue (Rs)": y.sales.toFixed(2),
         "Total Net Sales": y.netSales.toFixed(2),
         "Total COGS (Rs)": (y.cogs || 0).toFixed(2),
         "Total Gross Profit (Rs)": (y.grossProfit || 0).toFixed(2),
@@ -122,7 +123,7 @@ const Page = () => {
           Year: y.year,
           Month: m.month,
           "Total Orders": m.orders,
-          "Total Sales (Rs)": m.sales.toFixed(2),
+          "Total Revenue (Rs)": m.sales.toFixed(2),
           "Total Net Sales": m.netSales.toFixed(2),
           "Total COGS (Rs)": (m.cogs || 0).toFixed(2),
           "Total Gross Profit (Rs)": (m.grossProfit || 0).toFixed(2),
@@ -180,7 +181,7 @@ const Page = () => {
         period: `${dateRange[0]} – ${dateRange[1]}`,
         summaryItems: [
           { label: "Total Orders", value: String(summary.totalOrders) },
-          { label: "Total Sales", value: `LKR ${fmt(summary.totalSales)}` },
+          { label: "Total Revenue", value: `LKR ${fmt(summary.totalSales)}` },
           {
             label: "Gross Profit",
             value: `LKR ${fmt(summary.totalGrossProfit || 0)}`,
@@ -291,7 +292,11 @@ const Page = () => {
       ),
     },
     {
-      title: "Sales",
+      title: (
+        <AntdTooltip title="Total cash received from orders (including shipping charges)">
+          <span>Total Revenue</span>
+        </AntdTooltip>
+      ),
       dataIndex: "sales",
       key: "sales",
       align: "right",
@@ -455,7 +460,7 @@ const Page = () => {
                 bg="bg-blue-50"
               />
               <SummaryCard
-                title="Total Sales"
+                title="Total Revenue"
                 value={`LKR ${fmt(summary.totalSales)}`}
                 icon={<IconTrendingUp size={20} />}
                 color="text-gray-900"
@@ -554,7 +559,7 @@ const Page = () => {
                           <Line
                             type="monotone"
                             dataKey="sales"
-                            name="Sales"
+                            name="Total Revenue"
                             stroke="#1976d2"
                             strokeWidth={2}
                             dot={{ r: 3, fill: "#1976d2", strokeWidth: 0 }}

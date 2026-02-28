@@ -9,6 +9,7 @@ import {
   Button,
   Space,
   Tag,
+  Tooltip as AntdTooltip,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
@@ -118,7 +119,7 @@ const Page = () => {
     const exportData = summary.daily.map((d: any) => ({
       Date: d.date,
       "Total Orders": d.orders,
-      "Total Sales (Rs)": d.sales.toFixed(2),
+      "Total Revenue (Rs)": d.sales.toFixed(2),
       "Total Net Sales": d.netSales.toFixed(2),
       "Total COGS (Rs)": (d.cogs || 0).toFixed(2),
       "Total Gross Profit (Rs)": (d.grossProfit || 0).toFixed(2),
@@ -150,7 +151,7 @@ const Page = () => {
         period: `${dateRange[0]} – ${dateRange[1]}`,
         summaryItems: [
           { label: "Total Orders", value: String(summary.totalOrders) },
-          { label: "Total Sales", value: `LKR ${fmt(summary.totalSales)}` },
+          { label: "Total Revenue", value: `LKR ${fmt(summary.totalSales)}` },
           {
             label: "Gross Profit",
             value: `LKR ${fmt(summary.totalGrossProfit || 0)}`,
@@ -250,7 +251,11 @@ const Page = () => {
       ),
     },
     {
-      title: "Sales",
+      title: (
+        <AntdTooltip title="Total cash received from orders (including shipping charges)">
+          <span>Total Revenue</span>
+        </AntdTooltip>
+      ),
       dataIndex: "sales",
       key: "sales",
       align: "right",
@@ -407,7 +412,7 @@ const Page = () => {
                 bg="bg-blue-50"
               />
               <SummaryCard
-                title="Total Sales"
+                title="Total Revenue"
                 value={`LKR ${fmt(summary.totalSales)}`}
                 icon={<IconTrendingUp size={20} />}
                 color="text-gray-900"
@@ -502,9 +507,8 @@ const Page = () => {
                           cursor={{ stroke: "#f3f4f6", strokeWidth: 1 }}
                         />
                         <Line
-                          type="monotone"
                           dataKey="sales"
-                          name="Sales"
+                          name="Total Revenue"
                           stroke="#111827"
                           strokeWidth={2}
                           dot={{ r: 3, fill: "#111827", strokeWidth: 0 }}

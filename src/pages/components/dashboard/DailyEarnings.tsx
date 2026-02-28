@@ -3,18 +3,16 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { getDailyOverviewAction } from "@/actions/reportsActions";
 import toast from "react-hot-toast";
-import {
-  IconCurrencyDollar,
-  IconReceiptRefund,
-} from "@tabler/icons-react";
-import { Row, Col, Statistic, Card, Spin, Tag, Button } from "antd";
+import { IconCurrencyDollar, IconReceiptRefund } from "@tabler/icons-react";
+import { Row, Col, Statistic, Card, Spin, Tag } from "antd";
 
 const DailyEarnings = () => {
   const [totalGrossSales, setTotalGrossSales] = useState(0);
   const [totalNetSales, setTotalNetSales] = useState(0);
   const [totalProfit, setTotalProfit] = useState(0);
   const [totalDiscount, setTotalDiscount] = useState(0);
-  const [totalRefunds, setTotalRefunds] = useState(0); // Future Implementation (Default 0)
+  const [totalShipping, setTotalShipping] = useState(0);
+  const [totalRefunds] = useState(0); // Future Implementation (Default 0)
   const [invoiceCount, setInvoiceCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAppSelector((state) => state.authSlice);
@@ -32,9 +30,11 @@ const DailyEarnings = () => {
       setTotalProfit(overview.totalProfit);
       setInvoiceCount(overview.totalOrders);
       setTotalDiscount(overview.totalDiscount);
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message);
+      setTotalShipping(overview.totalShipping || 0);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error(err);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -48,7 +48,6 @@ const DailyEarnings = () => {
           <h4 className="text-lg font-bold text-black truncate">
             Daily Snapshot
           </h4>
-          
         </div>
 
         <Tag color="green" className="m-0 font-bold">
@@ -122,10 +121,10 @@ const DailyEarnings = () => {
                 <Statistic
                   title={
                     <span className="text-[10px] font-bold text-green-700 uppercase tracking-widest">
-                      Net Sales
+                      Total Cash Received
                     </span>
                   }
-                  value={totalNetSales}
+                  value={totalNetSales + totalShipping}
                   precision={2}
                   prefix="LKR"
                   valueStyle={{
@@ -133,6 +132,11 @@ const DailyEarnings = () => {
                     fontWeight: "900",
                     color: "#166534",
                   }}
+                  suffix={
+                    <div className="text-[10px] font-bold text-green-600/70 mt-1">
+                      Inc. Rs {totalShipping.toLocaleString()} Shipping
+                    </div>
+                  }
                 />
               </Card>
             </Col>

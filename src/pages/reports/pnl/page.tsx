@@ -201,6 +201,7 @@ const ProfitLossPage = () => {
         | "net"
         | "spacer"
         | "header";
+      note?: string;
     }[] = [
       // Company header
       { raw: ["NEVERBE", null, null, null], type: "title" },
@@ -224,6 +225,7 @@ const ProfitLossPage = () => {
       {
         raw: dataRow("Shipping Income", report.revenue.shippingIncome),
         type: "data",
+        note: "Collected from customers",
       },
       ...(report.revenue.otherIncome > 0
         ? [
@@ -352,7 +354,7 @@ const ProfitLossPage = () => {
     const ws: Record<string, unknown> = {};
     let r = 1;
 
-    for (const { raw, type } of rows) {
+    for (const { raw, type, note } of rows) {
       raw.forEach((val, ci) => {
         const addr = `${colLetters[ci]}${r}`;
         const isAmt = ci === 1 && typeof val === "number";
@@ -388,14 +390,16 @@ const ProfitLossPage = () => {
               border: true,
             });
             break;
-          case "data":
-            ws[addr] = cell(val, {
+          case "data": {
+            const displayVal = ci === 0 && note ? `${val} (${note})` : val;
+            ws[addr] = cell(displayVal, {
               indent: ci === 0 ? 1 : 0,
               align: isAmt || isPct ? "right" : "left",
               color: isNeg ? RED : ci === 0 ? "FF374151" : "FF111827",
               fmt: isPct ? "0.0%" : isAmt ? "#,##0.00" : "@",
             });
             break;
+          }
           case "subtotal":
             ws[addr] = cell(val, {
               bold: true,
@@ -504,7 +508,10 @@ const ProfitLossPage = () => {
               ["Gross Sales", fmt(r.revenue.grossSales)],
               ["Less: Discounts", `(${fmt(r.revenue.discounts)})`],
               ["Net Sales", fmt(r.revenue.netSales)],
-              ["Shipping Income", fmt(r.revenue.shippingIncome)],
+              [
+                "Shipping Income",
+                `${fmt(r.revenue.shippingIncome)} (Collected)`,
+              ],
               ...(r.revenue.otherIncome > 0
                 ? ([["Other Income", fmt(r.revenue.otherIncome)]] as [
                     string,
@@ -522,10 +529,12 @@ const ProfitLossPage = () => {
             rows: [
               ["Product Cost", fmt(r.costOfGoodsSold.productCost)],
               ...(r.costOfGoodsSold.shippingCost > 0
-                ? ([["Shipping Cost", fmt(r.costOfGoodsSold.shippingCost)]] as [
-                    string,
-                    string,
-                  ][])
+                ? ([
+                    [
+                      "Shipping Cost",
+                      `${fmt(r.costOfGoodsSold.shippingCost)} (Pass-through)`,
+                    ],
+                  ] as [string, string][])
                 : []),
               ["TOTAL COGS", `(${fmt(r.costOfGoodsSold.totalCOGS)})`],
               [
@@ -1009,6 +1018,7 @@ const ProfitLossPage = () => {
                     label="Shipping Income"
                     value={report.revenue.shippingIncome}
                     indent
+                    note="Collected from customers"
                   />
                   {report.revenue.otherIncome > 0 && (
                     <LineRow
@@ -1036,6 +1046,7 @@ const ProfitLossPage = () => {
                       value={report.costOfGoodsSold.shippingCost}
                       indent
                       negative
+                      note="Paid to couriers (Pass-through)"
                     />
                   )}
                   <TotalRow

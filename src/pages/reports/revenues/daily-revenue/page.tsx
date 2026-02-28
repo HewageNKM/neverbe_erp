@@ -10,6 +10,7 @@ import {
   Table,
   Tag,
   Progress,
+  Tooltip,
 } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
@@ -137,7 +138,7 @@ const DailyRevenuePage = () => {
       report.map((d) => ({
         Date: d.date,
         Orders: d.totalOrders,
-        "Total Sales (LKR)": d.totalSales.toFixed(2),
+        "Total Revenue (LKR)": d.totalSales.toFixed(2),
         "Net Sales (LKR)": d.totalNetSales.toFixed(2),
         "COGS (LKR)": d.totalCOGS.toFixed(2),
         "Discount (LKR)": d.totalDiscount.toFixed(2),
@@ -170,7 +171,7 @@ const DailyRevenuePage = () => {
         period: `${from} – ${to}`,
         summaryItems: [
           { label: "Total Orders", value: String(s.totalOrders ?? 0) },
-          { label: "Total Sales", value: `LKR ${fmt(s.totalSales ?? 0)}` },
+          { label: "Total Revenue", value: `LKR ${fmt(s.totalSales ?? 0)}` },
           {
             label: "Gross Profit",
             value: `LKR ${fmt(s.grossProfit ?? 0)}`,
@@ -195,7 +196,7 @@ const DailyRevenuePage = () => {
             columns: [
               "Date",
               "Orders",
-              "Total Sales",
+              "Total Revenue",
               "Net Sales",
               "Gross Profit",
               "Net Profit",
@@ -237,7 +238,11 @@ const DailyRevenuePage = () => {
       render: (v) => <Tag className="font-mono font-bold text-[10px]">{v}</Tag>,
     },
     {
-      title: "Total Sales",
+      title: (
+        <Tooltip title="Total cash received from orders (including shipping charges)">
+          <span>Total Revenue</span>
+        </Tooltip>
+      ),
       dataIndex: "totalSales",
       key: "totalSales",
       align: "right",
@@ -408,7 +413,7 @@ const DailyRevenuePage = () => {
                   bar: null,
                 },
                 {
-                  label: "Total Sales",
+                  label: "Total Revenue",
                   value: `LKR ${fmt(summary.totalSales)}`,
                   icon: <IconTrendingUp size={20} />,
                   color: "text-blue-700",
@@ -594,7 +599,7 @@ const DailyRevenuePage = () => {
                         <Line
                           type="monotone"
                           dataKey="totalSales"
-                          name="Total Sales"
+                          name="Total Revenue"
                           stroke="#2563EB"
                           strokeWidth={2}
                           dot={false}
