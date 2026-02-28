@@ -1,23 +1,18 @@
-import { Spin, Table } from "antd";
+import { Card, Form, Spin, Table, Select, Button, Space } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
-import {
-  IconFilter,
-  IconDownload,
-  IconChevronLeft,
-  IconChevronRight,
-} from "@tabler/icons-react";
+import { IconFilter, IconDownload } from "@tabler/icons-react";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
 
 const StockValuationPage = () => {
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [stockList, setStockList] = useState<any[]>([]);
   const [stocksDropdown, setStocksDropdown] = useState<any[]>([]);
-  const [selectedStock, setSelectedStock] = useState<string>("all");
   const { currentUser } = useAppSelector((state) => state.authSlice);
 
   const [summary, setSummary] = useState({
@@ -25,13 +20,6 @@ const StockValuationPage = () => {
     totalQuantity: 0,
     totalValuation: 0,
   });
-
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  const totalPages = Math.ceil(stockList.length / rowsPerPage);
-
-  // Fetch stock options for dropdown
   const fetchStocksDropdown = async () => {
     try {
       const res = await api.get("/api/v1/erp/master/stocks/dropdown");
@@ -41,8 +29,9 @@ const StockValuationPage = () => {
     }
   };
 
-  const fetchStockValuation = async (stockId: string) => {
+  const fetchStockValuation = async (values?: any) => {
     setLoading(true);
+    const stockId = values?.stockId || "all";
     try {
       const res = await api.get("/api/v1/erp/reports/stocks/valuation", {
         params: { stockId },
@@ -63,13 +52,15 @@ const StockValuationPage = () => {
   };
 
   useEffect(() => {
-    if (currentUser) fetchStocksDropdown();
+    if (currentUser) {
+      fetchStocksDropdown();
+      form.setFieldsValue({
+        stockId: "all",
+      });
+      fetchStockValuation(form.getFieldsValue());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
-
-  const handleApply = () => {
-    fetchStockValuation(selectedStock);
-    setPage(0);
-  };
 
   const exportExcel = () => {
     if (!stockList.length) return;
@@ -91,12 +82,6 @@ const StockValuationPage = () => {
     XLSX.utils.book_append_sheet(wb, ws, "Stock Valuation");
     XLSX.writeFile(wb, `stock_valuation.xlsx`);
   };
-
-  // Calculate visible rows for frontend pagination
-  const visibleRows = stockList.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
 
   const SummaryCard = ({
     title,
@@ -203,28 +188,37 @@ const StockValuationPage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
-            <div className="flex items-center gap-4 w-full sm:w-auto">
-              <select
-                value={selectedStock}
-                onChange={(e) => setSelectedStock(e.target.value)}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-lg focus:outline-none focus:border-gray-900 min-w-[200px]"
+            <Card size="small" className="shadow-sm w-full xl:w-auto">
+              <Form
+                form={form}
+                layout="inline"
+                onFinish={fetchStockValuation}
+                className="flex flex-wrap items-center gap-2"
               >
-                <option value="all">All Stocks</option>
-                {stocksDropdown.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                onClick={handleApply}
-                className="px-6 py-2 bg-gray-900 text-white text-xs font-bold   rounded-lg hover:bg-green-600 transition-colors min-w-[100px] flex items-center justify-center gap-2"
-              >
-                <IconFilter size={16} />
-                Apply
-              </button>
-            </div>
+                <Form.Item name="stockId" className="mb-0! min-w-[200px]">
+                  <Select
+                    options={[
+                      { value: "all", label: "All Stocks" },
+                      ...stocksDropdown.map((s) => ({
+                        value: s.id,
+                        label: s.label,
+                      })),
+                    ]}
+                  />
+                </Form.Item>
+                <Form.Item className="mb-0!">
+                  <Space>
+                    <Button
+                      htmlType="submit"
+                      type="primary"
+                      icon={<IconFilter size={15} />}
+                    >
+                      Filter
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={exportExcel}
@@ -273,7 +267,7 @@ const StockValuationPage = () => {
               pagination={{ pageSize: 15, position: ["bottomRight"] }}
               className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
               scroll={{ x: 1000 }}
-                      bordered
+              bordered
             />
           </div>
         )}

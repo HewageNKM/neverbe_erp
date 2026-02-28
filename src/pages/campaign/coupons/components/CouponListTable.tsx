@@ -13,6 +13,8 @@ interface Props {
   loading: boolean;
   onEdit: (coupon: Coupon) => void;
   onDelete?: (coupon: Coupon) => void;
+  pagination?: any;
+  onChange?: (pagination: any) => void;
 }
 
 const CouponListTable: React.FC<Props> = ({
@@ -20,6 +22,8 @@ const CouponListTable: React.FC<Props> = ({
   loading,
   onEdit,
   onDelete,
+  pagination,
+  onChange,
 }) => {
   const columns = [
     {
@@ -127,12 +131,16 @@ const CouponListTable: React.FC<Props> = ({
   ];
 
   return (
-    <Table scroll={{ x: 'max-content' }}
+    <Table
+      scroll={{ x: "max-content" }}
       columns={columns}
       dataSource={items}
       loading={loading}
       rowKey="id"
-      pagination={{ pageSize: 10, position: ["bottomRight"] }}
+      pagination={pagination}
+      onChange={onChange}
+      className="bg-white rounded-lg border border-gray-100 p-2 shadow-sm mt-4 hover:shadow-md transition-shadow duration-300"
+      bordered={false}
     />
   );
 };

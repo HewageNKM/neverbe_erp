@@ -1,13 +1,10 @@
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 
-import { Card, Form, Spin, Table, Tag } from "antd";
+import { Button, Card, DatePicker, Form, Space, Spin, Table } from "antd";
 import React, { useState, useEffect } from "react";
-import {
-  IconFilter,
-  IconChevronLeft,
-  IconChevronRight,
-} from "@tabler/icons-react";
+import dayjs from "dayjs";
+import { IconFilter } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import {
   BarChart,
@@ -59,6 +56,7 @@ interface SummaryType {
 const MAX_MONTH_RANGE = 12;
 
 export default function MonthlyRevenuePage() {
+  const [form] = Form.useForm();
   const [from, setFrom] = useState(new Date().toISOString().slice(0, 7));
   const [to, setTo] = useState(new Date().toISOString().slice(0, 7));
   const [loading, setLoading] = useState(false);
@@ -66,11 +64,6 @@ export default function MonthlyRevenuePage() {
   const [summary, setSummary] = useState<SummaryType | null>(null);
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
-
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(6);
-
-  const totalPages = Math.ceil(rows.length / rowsPerPage);
 
   const getMonthStart = (monthStr: string | null | undefined) => {
     if (!monthStr || !monthStr.includes("-")) return "";
@@ -107,9 +100,15 @@ export default function MonthlyRevenuePage() {
     return null;
   };
 
-  const fetchReport = async (evt?: React.FormEvent) => {
-    if (evt) evt.preventDefault();
-
+  const fetchReport = async (values?: any) => {
+    let fromMonth = from;
+    let toMonth = to;
+    if (values?.monthRange) {
+      fromMonth = values.monthRange[0]?.format("YYYY-MM") || from;
+      toMonth = values.monthRange[1]?.format("YYYY-MM") || to;
+      setFrom(fromMonth);
+      setTo(toMonth);
+    }
     const err = validateRange();
     if (err) {
       toast(err);
@@ -122,15 +121,14 @@ export default function MonthlyRevenuePage() {
         "/api/v1/erp/reports/revenues/monthly-revenue",
         {
           params: {
-            from: getMonthStart(from),
-            to: getMonthEnd(to),
+            from: getMonthStart(fromMonth),
+            to: getMonthEnd(toMonth),
           },
         },
       );
 
       setRows(Array.isArray(res.data?.monthly) ? res.data.monthly : []);
       setSummary(res.data?.summary || null);
-      setPage(0);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load report");
@@ -140,7 +138,11 @@ export default function MonthlyRevenuePage() {
   };
 
   useEffect(() => {
-    if (currentUser) fetchReport();
+    if (currentUser) {
+      form.setFieldsValue({ monthRange: [dayjs(), dayjs()] });
+      fetchReport();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const safeMoney = (v?: number) => `Rs ${Number(v ?? 0).toFixed(2)}`;
@@ -239,37 +241,24 @@ export default function MonthlyRevenuePage() {
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
+                form={form}
                 layout="inline"
-                onFinish={() => fetchReport()}
+                onFinish={fetchReport}
                 className="flex flex-wrap items-center gap-2"
               >
-                <Form.Item className="!mb-0">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      required
-                      value={from}
-                      onChange={(e) => setFrom(e.target.value)}
-                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                    />
-                    <span className="text-gray-400 font-medium">-</span>
-                    <input
-                      type="date"
-                      required
-                      value={to}
-                      onChange={(e) => setTo(e.target.value)}
-                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                    />
-                  </div>
+                <Form.Item name="monthRange" className="mb-0!">
+                  <DatePicker.RangePicker picker="month" size="middle" />
                 </Form.Item>
-                <Form.Item className="!mb-0">
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
-                  >
-                    <IconFilter size={15} />
-                    Filter
-                  </button>
+                <Form.Item className="mb-0!">
+                  <Space>
+                    <Button
+                      htmlType="submit"
+                      type="primary"
+                      icon={<IconFilter size={15} />}
+                    >
+                      Filter
+                    </Button>
+                  </Space>
                 </Form.Item>
               </Form>
             </Card>

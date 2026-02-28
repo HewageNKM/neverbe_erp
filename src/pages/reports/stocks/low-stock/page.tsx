@@ -1,27 +1,27 @@
-import { Spin, Table } from "antd";
+import {
+  Card,
+  Form,
+  Spin,
+  Table,
+  Select,
+  InputNumber,
+  Button,
+  Space,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import api from "@/lib/api";
 
 import React, { useEffect, useState } from "react";
-import {
-  IconFilter,
-  IconDownload,
-  IconChevronLeft,
-  IconChevronRight,
-} from "@tabler/icons-react";
+import { IconFilter, IconDownload } from "@tabler/icons-react";
 import * as XLSX from "xlsx";
 import PageContainer from "@/pages/components/container/PageContainer";
 import { useAppSelector } from "@/lib/hooks";
 
 const LowStockPage = () => {
-  const [threshold, setThreshold] = useState(10);
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [stock, setStock] = useState<any[]>([]);
   const [stocksDropdown, setStocksDropdown] = useState<any[]>([]);
-  const [selectedStock, setSelectedStock] = useState("all");
-
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [summary, setSummary] = useState({
     totalProducts: 0,
@@ -30,8 +30,6 @@ const LowStockPage = () => {
   });
 
   const { currentUser } = useAppSelector((state) => state.authSlice);
-
-  const totalPages = Math.ceil(stock.length / rowsPerPage);
 
   // Fetch stock dropdown
   const fetchStocksDropdown = async () => {
@@ -47,11 +45,14 @@ const LowStockPage = () => {
   };
 
   // Fetch all low-stock items at once
-  const fetchStock = async () => {
+  const fetchStock = async (values?: any) => {
     setLoading(true);
+    const threshold = values?.threshold || 10;
+    const stockId = values?.stockId || "all";
+
     try {
       const res = await api.get("/api/v1/erp/reports/stocks/low-stock", {
-        params: { threshold, stockId: selectedStock },
+        params: { threshold, stockId },
       });
 
       const data = res.data.stock || [];
@@ -75,13 +76,16 @@ const LowStockPage = () => {
   };
 
   useEffect(() => {
-    if (currentUser) fetchStocksDropdown();
+    if (currentUser) {
+      fetchStocksDropdown();
+      form.setFieldsValue({
+        threshold: 10,
+        stockId: "all",
+      });
+      fetchStock(form.getFieldsValue());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
-
-  const handleApply = () => {
-    setPage(0);
-    fetchStock();
-  };
 
   const exportExcel = () => {
     if (!stock.length) return;
@@ -100,14 +104,7 @@ const LowStockPage = () => {
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Low Stock");
-    XLSX.writeFile(wb, "low_stock.xlsx");
   };
-
-  // Frontend pagination: visible rows
-  const visibleRows = stock.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
 
   const SummaryCard = ({
     title,
@@ -202,38 +199,41 @@ const LowStockPage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
-            <div className="flex items-center gap-4 w-full sm:w-auto flex-wrap">
-              <input
-                type="number"
-                placeholder="Threshold"
-                value={threshold}
-                onChange={(e) =>
-                  setThreshold(parseInt(e.target.value, 10) || 0)
-                }
-                min={0}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-lg focus:outline-none focus:border-gray-900 w-24"
-              />
-
-              <select
-                value={selectedStock}
-                onChange={(e) => setSelectedStock(e.target.value)}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-lg focus:outline-none focus:border-gray-900 min-w-[200px]"
+            <Card size="small" className="shadow-sm w-full xl:w-auto">
+              <Form
+                form={form}
+                layout="inline"
+                onFinish={fetchStock}
+                className="flex flex-wrap items-center gap-2"
               >
-                {stocksDropdown.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                onClick={handleApply}
-                className="px-6 py-2 bg-gray-900 text-white text-xs font-bold   rounded-lg hover:bg-green-600 transition-colors min-w-[100px] flex items-center justify-center gap-2"
-              >
-                <IconFilter size={16} />
-                Apply
-              </button>
-            </div>
+                <Form.Item name="threshold" className="mb-0!">
+                  <InputNumber
+                    min={0}
+                    placeholder="Threshold"
+                    className="w-24 border border-gray-300 focus:border-gray-900"
+                  />
+                </Form.Item>
+                <Form.Item name="stockId" className="mb-0! min-w-[200px]">
+                  <Select
+                    options={stocksDropdown.map((s) => ({
+                      value: s.id,
+                      label: s.label,
+                    }))}
+                  />
+                </Form.Item>
+                <Form.Item className="mb-0!">
+                  <Space>
+                    <Button
+                      htmlType="submit"
+                      type="primary"
+                      icon={<IconFilter size={15} />}
+                    >
+                      Filter
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={exportExcel}
@@ -282,7 +282,7 @@ const LowStockPage = () => {
               pagination={{ pageSize: 15, position: ["bottomRight"] }}
               className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
               scroll={{ x: 1000 }}
-                      bordered
+              bordered
             />
           </div>
         )}

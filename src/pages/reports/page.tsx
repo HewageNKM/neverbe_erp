@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Card, Col, Row, Typography } from "antd";
 import PageContainer from "../components/container/PageContainer";
 import {
   IconChartBar,
@@ -8,6 +9,8 @@ import {
   IconCoin,
   IconReceipt,
 } from "@tabler/icons-react";
+
+const { Title, Text } = Typography;
 
 const Reports = () => {
   const reportSections = [
@@ -27,15 +30,9 @@ const Reports = () => {
       icon: <IconChartBar size={20} stroke={2} />,
       reports: [
         { title: "Daily Summary", link: "/reports/sales/daily-summary" },
-        {
-          title: "Monthly Summary",
-          link: "/reports/sales/monthly-summary",
-        },
+        { title: "Monthly Summary", link: "/reports/sales/monthly-summary" },
         { title: "Yearly Summary", link: "/reports/sales/yearly-summary" },
-        {
-          title: "Top Selling Products",
-          link: "/reports/sales/top-products",
-        },
+        { title: "Top Selling Products", link: "/reports/sales/top-products" },
         { title: "Sales by Category", link: "/reports/sales/by-category" },
         { title: "Sales by Brand", link: "/reports/sales/by-brand" },
         {
@@ -46,10 +43,7 @@ const Reports = () => {
           title: "By Payment Method",
           link: "/reports/sales/by-payment-method",
         },
-        {
-          title: "Refunds & Returns",
-          link: "/reports/sales/refunds-returns",
-        },
+        { title: "Refunds & Returns", link: "/reports/sales/refunds-returns" },
       ],
     },
     {
@@ -58,14 +52,8 @@ const Reports = () => {
       icon: <IconCoin size={20} stroke={2} />,
       reports: [
         { title: "Daily Revenue", link: "/reports/revenues/daily-revenue" },
-        {
-          title: "Monthly Revenue",
-          link: "/reports/revenues/monthly-revenue",
-        },
-        {
-          title: "Yearly Revenue",
-          link: "/reports/revenues/yearly-revenue",
-        },
+        { title: "Monthly Revenue", link: "/reports/revenues/monthly-revenue" },
+        { title: "Yearly Revenue", link: "/reports/revenues/yearly-revenue" },
       ],
     },
     {
@@ -94,66 +82,84 @@ const Reports = () => {
 
   return (
     <PageContainer title="Reports">
-      <div className="w-full space-y-12">
-        <div className="flex justify-between items-end mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-10 bg-green-600 rounded-full" />
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
-                Data Intelligence
-              </span>
-              <h2 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
-                Reports Center
-              </h2>
-            </div>
+      <div className="w-full space-y-10">
+        {/* Page Header */}
+        <div className="flex items-center gap-3 pb-2">
+          <div className="w-1.5 h-10 bg-green-600 rounded-full" />
+          <div className="flex flex-col">
+            <Text className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 leading-none mb-1">
+              Data Intelligence
+            </Text>
+            <Title level={2} className="!m-0 !leading-none tracking-tight">
+              Reports Center
+            </Title>
           </div>
         </div>
 
-        <div className="space-y-16">
+        {/* Sections */}
+        <div className="space-y-10">
           {reportSections.map((section) => (
-            <div key={section.id} className="relative">
+            <div key={section.id}>
               {/* Section Header */}
-              <div className="flex items-end gap-4 mb-6 border-b border-gray-200 pb-4">
-                <span className="text-4xl font-bold text-gray-200 leading-none">
+              <div className="flex items-end gap-3 mb-4 pb-3 border-b border-gray-200">
+                <span className="text-4xl font-bold text-gray-200 leading-none select-none">
                   {section.id}
                 </span>
-                <h3 className="text-xl font-bold  tracking-tight text-black flex items-center gap-2 mb-1">
-                  {section.category}
-                </h3>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-green-600">{section.icon}</span>
+                  <Title level={5} className="!m-0 tracking-tight">
+                    {section.category}
+                  </Title>
+                </div>
               </div>
 
-              {/* Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {/* Report Cards Grid */}
+              <Row gutter={[16, 16]}>
                 {section.reports.map((report, index) => (
-                  <Link
-                    key={index}
-                    to={report.link}
-                    className="group flex flex-col justify-between p-6 h-[140px] bg-white border border-gray-200 hover:border-gray-200 hover:bg-green-600 transition-all duration-300 relative overflow-hidden"
-                  >
-                    {/* Background Icon Decoration */}
-                    <div className="absolute -right-4 -bottom-4 text-gray-50 opacity-0 group-hover:opacity-10 group-hover:scale-150 transition-all duration-500">
-                      {section.icon}
-                    </div>
+                  <Col key={index} xs={24} sm={12} lg={8} xl={6} xxl={5}>
+                    <Link to={report.link} className="block">
+                      <Card
+                        hoverable
+                        className="h-[130px] group border-gray-200 transition-all duration-300 hover:border-green-500 hover:shadow-md relative overflow-hidden"
+                        styles={{
+                          body: {
+                            padding: "20px",
+                            height: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
+                          },
+                        }}
+                      >
+                        {/* Top accent bar */}
+                        <div className="w-8 h-[3px] bg-green-600 rounded-full mb-auto" />
 
-                    <div className="flex justify-between items-start">
-                      <div className="w-8 h-1 bg-green-600 group-hover:bg-white transition-colors"></div>
-                      <IconArrowRight
-                        size={20}
-                        className="text-green-600 group-hover:text-white -translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"
-                      />
-                    </div>
-
-                    <div>
-                      <span className="text-sm font-bold  tracking-wide text-black group-hover:text-white transition-colors block max-w-[80%] leading-tight">
-                        {report.title}
-                      </span>
-                      <span className="text-xs font-bold   text-gray-400 group-hover:text-gray-500 mt-2 block">
-                        View Report
-                      </span>
-                    </div>
-                  </Link>
+                        {/* Bottom section */}
+                        <div className="flex items-end justify-between">
+                          <div>
+                            <Text
+                              strong
+                              className="block text-sm leading-tight text-gray-900"
+                            >
+                              {report.title}
+                            </Text>
+                            <Text
+                              type="secondary"
+                              className="text-xs mt-1 block"
+                            >
+                              View Report
+                            </Text>
+                          </div>
+                          <IconArrowRight
+                            size={18}
+                            className="text-green-500 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 flex-shrink-0 ml-2"
+                          />
+                        </div>
+                      </Card>
+                    </Link>
+                  </Col>
                 ))}
-              </div>
+              </Row>
             </div>
           ))}
         </div>

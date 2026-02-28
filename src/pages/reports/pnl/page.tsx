@@ -1,8 +1,9 @@
 import api from "@/lib/api";
 
-import {  Card, Form , Spin } from "antd";
+import { Button, Card, DatePicker, Form, Space, Spin } from "antd";
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
+import dayjs from "dayjs";
 import { IconFilter, IconDownload } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import toast from "react-hot-toast";
@@ -41,6 +42,7 @@ interface ProfitLossStatement {
 }
 
 const ProfitLossPage = () => {
+  const [form] = Form.useForm();
   const [from, setFrom] = useState(() => {
     const date = new Date();
     date.setDate(1);
@@ -52,13 +54,21 @@ const ProfitLossPage = () => {
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
-  const fetchReport = async (evt?: React.FormEvent) => {
-    if (evt) evt.preventDefault();
+  const fetchReport = async (values?: any) => {
     setLoading(true);
+    const fromDate = values?.dateRange?.[0]?.format("YYYY-MM-DD") || from;
+    const toDate = values?.dateRange?.[1]?.format("YYYY-MM-DD") || to;
+    if (values?.dateRange) {
+      setFrom(fromDate);
+      setTo(toDate);
+    }
     try {
-      const res = await api.get<ProfitLossStatement>("/api/v1/erp/reports/pnl", {
-        params: { from, to },
-      });
+      const res = await api.get<ProfitLossStatement>(
+        "/api/v1/erp/reports/pnl",
+        {
+          params: { from: fromDate, to: toDate },
+        },
+      );
       setReport(res.data);
     } catch (error) {
       console.error(error);
@@ -69,7 +79,11 @@ const ProfitLossPage = () => {
   };
 
   useEffect(() => {
-    if (currentUser) fetchReport();
+    if (currentUser) {
+      form.setFieldsValue({ dateRange: [dayjs().startOf("month"), dayjs()] });
+      fetchReport();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   const handleExportExcel = () => {
@@ -161,8 +175,8 @@ const ProfitLossPage = () => {
             value < 0 || negative
               ? "text-red-600"
               : positive
-              ? "text-green-600"
-              : "text-gray-900"
+                ? "text-green-600"
+                : "text-gray-900"
           }`}
         >
           {negative ? "-" : positive ? "+" : ""}Rs{" "}
@@ -188,41 +202,28 @@ const ProfitLossPage = () => {
 
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
-          <Form
-            layout="inline"
-            onFinish={() => fetchReport()}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <Form.Item className="!mb-0">
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  required
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  required
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                  className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                />
-              </div>
-            </Form.Item>
-            <Form.Item className="!mb-0">
-              <button
-                type="submit"
-                className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
+              <Form
+                form={form}
+                layout="inline"
+                onFinish={fetchReport}
+                className="flex flex-wrap items-center gap-2"
               >
-                <IconFilter size={15} />
-                Filter
-              </button>
-            </Form.Item>
-          </Form>
-        </Card>
+                <Form.Item name="dateRange" className="mb-0!">
+                  <DatePicker.RangePicker size="middle" />
+                </Form.Item>
+                <Form.Item className="mb-0!">
+                  <Space>
+                    <Button
+                      htmlType="submit"
+                      type="primary"
+                      icon={<IconFilter size={15} />}
+                    >
+                      Filter
+                    </Button>
+                  </Space>
+                </Form.Item>
+              </Form>
+            </Card>
 
             <button
               onClick={handleExportExcel}
@@ -238,7 +239,9 @@ const ProfitLossPage = () => {
         {/* Loading State */}
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="flex justify-center py-12"><Spin size="large" /></div>
+            <div className="flex justify-center py-12">
+              <Spin size="large" />
+            </div>
           </div>
         )}
 

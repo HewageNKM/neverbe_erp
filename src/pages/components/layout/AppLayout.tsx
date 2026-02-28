@@ -95,11 +95,11 @@ export default function AppLayout() {
           </div>
         </Drawer>
 
-        <Content className="flex-grow flex flex-col pt-4 lg:pt-[40px]">
+        <Content className="grow flex flex-col pt-4 lg:pt-[40px]">
           {/* Global Padding Container matched to old ERP */}
-          <div className="w-full max-w-[1800px] mx-auto pb-12">
+          <div className="w-full mx-auto pb-12">
             <AppBreadcrumb />
-            <div className="px-4 sm:px-8 lg:px-12">
+            <div className="px-4 xl:px-8">
               <Outlet />
             </div>
           </div>

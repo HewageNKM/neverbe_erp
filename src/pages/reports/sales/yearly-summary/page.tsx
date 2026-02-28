@@ -1,10 +1,21 @@
 import api from "@/lib/api";
-import { Card, Form, Spin, Table } from "antd";
+import {
+  Card,
+  Form,
+  Spin,
+  Table,
+  DatePicker,
+  Select,
+  Button,
+  Space,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IconFilter, IconDownload } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import * as XLSX from "xlsx";
+import toast from "react-hot-toast";
+import dayjs from "dayjs";
 import {
   LineChart,
   Line,
@@ -18,29 +29,50 @@ import {
 } from "recharts";
 
 const Page = () => {
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<any>(null);
 
-  const fetchReport = async (evt?: any) => {
-    evt.preventDefault();
+  // Initialize with last 5 years
+  const [dateRange, setDateRange] = useState<[string, string]>([
+    dayjs().subtract(4, "year").format("YYYY"),
+    dayjs().format("YYYY"),
+  ]);
+
+  const fetchReport = async (values?: any) => {
+    const from = values?.dateRange?.[0]?.format("YYYY") || dateRange[0];
+    const to = values?.dateRange?.[1]?.format("YYYY") || dateRange[1];
+    const status = values?.status || "Paid";
+
     if (!from || !to) return;
+    setDateRange([from, to]);
     setLoading(true);
     try {
       // Convert to full date strings for the API
       const fromDate = `${from}-01-01`;
       const toDate = `${to}-12-31`;
       const res = await api.get("/api/v1/erp/reports/sales/yearly-summary", {
-        params: { from: fromDate, to: toDate },
+        params: { from: fromDate, to: toDate, status },
       });
       setSummary(res.data.summary || null);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error(
+        e.response?.data?.error || e.message || "Failed to fetch report",
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    form.setFieldsValue({
+      dateRange: [dayjs(dateRange[0], "YYYY"), dayjs(dateRange[1], "YYYY")],
+      status: "Paid",
+    });
+    fetchReport(form.getFieldsValue());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleExportExcel = () => {
     if (!summary?.yearly || summary.yearly.length === 0) return;
@@ -83,7 +115,7 @@ const Page = () => {
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Yearly Summary");
-    XLSX.writeFile(wb, `yearly_summary_${from}_${to}.xlsx`);
+    XLSX.writeFile(wb, `yearly_summary_${dateRange[0]}_${dateRange[1]}.xlsx`);
   };
 
   const SummaryCard = ({
@@ -210,37 +242,32 @@ const Page = () => {
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
+                form={form}
                 layout="inline"
-                onFinish={() => fetchReport()}
+                onFinish={fetchReport}
                 className="flex flex-wrap items-center gap-2"
               >
-                <Form.Item className="mb-0!">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      required
-                      value={from}
-                      onChange={(e) => setFrom(e.target.value)}
-                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                    />
-                    <span className="text-gray-400 font-medium">-</span>
-                    <input
-                      type="date"
-                      required
-                      value={to}
-                      onChange={(e) => setTo(e.target.value)}
-                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                    />
-                  </div>
+                <Form.Item name="dateRange" className="mb-0!">
+                  <DatePicker.RangePicker allowClear={false} picker="year" />
+                </Form.Item>
+                <Form.Item name="status" className="mb-0! w-32">
+                  <Select>
+                    <Select.Option value="Paid">Paid</Select.Option>
+                    <Select.Option value="Pending">Pending</Select.Option>
+                    <Select.Option value="Refunded">Refunded</Select.Option>
+                    <Select.Option value="all">All</Select.Option>
+                  </Select>
                 </Form.Item>
                 <Form.Item className="mb-0!">
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
-                  >
-                    <IconFilter size={15} />
-                    Filter
-                  </button>
+                  <Space>
+                    <Button
+                      htmlType="submit"
+                      type="primary"
+                      icon={<IconFilter size={15} />}
+                    >
+                      Filter
+                    </Button>
+                  </Space>
                 </Form.Item>
               </Form>
             </Card>
@@ -459,7 +486,7 @@ const Page = () => {
               dataSource={dataSource}
               pagination={false}
               scroll={{ x: 1000 }}
-                        bordered
+              bordered
               expandable={{
                 defaultExpandAllRows: true, // You may choose false for better initial UX if there's a lot of data
               }}

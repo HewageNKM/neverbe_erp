@@ -1,11 +1,21 @@
 import api from "@/lib/api";
-import { Card, Form, Spin, Table } from "antd";
+import {
+  Card,
+  Form,
+  Spin,
+  Table,
+  DatePicker,
+  Select,
+  Button,
+  Space,
+} from "antd";
 import type { ColumnsType } from "antd/es/table";
 import React, { useState, useEffect } from "react";
 import { IconFilter, IconDownload } from "@tabler/icons-react";
 import PageContainer from "@/pages/components/container/PageContainer";
 import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
+import dayjs from "dayjs";
 import { useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
 
@@ -25,15 +35,22 @@ import {
 const MAX_MONTHS_RANGE = 12;
 
 const MonthlySummaryPage = () => {
-  const [from, setFrom] = useState(new Date().toISOString().slice(0, 7));
-  const [to, setTo] = useState(new Date().toISOString().slice(0, 7));
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<any>(null);
 
   const { currentUser } = useAppSelector((state: RootState) => state.authSlice);
 
-  const fetchReport = async (evt?: React.FormEvent) => {
-    if (evt) evt.preventDefault();
+  // Initialize with last 12 months
+  const [dateRange, setDateRange] = useState<[string, string]>([
+    dayjs().subtract(12, "month").format("YYYY-MM"),
+    dayjs().format("YYYY-MM"),
+  ]);
+
+  const fetchReport = async (values?: any) => {
+    const from = values?.dateRange?.[0]?.format("YYYY-MM") || dateRange[0];
+    const to = values?.dateRange?.[1]?.format("YYYY-MM") || dateRange[1];
+    const status = values?.status || "Paid";
 
     if (!from || !to) return;
 
@@ -55,25 +72,38 @@ const MonthlySummaryPage = () => {
       return;
     }
 
+    setDateRange([from, to]);
     setLoading(true);
     try {
       const res = await api.get("/api/v1/erp/reports/sales/monthly-summary", {
         params: {
           from: fromDate.toISOString().split("T")[0],
           to: toDate.toISOString().split("T")[0],
+          status,
         },
       });
       setSummary(res.data.summary || null);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast("Failed to fetch report");
+      toast.error(
+        e.response?.data?.error || e.message || "Failed to fetch report",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (currentUser) fetchReport();
+    if (currentUser) {
+      form.setFieldsValue({
+        dateRange: [
+          dayjs(dateRange[0], "YYYY-MM"),
+          dayjs(dateRange[1], "YYYY-MM"),
+        ],
+        status: "Paid",
+      });
+      fetchReport(form.getFieldsValue());
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
@@ -98,7 +128,7 @@ const MonthlySummaryPage = () => {
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Monthly Summary");
-    XLSX.writeFile(wb, `monthly_summary_${from}_${to}.xlsx`);
+    XLSX.writeFile(wb, `monthly_summary_${dateRange[0]}_${dateRange[1]}.xlsx`);
   };
 
   const SummaryCard = ({
@@ -205,37 +235,32 @@ const MonthlySummaryPage = () => {
           <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full xl:w-auto">
             <Card size="small" className="shadow-sm w-full xl:w-auto">
               <Form
+                form={form}
                 layout="inline"
-                onFinish={() => fetchReport()}
+                onFinish={fetchReport}
                 className="flex flex-wrap items-center gap-2"
               >
-                <Form.Item className="mb-0!">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      required
-                      value={from}
-                      onChange={(e) => setFrom(e.target.value)}
-                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                    />
-                    <span className="text-gray-400 font-medium">-</span>
-                    <input
-                      type="date"
-                      required
-                      value={to}
-                      onChange={(e) => setTo(e.target.value)}
-                      className="px-3 py-1.5 bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:outline-none focus:border-gray-200"
-                    />
-                  </div>
+                <Form.Item name="dateRange" className="mb-0!">
+                  <DatePicker.RangePicker allowClear={false} picker="month" />
+                </Form.Item>
+                <Form.Item name="status" className="mb-0! w-32">
+                  <Select>
+                    <Select.Option value="Paid">Paid</Select.Option>
+                    <Select.Option value="Pending">Pending</Select.Option>
+                    <Select.Option value="Refunded">Refunded</Select.Option>
+                    <Select.Option value="all">All</Select.Option>
+                  </Select>
                 </Form.Item>
                 <Form.Item className="mb-0!">
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-green-600 transition-colors flex items-center gap-2"
-                  >
-                    <IconFilter size={15} />
-                    Filter
-                  </button>
+                  <Space>
+                    <Button
+                      htmlType="submit"
+                      type="primary"
+                      icon={<IconFilter size={15} />}
+                    >
+                      Filter
+                    </Button>
+                  </Space>
                 </Form.Item>
               </Form>
             </Card>
@@ -408,7 +433,7 @@ const MonthlySummaryPage = () => {
               pagination={{ pageSize: 15, position: ["bottomRight"] }}
               className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
               scroll={{ x: 1000 }}
-                      bordered
+              bordered
             />
           </div>
         )}
