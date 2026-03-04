@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   IconEye,
   IconFileInvoice,
@@ -39,9 +39,12 @@ const OrdersPage = () => {
   const { currentUser } = useAppSelector((state) => state.authSlice);
   const [form] = Form.useForm();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialPage = parseInt(searchParams.get("page") || "1", 10);
+
   // --- Pagination state ---
   const [pagination, setPagination] = useState({
-    current: 1,
+    current: initialPage,
     pageSize: 10,
     total: 0,
   });
@@ -118,6 +121,10 @@ const OrdersPage = () => {
 
   const handleTableChange = (newPagination: any) => {
     setPagination(newPagination);
+    setSearchParams((prev) => {
+      prev.set("page", String(newPagination.current));
+      return prev;
+    });
   };
 
   const handleFilterSubmit = (values: any) => {
@@ -136,6 +143,10 @@ const OrdersPage = () => {
       fetchOrders(values);
     } else {
       setPagination((prev) => ({ ...prev, current: 1 }));
+      setSearchParams((prev) => {
+        prev.set("page", "1");
+        return prev;
+      });
       // useEffect will trigger fetchOrders
     }
   };
@@ -143,6 +154,32 @@ const OrdersPage = () => {
   const handleClearFilters = () => {
     form.resetFields();
     handleFilterSubmit({});
+  };
+
+  // Helper for Date Formatting
+  const formatDate = (dateValue: any) => {
+    if (!dateValue) return "-";
+
+    // Check for Firebase Timestamp objects (either generic or serialized)
+    if (typeof dateValue === "object") {
+      if (dateValue._seconds !== undefined) {
+        return dayjs(dateValue._seconds * 1000).format("DD MMM YYYY, hh:mm A");
+      }
+      if (dateValue.seconds !== undefined) {
+        return dayjs(dateValue.seconds * 1000).format("DD MMM YYYY, hh:mm A");
+      }
+      if (dateValue.toDate) {
+        return dayjs(dateValue.toDate()).format("DD MMM YYYY, hh:mm A");
+      }
+    }
+
+    // Otherwise fallback fallback to simple dayjs standard parsing
+    const parsed = dayjs(dateValue);
+    if (parsed.isValid()) {
+      return parsed.format("DD MMM YYYY, hh:mm A");
+    }
+
+    return String(dateValue);
   };
 
   // Helper for Status Badges
@@ -207,7 +244,7 @@ const OrdersPage = () => {
         <div className="flex flex-col">
           <Typography.Text strong>#{order.orderId}</Typography.Text>
           <Typography.Text type="secondary" className="text-xs">
-            {order.createdAt ? String(order.createdAt) : "-"}
+            {formatDate(order.createdAt)}
           </Typography.Text>
           <Typography.Text type="secondary" className="text-xs">
             via {order.from}
