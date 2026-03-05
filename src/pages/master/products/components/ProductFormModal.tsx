@@ -4,6 +4,7 @@ import { DropdownOption } from "../page";
 import { ProductVariant } from "@/model/ProductVariant";
 import VariantList from "./VariantList";
 import VariantFormModal from "./VariantFormModal";
+import MarkdownDescriptionEditor from "@/components/MarkdownDescriptionEditor";
 
 import toast from "react-hot-toast";
 import { IconUpload, IconPackage } from "@tabler/icons-react";
@@ -18,13 +19,9 @@ import {
   Row,
   Col,
   Upload,
-  Typography,
   Divider,
-  Space,
 } from "antd";
 
-const { Title, Text } = Typography;
-const { TextArea } = Input;
 const { Option } = Select;
 
 const emptyProduct: Omit<Product, "itemId"> & {
@@ -91,6 +88,10 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
   // Watch fields for calculations
   const sellingPrice = Form.useWatch("sellingPrice", form) || 0;
   const discount = Form.useWatch("discount", form) || 0;
+  const watchedName = Form.useWatch("name", form) || "";
+  const watchedCategory = Form.useWatch("category", form) || "";
+  const watchedBrand = Form.useWatch("brand", form) || "";
+  const watchedGender = Form.useWatch("gender", form) || [];
 
   const isEditing = !!product;
 
@@ -295,7 +296,15 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({
                 label="Description"
                 className="mt-4 md:mt-0"
               >
-                <TextArea rows={4} className="resize-none" />
+                <MarkdownDescriptionEditor
+                  productContext={{
+                    name: watchedName,
+                    category: watchedCategory,
+                    brand: watchedBrand,
+                    gender: watchedGender,
+                  }}
+                  disabled={saving}
+                />
               </Form.Item>
 
               <Row gutter={[16, 16]}>

@@ -4,6 +4,7 @@ import { Layout, Button, Drawer } from "antd";
 import { IconMenu2 } from "@tabler/icons-react";
 import { useState } from "react";
 import AppBreadcrumb from "./AppBreadcrumb";
+import AIChatModal from "@/components/AIChatModal";
 
 const { Content } = Layout;
 
@@ -112,6 +113,9 @@ export default function AppLayout() {
           </p>
         </footer>
       </Layout>
+
+      {/* Global AI Chat Modal */}
+      <AIChatModal />
     </Layout>
   );
 }
