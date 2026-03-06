@@ -8,6 +8,7 @@ export interface ExchangeItem {
   size: string;
   quantity: number;
   price: number;
+  discount: number;
   bPrice?: number; // Buying price for profit tracking
 }
 

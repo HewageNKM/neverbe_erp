@@ -163,9 +163,14 @@ export const OrderExchangeHistory: React.FC<OrderExchangeHistoryProps> = ({
                         <Text className="font-bold text-sm block">
                           x{item.quantity}
                         </Text>
-                        <Text type="secondary" className="text-[11px]">
+                        <Text type="secondary" className="text-[11px] block">
                           Rs. {item.price.toLocaleString()}
                         </Text>
+                        {item.discount > 0 && (
+                          <Text className="text-[10px] text-red-500 font-bold block">
+                            - Rs. {item.discount.toLocaleString()}
+                          </Text>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -215,9 +220,14 @@ export const OrderExchangeHistory: React.FC<OrderExchangeHistoryProps> = ({
                         <Text className="font-bold text-sm block">
                           x{item.quantity}
                         </Text>
-                        <Text type="secondary" className="text-[11px]">
+                        <Text type="secondary" className="text-[11px] block">
                           Rs. {item.price.toLocaleString()}
                         </Text>
+                        {item.discount > 0 && (
+                          <Text className="text-[10px] text-green-600 font-bold block">
+                            - Rs. {item.discount.toLocaleString()}
+                          </Text>
+                        )}
                       </div>
                     </div>
                   ))}
