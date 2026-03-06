@@ -29,7 +29,10 @@ import {
   Slider,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+
+dayjs.extend(customParseFormat);
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -109,7 +112,12 @@ const PromotionFormModal: React.FC<Props> = ({
           if (!d) return null;
           if (d.toDate) return dayjs(d.toDate());
           if (typeof d === "string") {
-            const parsed = dayjs(d);
+            // First try strict format from our DatePicker (DD/MM/YYYY)
+            let parsed = dayjs(d, "DD/MM/YYYY", true);
+            if (!parsed.isValid()) {
+              // Try ISO or loose parsing as fallback
+              parsed = dayjs(d);
+            }
             if (parsed.isValid()) return parsed;
             return null;
           }
