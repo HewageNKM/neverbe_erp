@@ -45,7 +45,12 @@ export const checkUserAction = async (uid: string) => {
 
 export const sendPasswordResetLinkAction = async (email: string) => {
   try {
-    await sendPasswordResetEmail(auth, email);
+    const actionCodeSettings = {
+      // Directs the user back to the ERP login after they complete the reset
+      url: `${window.location.origin}/auth/login`,
+      handleCodeInApp: false,
+    };
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
   } catch (e: unknown) {
     throw new Error((e as Error).message);
   }
