@@ -472,7 +472,7 @@ const OrderView = ({ orderId }: { orderId: string }) => {
                 {trackingHistory.length > 0 ? (
                   <Timeline
                     className="mt-4"
-                    items={trackingHistory.map((event) => ({
+                    items={[...trackingHistory].reverse().map((event, index) => ({
                       children: (
                         <div className="flex flex-col">
                           <Text strong className="text-xs">
