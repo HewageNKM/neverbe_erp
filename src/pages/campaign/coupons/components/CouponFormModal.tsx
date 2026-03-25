@@ -62,6 +62,9 @@ const CouponFormModal: React.FC<Props> = ({
   const [saving, setSaving] = useState(false);
   const isEditing = !!coupon;
 
+  const watchedName = Form.useWatch("name", form);
+  const watchedCode = Form.useWatch("code", form);
+
   useEffect(() => {
     if (open) {
       if (coupon) {
@@ -183,8 +186,7 @@ const CouponFormModal: React.FC<Props> = ({
               >
                 <AIDescriptionTextarea
                   aiContext={{
-                    name:
-                      form.getFieldValue("name") || form.getFieldValue("code"),
+                    name: watchedName || watchedCode,
                     category: "Coupon",
                   }}
                   rows={2}

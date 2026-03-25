@@ -67,6 +67,7 @@ const PromotionFormModal: React.FC<Props> = ({
 }) => {
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
+  const watchedName = Form.useWatch("name", form);
   const [products, setProducts] = useState<DropdownOption[]>([]);
   const [productVariants, setProductVariants] = useState<{
     [productId: string]: { variantId: string; variantName: string }[];
@@ -302,7 +303,7 @@ const PromotionFormModal: React.FC<Props> = ({
               <Form.Item name="description" label="Description">
                 <AIDescriptionTextarea
                   aiContext={{
-                    name: form.getFieldValue("name"),
+                    name: watchedName,
                     category: "Promotion",
                   }}
                   rows={2}
@@ -450,7 +451,7 @@ const PromotionFormModal: React.FC<Props> = ({
                       <Form.Item shouldUpdate noStyle>
                         {({ getFieldValue }) =>
                           getFieldValue(["actions", name, "type"]) ===
-                            "PERCENTAGE_OFF" && (
+                          "PERCENTAGE_OFF" && (
                             <Form.Item
                               {...restField}
                               name={[name, "maxDiscount"]}
