@@ -110,10 +110,13 @@ const CategoryPage: React.FC = () => {
         status: values.status,
       };
 
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(payload));
+
       if (editingCategory) {
         const res = await api.put(
           `/api/v1/erp/master/categories/${editingCategory.id}`,
-          payload,
+          formData,
         );
         const updated: Category = res.data || {
           ...editingCategory,
@@ -123,7 +126,7 @@ const CategoryPage: React.FC = () => {
           prev.map((c) => (c.id === updated.id ? updated : c)),
         );
       } else {
-        const res = await api.post("/api/v1/erp/master/categories", payload);
+        const res = await api.post("/api/v1/erp/master/categories", formData);
         const created: Category = res.data;
         if (created) {
           setCategories((prev) => [created, ...prev]);

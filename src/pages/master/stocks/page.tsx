@@ -124,13 +124,16 @@ const StockPage: React.FC = () => {
     setSaving(true);
     const isEditing = !!editingLocation;
     try {
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(values));
+
       if (isEditing) {
         await api.put(
           `/api/v1/erp/master/stocks/${editingLocation!.id}`,
-          values,
+          formData,
         );
       } else {
-        await api.post("/api/v1/erp/master/stocks", values);
+        await api.post("/api/v1/erp/master/stocks", formData);
       }
       toast.success(`Location ${isEditing ? "updated" : "added"}`);
       handleCloseModal();

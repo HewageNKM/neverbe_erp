@@ -92,17 +92,20 @@ const SizePage: React.FC = () => {
   const handleSave = async (values: Record<string, unknown>) => {
     try {
       setSaving(true);
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(values));
+
       if (editingSize) {
         const res = await api.put(
           `/api/v1/erp/master/sizes/${editingSize.id}`,
-          values,
+          formData,
         );
         const updated: Size = res.data || { ...editingSize, ...values };
         setSizes((prev) =>
           prev.map((s) => (s.id === updated.id ? updated : s)),
         );
       } else {
-        const res = await api.post("/api/v1/erp/master/sizes", values);
+        const res = await api.post("/api/v1/erp/master/sizes", formData);
         const created: Size = res.data;
         if (created) {
           setSizes((prev) => [created, ...prev]);
