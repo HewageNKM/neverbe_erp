@@ -118,10 +118,8 @@ const BrandPage: React.FC = () => {
     try {
       setSaving(true);
       const formData = new FormData();
-      formData.append("name", String(values.name));
-      formData.append("description", String(values.description || ""));
-      formData.append("status", String(values.status));
       if (logoFile) formData.append("logo", logoFile);
+      formData.append("data", JSON.stringify(values));
 
       if (editingBrand) {
         const res = await api.put(

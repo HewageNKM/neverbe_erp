@@ -215,28 +215,9 @@ const PromotionFormModal: React.FC<Props> = ({
         formDataToSend.append("banner", bannerFile);
       }
 
-      for (const [key, value] of Object.entries(payloadObj)) {
-        if (key === "bannerUrl" && !bannerFile) {
-          formDataToSend.append(key, String(value));
-          continue;
-        }
-
-        if (
-          [
-            "conditions",
-            "actions",
-            "applicableProducts",
-            "applicableProductVariants",
-            "applicableCategories",
-            "applicableBrands",
-            "excludedProducts",
-          ].includes(key)
-        ) {
-          formDataToSend.append(key, JSON.stringify(value));
-        } else {
-          formDataToSend.append(key, String(value));
-        }
-      }
+      // Send the entire payload as a JSON string under the 'data' key
+      // This preserves data types (numbers, booleans) better than individual FormData strings
+      formDataToSend.append("data", JSON.stringify(payloadObj));
 
       let savedPromotion: Promotion;
       if (isEditing && promotion) {

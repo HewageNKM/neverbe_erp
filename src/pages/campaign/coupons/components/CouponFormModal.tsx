@@ -97,7 +97,7 @@ const CouponFormModal: React.FC<Props> = ({
   const handleFinish = async (values: any) => {
     setSaving(true);
     try {
-      const payload = {
+      const dataPayload = {
         ...values,
         code: values.code?.toUpperCase(),
         startDate: values.startDate ? values.startDate.toISOString() : null,
@@ -106,18 +106,22 @@ const CouponFormModal: React.FC<Props> = ({
         perUserLimit: Number(values.perUserLimit),
         minOrderAmount: Number(values.minOrderAmount),
         discountValue: Number(values.discountValue),
-        maxDiscount: values.maxDiscount
-          ? Number(values.maxDiscount)
-          : undefined,
+        maxDiscount: values.maxDiscount ? Number(values.maxDiscount) : undefined,
       };
+
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(dataPayload));
 
       let savedCoupon;
       if (isEditing && coupon) {
-        const response = await api.put(`/api/v1/erp/master/coupons/${coupon.id}`, payload);
+        const response = await api.put(
+          `/api/v1/erp/master/coupons/${coupon.id}`,
+          formData,
+        );
         toast.success("COUPON UPDATED");
         savedCoupon = response.data;
       } else {
-        const response = await api.post("/api/v1/erp/master/coupons", payload);
+        const response = await api.post("/api/v1/erp/master/coupons", formData);
         toast.success("COUPON CREATED");
         savedCoupon = response.data;
       }

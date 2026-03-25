@@ -165,16 +165,10 @@ const ProductPage = () => {
     try {
       const formData = new FormData();
       if (file) formData.append("thumbnail", file);
-      else if (isEditing && productData.thumbnail)
-        formData.append("thumbnail", JSON.stringify(productData.thumbnail));
 
-      for (const [key, value] of Object.entries(productData)) {
-        if (key === "thumbnail") continue;
-        if (value === undefined || value === null) continue;
-        if (key === "variants" || key === "tags")
-          formData.append(key, JSON.stringify(value));
-        else formData.append(key, String(value));
-      }
+      // Send the entire product data object as a JSON string under the 'data' key.
+      // This preserves types (numbers/booleans) and is parsed by the API.
+      formData.append("data", JSON.stringify(productData));
 
       if (isEditing) {
         const res = await api.put(url, formData);

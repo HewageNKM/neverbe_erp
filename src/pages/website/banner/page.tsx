@@ -126,7 +126,7 @@ const BannerForm = ({ onSuccess }: { onSuccess: (newBanner: any) => void }) => {
       if (selectedFile) {
         formData.append("banner", selectedFile);
       }
-      formData.append("path", "sliders");
+      formData.append("data", JSON.stringify({ path: "sliders" }));
 
       const res = await addBannerAction(formData);
       setSelectedFile(null);

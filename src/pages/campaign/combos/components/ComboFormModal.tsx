@@ -178,44 +178,23 @@ const ComboFormModal: React.FC<Props> = ({ open, onClose, onSave, combo }) => {
     setSaving(true);
     try {
       const payload = new FormData();
-
-      // Basic fields
-      if (values.name) payload.append("name", values.name);
-      if (values.description) payload.append("description", values.description);
-      if (values.type) payload.append("type", values.type);
-      payload.append("status", values.status || "ACTIVE");
-      payload.append("originalPrice", String(values.originalPrice || 0));
-      payload.append("comboPrice", String(values.comboPrice || 0));
-      payload.append(
-        "savings",
-        String((values.originalPrice || 0) - (values.comboPrice || 0)),
-      );
-
-      if (values.buyQuantity)
-        payload.append("buyQuantity", String(values.buyQuantity));
-      if (values.getQuantity)
-        payload.append("getQuantity", String(values.getQuantity));
-      if (values.getDiscount)
-        payload.append("getDiscount", String(values.getDiscount));
-
-      // Dates
-      if (values.startDate)
-        payload.append("startDate", values.startDate.toISOString());
-      if (values.endDate)
-        payload.append("endDate", values.endDate.toISOString());
-
-      // Items
-      const items = (values.items || []).map((i: any) => ({
-        ...i,
-        quantity: Number(i.quantity),
-        variantId: i.variantId || null,
-      }));
-      payload.append("items", JSON.stringify(items));
-
-      // File
       if (thumbnailFile) {
         payload.append("file", thumbnailFile);
       }
+
+      const comboData = {
+        ...values,
+        items: (values.items || []).map((i: any) => ({
+          ...i,
+          quantity: Number(i.quantity),
+          variantId: i.variantId || null,
+        })),
+        startDate: values.startDate?.toISOString(),
+        endDate: values.endDate?.toISOString(),
+        savings: (values.originalPrice || 0) - (values.comboPrice || 0),
+      };
+
+      payload.append("data", JSON.stringify(comboData));
 
       const url =
         isEditing && combo
