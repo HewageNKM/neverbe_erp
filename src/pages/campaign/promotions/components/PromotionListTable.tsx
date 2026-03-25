@@ -36,9 +36,6 @@ const PromotionListTable: React.FC<Props> = ({
           <Text strong className="text-base">
             {text}
           </Text>
-          <Text type="secondary" className="text-xs truncate max-w-[200px]">
-            {record.description || "No description"}
-          </Text>
         </div>
       ),
     },

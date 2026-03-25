@@ -357,18 +357,20 @@ const PromotionFormModal: React.FC<Props> = ({
               </Row>
 
               <Form.Item name="stackable" valuePropName="checked">
-                <div className="flex items-center gap-2 p-2 border border-blue-100 bg-blue-50 rounded">
-                  <Switch size="small" />
-                  <div className="flex flex-col">
-                    <span className="font-bold text-xs flex items-center gap-1">
-                      <IconBolt size={12} /> Stackable Promotion
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Can be combined with other discounts
-                    </span>
-                  </div>
-                </div>
+                <Switch
+                  size="small"
+                  checkedChildren={<IconBolt size={12} />}
+                  unCheckedChildren={<IconBolt size={12} />}
+                />
               </Form.Item>
+              <div className="flex flex-col -mt-2 ml-10 mb-4">
+                <span className="font-bold text-xs flex items-center gap-1">
+                  Stackable Promotion
+                </span>
+                <span className="text-xs text-gray-500">
+                  Can be combined with other discounts
+                </span>
+              </div>
             </Card>
 
             <Card
