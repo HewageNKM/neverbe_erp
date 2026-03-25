@@ -100,14 +100,17 @@ const ShippingSettingsPage = () => {
           : undefined,
       };
 
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(payload));
+
       if (editingRule) {
         await api.put(
           `/api/v1/erp/procurement/shipping-rules/${editingRule.id}`,
-          payload,
+          formData,
         );
         toast.success("RULE UPDATED");
       } else {
-        await api.post("/api/v1/erp/procurement/shipping-rules", payload);
+        await api.post("/api/v1/erp/procurement/shipping-rules", formData);
         toast.success("RULE CREATED");
       }
       setOpen(false);

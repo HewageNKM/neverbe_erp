@@ -49,7 +49,9 @@ export const getUsersV2Action = async (
 
 export const addNewUserAction = async (data: User) => {
   try {
-    const response = await api.post("/api/v1/erp/users", data);
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(data));
+    const response = await api.post("/api/v1/erp/users", formData);
     return response.data;
   } catch (e: unknown) {
     const err = e as {
@@ -75,7 +77,9 @@ export const deleteUserByIdAction = async (id: string) => {
 
 export const updateUserByIdAction = async (data: User) => {
   try {
-    const response = await api.put(`/api/v1/erp/users/${data.userId}`, data);
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(data));
+    const response = await api.put(`/api/v1/erp/users/${data.userId}`, formData);
     return response.data;
   } catch (e: unknown) {
     const err = e as {

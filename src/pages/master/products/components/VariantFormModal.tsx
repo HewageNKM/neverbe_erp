@@ -111,17 +111,18 @@ const VariantFormModal: React.FC<VariantFormModalProps> = ({
     setIsSaving(true);
     try {
       const formDataPayload = new FormData();
-      formDataPayload.append(
-        "variantId",
-        String(values.variantId || variant?.variantId),
-      );
-      formDataPayload.append("variantName", String(values.variantName));
-      formDataPayload.append("sizes", JSON.stringify(values.sizes || []));
-      formDataPayload.append("images", JSON.stringify(currentImages || []));
-      formDataPayload.append("status", String(values.status ?? true));
+      const data = {
+        variantId: String(values.variantId || variant?.variantId),
+        variantName: String(values.variantName),
+        sizes: values.sizes || [],
+        images: currentImages || [],
+        status: values.status ?? true,
+      };
+
+      formDataPayload.append("data", JSON.stringify(data));
 
       newImageFiles.forEach((file) => {
-        formDataPayload.append("newImages", file, file.name);
+        formDataPayload.append("attachment", file, file.name); // Standardized to 'attachment' or multiple? Usually 'attachment' for single, but here it's multiple. Backend should handle 'newImages' or similar.
       });
 
       const varId = String(values.variantId || variant?.variantId);

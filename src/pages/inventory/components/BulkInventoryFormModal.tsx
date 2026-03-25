@@ -176,7 +176,7 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
 
     setSaving(true);
     try {
-      const payload = {
+      const data = {
         bulk: true,
         productId,
         variantId,
@@ -185,7 +185,11 @@ const BulkInventoryFormModal: React.FC<BulkInventoryFormModalProps> = ({
           .filter(([size, qty]) => qty !== (currentStock[size] ?? 0))
           .map(([size, quantity]) => ({ size, quantity })),
       };
-      const response = await api.post("/api/v1/erp/inventory", payload);
+
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(data));
+
+      const response = await api.post("/api/v1/erp/inventory", formData);
       toast.success(`Bulk entry success: ${response.data.success} updated`);
       onSave();
       onClose();

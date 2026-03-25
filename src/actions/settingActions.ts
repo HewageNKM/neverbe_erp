@@ -109,9 +109,11 @@ export const getNavigationAction = async () => {
 
 export const saveNavigationAction = async (data: unknown) => {
   try {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(data));
     const response = await api.post(
       "/api/v1/erp/settings/ecom-web/navigation",
-      data,
+      formData,
     );
     return response.data;
   } catch (e: unknown) {

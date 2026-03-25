@@ -26,13 +26,12 @@ export const fetchAItemAction = async (itemId: string) => {
 };
 export const updateAItemAction = async (item: Item) => {
   try {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(item));
     const response = await api({
       method: "PUT",
       url: `/api/v1/erp/inventory/${item.itemId}`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify(item),
+      data: formData,
     });
   } catch (e) {
     throw new Error(e.response ? e.response.data.message : e.message);
@@ -41,13 +40,12 @@ export const updateAItemAction = async (item: Item) => {
 
 export const addAItem = async (item: Item) => {
   try {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(item));
     const response = await api({
       method: "POST",
-      url: `/api/v1/inventory`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify(item),
+      url: `/api/v1/erp/inventory`,
+      data: formData,
     });
   } catch (e) {
     throw new Error(e.response ? e.response.data.message : e.message);

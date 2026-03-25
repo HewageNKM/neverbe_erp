@@ -23,9 +23,9 @@ export const authenticateUserAction = async (
 ) => {
   try {
     const credential = await signInWithEmailAndPassword(auth, email, password);
-    const response = await api.post(`/api/v1/auth/login`, {
-      uid: credential.user.uid,
-    });
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({ uid: credential.user.uid }));
+    const response = await api.post(`/api/v1/auth/login`, formData);
     return response.data;
   } catch (e: unknown) {
     throw new Error((e as Error).message);
@@ -34,9 +34,9 @@ export const authenticateUserAction = async (
 
 export const checkUserAction = async (uid: string) => {
   try {
-    const response = await api.post(`/api/v1/auth/login`, {
-      uid: uid,
-    });
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({ uid: uid }));
+    const response = await api.post(`/api/v1/auth/login`, formData);
     return response.data;
   } catch (e: unknown) {
     throw new Error((e as Error).message);
@@ -60,9 +60,9 @@ export const signInWithGoogleAction = async () => {
   try {
     const provider = new GoogleAuthProvider();
     const credential = await signInWithPopup(auth, provider);
-    const response = await api.post(`/api/v1/auth/login`, {
-      uid: credential.user.uid,
-    });
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({ uid: credential.user.uid }));
+    const response = await api.post(`/api/v1/auth/login`, formData);
     return response.data;
   } catch (e: unknown) {
     throw new Error((e as Error).message);

@@ -111,9 +111,11 @@ const ViewAdjustmentPage = () => {
             : "Confirm",
       onSuccess: async () => {
         try {
+          const formData = new FormData();
+          formData.append("data", JSON.stringify({ status }));
           await api.put(
             `/api/v1/erp/inventory/adjustments/${adjustmentId}/status`,
-            { status },
+            formData,
           );
           toast.success(`Adjustment ${status.toLowerCase()}`);
           fetchAdjustment(); // Refresh data

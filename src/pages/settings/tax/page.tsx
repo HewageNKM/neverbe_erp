@@ -99,7 +99,9 @@ const TaxSettingsPage = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.put("/api/v1/erp/settings/tax", settings);
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(settings));
+      await api.put("/api/v1/erp/settings/tax", formData);
       toast.success("Tax settings saved successfully");
     } catch (error) {
       console.error(error);

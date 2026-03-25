@@ -10,10 +10,9 @@ export const sendAIChatMessage = async (
   messages: ChatMessage[],
 ): Promise<string> => {
   try {
-    const response = await api.post("/api/v1/erp/ai/chat", {
-      contextData,
-      messages,
-    });
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({ contextData, messages }));
+    const response = await api.post("/api/v1/erp/ai/chat", formData);
     return response.data.data.text as string;
   } catch (e: unknown) {
     const err = e as {
@@ -38,9 +37,11 @@ export const generateProductDescription = async (
   input: GenerateDescriptionInput,
 ): Promise<string> => {
   try {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(input));
     const response = await api.post(
       "/api/v1/erp/ai/generate-description",
-      input,
+      formData,
     );
     return response.data.data.description as string;
   } catch (e: unknown) {

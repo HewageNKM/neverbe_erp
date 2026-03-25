@@ -64,8 +64,11 @@ const EditRolePage = () => {
         name: values.name,
         permissions: values.permissions || [],
       };
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(payload));
+
       const token = await auth.currentUser?.getIdToken();
-      await api.put(`/api/v1/erp/users/roles/${roleId}`, payload);
+      await api.put(`/api/v1/erp/users/roles/${roleId}`, formData);
       toast.success("Role updated successfully");
       navigate("/roles");
     } catch (error) {

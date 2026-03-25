@@ -82,16 +82,17 @@ const PaymentMethodsPage = () => {
   const handleSave = async (values: any) => {
     setSaving(true);
     try {
-      const payload = { ...values };
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(values));
 
       if (editingMethod) {
         await api.put(
           `/api/v1/erp/finance/payment-methods/${editingMethod.id}`,
-          payload,
+          formData,
         );
         toast.success("METHOD UPDATED");
       } else {
-        await api.post("/api/v1/erp/finance/payment-methods", payload);
+        await api.post("/api/v1/erp/finance/payment-methods", formData);
         toast.success("METHOD CREATED");
       }
       setOpen(false);

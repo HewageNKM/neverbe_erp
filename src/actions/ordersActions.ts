@@ -31,9 +31,11 @@ export const getOrdersByDateAction = async (date: string) => {
 
 export const updateAOrderAction = async (order: Order) => {
   try {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(order));
     const response = await api.put(
       `/api/v1/erp/orders/${order.orderId}`,
-      order,
+      formData,
     );
     return response.data;
   } catch (e: unknown) {

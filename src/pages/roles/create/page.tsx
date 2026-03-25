@@ -51,8 +51,11 @@ const CreateRolePage = () => {
         name: values.name,
         permissions: values.permissions || [],
       };
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(payload));
+
       const token = await auth.currentUser?.getIdToken();
-      await api.post("/api/v1/erp/users/roles", payload);
+      await api.post("/api/v1/erp/users/roles", formData);
       toast.success("Role created successfully");
       navigate("/roles");
     } catch (error) {

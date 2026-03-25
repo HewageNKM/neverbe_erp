@@ -175,10 +175,12 @@ const InventoryPage = () => {
     const payload = { productId, variantId, size, stockId, quantity };
     const isEditing = !!editingItem;
     try {
+      const fd = new FormData();
+      fd.append("data", JSON.stringify(payload));
       if (isEditing) {
-        await api.put(`/api/v1/erp/inventory/${editingItem!.id}`, payload);
+        await api.put(`/api/v1/erp/inventory/${editingItem!.id}`, fd);
       } else {
-        await api.post("/api/v1/erp/inventory", payload);
+        await api.post("/api/v1/erp/inventory", fd);
       }
       handleCloseModal();
       fetchInventory();

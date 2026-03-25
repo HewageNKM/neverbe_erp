@@ -93,7 +93,9 @@ const SettingPage = () => {
         ecommerce: { ...settings?.ecommerce, enable: values.ecommerceEnabled },
         pos: { ...settings?.pos, enable: values.posEnabled },
       };
-      await api.put("/api/v1/erp/settings/erp", payload);
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(payload));
+      await api.put("/api/v1/erp/settings/erp", formData);
       setSettings(payload);
       toast.success("CONFIGURATION SAVED");
     } catch (err: unknown) {

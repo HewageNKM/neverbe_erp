@@ -3,7 +3,9 @@ import { Expense } from "@/model/Expense";
 
 export const addNewExpenseAction = async (expense: Expense) => {
   try {
-    const response = await api.post("/api/v1/erp/finance/petty-cash", expense);
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(expense));
+    const response = await api.post("/api/v1/erp/finance/petty-cash", formData);
     return response.data;
   } catch (e: unknown) {
     const err = e as {

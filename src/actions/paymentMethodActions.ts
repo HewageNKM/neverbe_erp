@@ -18,9 +18,11 @@ export const createPaymentMethodAction = async (
   paymentMethod: PaymentMethod,
 ) => {
   try {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(paymentMethod));
     const response = await api.post(
       "/api/v1/erp/finance/payment-methods",
-      paymentMethod,
+      formData,
     );
     return response.data;
   } catch (e: unknown) {
@@ -36,9 +38,11 @@ export const updatePaymentMethodAction = async (
   paymentMethod: PaymentMethod,
 ) => {
   try {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(paymentMethod));
     const response = await api.put(
       `/api/v1/erp/finance/payment-methods/${paymentMethod.paymentId.toLowerCase()}`,
-      paymentMethod,
+      formData,
     );
     return response.data;
   } catch (e: unknown) {
